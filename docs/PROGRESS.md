@@ -107,6 +107,15 @@
 - [x] Final version visually distinguished (bold)
 - [x] Versions auto-update via file watcher
 
+### Post-Phase 2 — UX Improvements
+- [x] Open Project button (top bar + empty state) for content directory selection
+- [x] Folder browser replaces flat file dropdown — breadcrumb navigation, drill into subfolders
+- [x] FolderBrowser component with directory listing (folders first, then files)
+- [x] content:listDir IPC handler (non-recursive, immediate children only)
+- [x] DirEntry type for folder/file entries with content type detection
+- [x] Split Content tab layout: folder browser sidebar (left) + preview (right)
+- [x] DevTools auto-open in dev mode for debugging
+
 ---
 
 ## Existing Config (already in repo)
