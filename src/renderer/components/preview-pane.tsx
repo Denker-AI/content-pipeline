@@ -17,9 +17,11 @@ export function PreviewPane() {
     renderMode,
     versions,
     loading,
+    projectRoot,
     refreshCount,
     selectItem,
     selectVersion,
+    openProject,
   } = useContent()
 
   return (
@@ -43,8 +45,15 @@ export function PreviewPane() {
       {activeTab === 'Content' && (
         <div className="flex min-h-0 flex-1 flex-col">
           {/* File selector bar */}
-          {items.length > 0 && (
-            <div className="flex shrink-0 items-center gap-2 border-b border-zinc-700 px-3 py-1.5">
+          <div className="flex shrink-0 items-center gap-2 border-b border-zinc-700 px-3 py-1.5">
+            <button
+              onClick={openProject}
+              className="shrink-0 rounded bg-zinc-700 px-2 py-1 text-xs text-zinc-300 hover:bg-zinc-600"
+              title="Open project folder"
+            >
+              Open
+            </button>
+            {items.length > 0 ? (
               <select
                 value={selectedItem?.path ?? ''}
                 onChange={(e) => {
@@ -61,13 +70,17 @@ export function PreviewPane() {
                   </option>
                 ))}
               </select>
-              {selectedItem && (
-                <span className="shrink-0 text-xs text-zinc-500">
-                  {selectedItem.relativePath}
-                </span>
-              )}
-            </div>
-          )}
+            ) : (
+              <span className="text-xs text-zinc-500">
+                {projectRoot || 'No project'}
+              </span>
+            )}
+            {selectedItem && (
+              <span className="shrink-0 text-xs text-zinc-500">
+                {selectedItem.relativePath}
+              </span>
+            )}
+          </div>
 
           {/* Version selector */}
           {selectedItem && (
@@ -95,8 +108,15 @@ export function PreviewPane() {
                 <div>
                   <p className="text-sm">No content files found.</p>
                   <p className="mt-1 text-xs text-zinc-600">
-                    Ask Claude to create something in the content/ directory.
+                    Open a project with a content/ folder, or ask Claude to
+                    create something.
                   </p>
+                  <button
+                    onClick={openProject}
+                    className="mt-3 rounded bg-blue-600 px-4 py-1.5 text-xs text-white hover:bg-blue-500"
+                  >
+                    Open Project
+                  </button>
                 </div>
               </div>
             ) : (

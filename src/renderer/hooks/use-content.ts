@@ -32,6 +32,7 @@ export function useContent() {
   const [renderMode, setRenderMode] = useState<RenderMode>('unknown')
   const [versions, setVersions] = useState<ContentVersion[]>([])
   const [loading, setLoading] = useState(false)
+  const [projectRoot, setProjectRoot] = useState<string>('')
   const refreshCountRef = useRef(0)
 
   // Load content list
@@ -40,6 +41,8 @@ export function useContent() {
     if (!api) return
     const list = await api.list()
     setItems(list)
+    const root = await api.getProjectRoot()
+    setProjectRoot(root)
   }, [])
 
   // Load a specific file's content
@@ -119,6 +122,19 @@ export function useContent() {
     return cleanup
   }, [loadItems, selectedItem])
 
+  const openProject = useCallback(async () => {
+    const api = window.electronAPI?.content
+    if (!api) return
+    const newRoot = await api.openProject()
+    if (newRoot) {
+      setProjectRoot(newRoot)
+      setSelectedItem(null)
+      setFileContent('')
+      setVersions([])
+      await loadItems()
+    }
+  }, [loadItems])
+
   return {
     items,
     selectedItem,
@@ -126,9 +142,11 @@ export function useContent() {
     renderMode,
     versions,
     loading,
+    projectRoot,
     refreshCount: refreshCountRef.current,
     selectItem: loadFile,
     selectVersion: loadVersion,
+    openProject,
     refresh: loadItems,
   }
 }
