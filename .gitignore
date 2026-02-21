@@ -1,14 +1,20 @@
 # Dependencies
 node_modules/
+.pnp
+.pnp.js
 
 # Build output
 dist/
 out/
 build/
-.next/
 
 # Electron
 release/
+
+# Testing
+coverage/
+test-results/
+playwright-report/
 
 # Environment
 .env
@@ -25,8 +31,7 @@ release/
 .DS_Store
 Thumbs.db
 
-# User settings (secrets)
-# ~/.content-pipeline/settings.json is per-user, not in repo
+# User settings (secrets stored at ~/.content-pipeline/settings.json)
 
 # Logs
 *.log
@@ -35,3 +40,7 @@ npm-debug.log*
 # Cache
 .cache/
 .turbo/
+
+# Temporary files
+tmp/
+temp/
