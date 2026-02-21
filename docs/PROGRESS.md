@@ -1,9 +1,9 @@
 # Project Progress
 
 ## Current State
-- **Next Story**: 8.1 — Pipeline Types + Metadata
+- **Next Story**: 8.2 — Worktree Management
 - **Branch**: `main`
-- **Status**: Phase 1, 2 complete. Stories 3.1 + 6.2 complete. Starting Phase 8.
+- **Status**: Story 8.1 complete. Continuing Phase 8.
 
 ---
 
@@ -13,8 +13,8 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 
 | Order | Story | Title | Status | Deps |
 |-------|-------|-------|--------|------|
-| 1 | 8.1 | Pipeline Types + Metadata | Ready | — |
-| 2 | 8.2 | Worktree Management | Blocked by 8.1 | 8.1 |
+| 1 | 8.1 | Pipeline Types + Metadata | Complete | c84da5a |
+| 2 | 8.2 | Worktree Management | Ready | 8.1 |
 | 3 | 8.3 | Pipeline IPC + Preload | Blocked by 8.2 | 8.1, 8.2 |
 | 4 | 8.4 | Pipeline Sidebar UI | Blocked by 8.3 | 8.3 |
 | 5 | 8.5 | Pipeline Integration | Blocked by 8.4 | 8.4 |
@@ -87,3 +87,9 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 - Project settings (content-pipeline.json)
 - Settings modal with Cmd+, shortcut
 - Theme toggle, API keys, persona config
+
+### Story 8.1 — Pipeline Types + Metadata
+- ContentStage, ContentMetadata, PipelineItem, PipelineAPI types
+- pipeline.ts: listPipelineItems, createContentPiece, readMetadata, writeMetadata, updateStage
+- Legacy content auto-detected with stage 'idea'
+- Active content tracking (in-memory)
