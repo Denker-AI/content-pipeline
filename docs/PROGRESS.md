@@ -1,10 +1,10 @@
 # Project Progress
 
 ## Current State
-- **Phase**: 2 — Live Preview + File Watching
-- **Story**: 2.1 — File Watcher (next up)
-- **Branch**: `main` (Phase 1 merged)
-- **Status**: Phase 1 complete, merged to main
+- **Phase**: 3 — Component Browser + Capture (next)
+- **Story**: 3.1 — Component Browser (next up)
+- **Branch**: `main` (Phase 2 merged)
+- **Status**: Phase 2 complete, merged to main
 
 ---
 
@@ -23,17 +23,17 @@
 
 | Story | Title | Status | Branch | Notes |
 |-------|-------|--------|--------|-------|
-| 2.1 | File Watcher | Ready | — | |
-| 2.2 | Preview Renderer | Blocked by 2.1 | — | |
-| 2.3 | Version Selector | Blocked by 2.2 | — | |
+| 2.1 | File Watcher | Complete | main | 7a0e9d3 |
+| 2.2 | Preview Renderer | Complete | main | de0ecda |
+| 2.3 | Version Selector | Complete | main | de0ecda |
 
 ### Phase 3: Component Browser + Capture
 
 | Story | Title | Status | Branch | Notes |
 |-------|-------|--------|--------|-------|
 | 3.1 | Component Browser | Ready | — | |
-| 3.2 | Component Preview | Blocked by 3.1, 2.2 | — | |
-| 3.3 | Capture Tools | Blocked by 2.2, 3.2 | — | |
+| 3.2 | Component Preview | Blocked by 3.1 | — | |
+| 3.3 | Capture Tools | Blocked by 3.2 | — | |
 
 ### Phase 4-7: Later phases
 
@@ -86,6 +86,26 @@
 - [x] Strip CLAUDECODE env var so `claude` can run inside terminal
 - [x] Optional chaining for window.electronAPI in renderer
 - [x] import.meta.url for __dirname in ESM main process
+
+### Story 2.1 — File Watcher
+- [x] chokidar watches content/ with 500ms debounce
+- [x] Content listing with auto-detection (newsletter, linkedin, blog, asset)
+- [x] IPC: content:list, content:openProject, content:getProjectRoot
+- [x] File change events forwarded to renderer
+
+### Story 2.2 — Preview Renderer
+- [x] ContentRenderer: iframe for HTML, marked for markdown
+- [x] RenderMode detection (newsletter 600px, linkedin, carousel 1080x1350, blog, asset)
+- [x] useContent hook with file-change auto-refresh
+- [x] File selector dropdown in preview pane
+- [x] Empty state message
+- [x] content:read IPC with path security check
+
+### Story 2.3 — Version Selector
+- [x] VersionSelector tab bar for newsletter drafts
+- [x] content:listVersions IPC for draft detection
+- [x] Final version visually distinguished (bold)
+- [x] Versions auto-update via file watcher
 
 ---
 
