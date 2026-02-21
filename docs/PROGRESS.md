@@ -1,144 +1,89 @@
 # Project Progress
 
 ## Current State
-- **Phase**: 3 — Component Browser + Capture (in progress)
-- **Story**: 3.2 — Component Preview (next up)
-- **Branch**: `main` (Stories 3.1 + 6.2 merged)
-- **Status**: Stories 3.1 and 6.2 complete, merged to main
+- **Next Story**: 8.1 — Pipeline Types + Metadata
+- **Branch**: `main`
+- **Status**: Phase 1, 2 complete. Stories 3.1 + 6.2 complete. Starting Phase 8.
 
 ---
 
-## Story Progress
+## Execution Order
+
+Stories are executed in this exact order. Each session picks the next `Ready` story.
+
+| Order | Story | Title | Status | Deps |
+|-------|-------|-------|--------|------|
+| 1 | 8.1 | Pipeline Types + Metadata | Ready | — |
+| 2 | 8.2 | Worktree Management | Blocked by 8.1 | 8.1 |
+| 3 | 8.3 | Pipeline IPC + Preload | Blocked by 8.2 | 8.1, 8.2 |
+| 4 | 8.4 | Pipeline Sidebar UI | Blocked by 8.3 | 8.3 |
+| 5 | 8.5 | Pipeline Integration | Blocked by 8.4 | 8.4 |
+| 6 | 3.2 | Component Preview | Ready | 3.1 |
+| 7 | 3.3 | Capture Tools | Blocked by 3.2 | 3.2 |
+| 8 | 4.1 | Annotations | Ready | 2.2 |
+| 9 | 5.1 | LinkedIn Publisher | Ready | 6.2 |
+| 10 | 5.2 | Resend Newsletter | Ready | 6.2 |
+| 11 | 5.3 | Blog Publisher | Ready | 6.2 |
+| 12 | 7.1 | Packaging | Blocked by all | All |
+| 13 | 7.2 | Homebrew + npm | Blocked by 7.1 | 7.1 |
+
+**Note**: Story 6.1 (Content Library) merged into 8.4/8.5 — pipeline sidebar IS the library.
+
+---
+
+## Completed Stories
 
 ### Phase 1: Electron Shell + Terminal
 
-| Story | Title | Status | Branch | Notes |
-|-------|-------|--------|--------|-------|
-| 1.1 | Scaffold Electron App | Complete | main | c922364 |
-| 1.2 | Split Pane Layout | Complete | main | 15532b7 |
-| 1.3 | Terminal Integration | Complete | main | 85ed0cf |
-| 1.4 | Terminal Output Parsing | Complete | main | 909540a |
+| Story | Title | Commit |
+|-------|-------|--------|
+| 1.1 | Scaffold Electron App | c922364 |
+| 1.2 | Split Pane Layout | 15532b7 |
+| 1.3 | Terminal Integration | 85ed0cf |
+| 1.4 | Terminal Output Parsing | 909540a |
 
 ### Phase 2: Live Preview + File Watching
 
-| Story | Title | Status | Branch | Notes |
-|-------|-------|--------|--------|-------|
-| 2.1 | File Watcher | Complete | main | 7a0e9d3 |
-| 2.2 | Preview Renderer | Complete | main | de0ecda |
-| 2.3 | Version Selector | Complete | main | de0ecda |
-
-### Phase 3: Component Browser + Capture
-
-| Story | Title | Status | Branch | Notes |
-|-------|-------|--------|--------|-------|
-| 3.1 | Component Browser | Complete | main | 7dc01e2 |
-| 3.2 | Component Preview | Ready | — | |
-| 3.3 | Capture Tools | Blocked by 3.2 | — | |
-
-### Phase 4-7: Later phases
-
-| Story | Title | Status |
+| Story | Title | Commit |
 |-------|-------|--------|
-| 4.1 | Annotations | Blocked |
-| 5.1 | LinkedIn Publisher | Blocked |
-| 5.2 | Resend Publisher | Blocked |
-| 5.3 | Blog Publisher | Blocked |
-| 6.1 | Content Library | Blocked |
-| 6.2 | Settings Panel | Complete |
-| 7.1 | Packaging | Blocked by all |
-| 7.2 | Homebrew + npm | Blocked by 7.1 |
+| 2.1 | File Watcher | 7a0e9d3 |
+| 2.2 | Preview Renderer | de0ecda |
+| 2.3 | Version Selector | de0ecda |
+
+### Other Completed
+
+| Story | Title | Commit |
+|-------|-------|--------|
+| 3.1 | Component Browser | 7dc01e2 |
+| 6.2 | Settings Panel | 1d4216a |
 
 ---
 
 ## Milestone Log
 
-### Story 1.1 — Scaffold Electron App
-- [x] package.json with all deps (Electron 34, Vite 6, React 19, Tailwind 4)
-- [x] vite.config.ts with vite-plugin-electron
-- [x] electron-builder.yml for cross-platform packaging
-- [x] Electron main process (index.ts, window.ts)
-- [x] Renderer with React + Tailwind (App.tsx, main.tsx, globals.css)
-- [x] Shared types placeholder
-- [x] All checks pass: typecheck, lint, build
+### Phase 1 Milestones
+- Electron 34 + Vite 6 + React 19 + Tailwind 4 scaffold
+- Split pane with draggable resizer (20-80%)
+- xterm.js + node-pty terminal integration
+- Terminal output parsing (file changes, session ID, tokens/cost)
+- Runtime fixes: CJS preload, spawn-helper chmod, electron-rebuild
 
-### Story 1.2 — Split Pane Layout
-- [x] SplitPane component with draggable resizer (20-80% constraints)
-- [x] TerminalPane placeholder (left)
-- [x] PreviewPane with Content/Components/Library tabs (right)
-- [x] StatusBar with session/cost/tokens display
-
-### Story 1.3 — Terminal Integration
-- [x] node-pty for shell spawning in main process
-- [x] xterm.js with FitAddon in renderer
-- [x] Preload script for secure IPC bridging
-- [x] Auto-resize on pane changes via ResizeObserver
-
-### Story 1.4 — Terminal Output Parsing
-- [x] TerminalParser class with ANSI stripping
-- [x] File change detection (Write/Edit tool patterns)
-- [x] Session ID and token/cost extraction
-- [x] Live status bar updates via parsed events
-
-### Runtime Fixes (post-QA)
-- [x] Preload script as CJS (Electron sandbox requires CommonJS)
-- [x] node-pty spawn-helper chmod +x (postinstall)
-- [x] electron-rebuild for native module ABI compatibility
-- [x] Strip CLAUDECODE env var so `claude` can run inside terminal
-- [x] Optional chaining for window.electronAPI in renderer
-- [x] import.meta.url for __dirname in ESM main process
-
-### Story 2.1 — File Watcher
-- [x] chokidar watches content/ with 500ms debounce
-- [x] Content listing with auto-detection (newsletter, linkedin, blog, asset)
-- [x] IPC: content:list, content:openProject, content:getProjectRoot
-- [x] File change events forwarded to renderer
-
-### Story 2.2 — Preview Renderer
-- [x] ContentRenderer: iframe for HTML, marked for markdown
-- [x] RenderMode detection (newsletter 600px, linkedin, carousel 1080x1350, blog, asset)
-- [x] useContent hook with file-change auto-refresh
-- [x] File selector dropdown in preview pane
-- [x] Empty state message
-- [x] content:read IPC with path security check
-
-### Story 2.3 — Version Selector
-- [x] VersionSelector tab bar for newsletter drafts
-- [x] content:listVersions IPC for draft detection
-- [x] Final version visually distinguished (bold)
-- [x] Versions auto-update via file watcher
-
-### Post-Phase 2 — UX Improvements
-- [x] Open Project button (top bar + empty state) for content directory selection
-- [x] Folder browser replaces flat file dropdown — breadcrumb navigation, drill into subfolders
-- [x] FolderBrowser component with directory listing (folders first, then files)
-- [x] content:listDir IPC handler (non-recursive, immediate children only)
-- [x] DirEntry type for folder/file entries with content type detection
-- [x] Split Content tab layout: folder browser sidebar (left) + preview (right)
-- [x] DevTools auto-open in dev mode for debugging
+### Phase 2 Milestones
+- chokidar file watcher with 500ms debounce
+- ContentRenderer: iframe for HTML, marked for markdown
+- RenderMode detection (newsletter, linkedin, carousel, blog, asset)
+- Version selector for newsletter drafts
+- Folder browser with breadcrumb navigation
+- Open Project button + content directory selection
 
 ### Story 3.1 — Component Browser
-- [x] Terminal parser detects .tsx/.jsx file paths in Claude output
-- [x] PascalCase component name extraction from filenames
-- [x] ComponentBrowser with deduplicated component list
-- [x] ComponentCard with name, path, and Preview button
-- [x] Components tab wired up in PreviewPane
-- [x] IPC + preload for component-found events
+- Terminal parser detects .tsx/.jsx file paths
+- PascalCase component name extraction
+- ComponentBrowser with deduplicated list + ComponentCard
+- IPC + preload for component-found events
 
 ### Story 6.2 — Settings Panel
-- [x] Settings manager: read/write user settings (~/.content-pipeline/settings.json)
-- [x] Settings manager: read/write project settings (content-pipeline.json)
-- [x] Settings IPC handlers (getUser, saveUser, getProject, saveProject)
-- [x] SettingsPanel modal with User Settings and Project Settings sections
-- [x] Theme toggle (light/dark), API key inputs, persona config
-- [x] Application menu with Settings item (Cmd+,)
-- [x] Keyboard shortcut Cmd+, to open settings
-
----
-
-## Existing Config (already in repo)
-- `tsconfig.json` — strict mode, path aliases
-- `.eslintrc.json` — TS + React + import sorting (ESLint 8)
-- `vitest.config.ts` — happy-dom, v8 coverage
-- `prettier.config.js` — single quotes, no semi
-- `.husky/` — branch protection
-- `.github/workflows/` — CI (test + claude)
+- User settings (~/.content-pipeline/settings.json)
+- Project settings (content-pipeline.json)
+- Settings modal with Cmd+, shortcut
+- Theme toggle, API keys, persona config

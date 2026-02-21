@@ -1,152 +1,159 @@
-# Agent Workflow Guide
+# Autonomous Session Workflow
 
-This document governs how Claude Code sessions and subagents work on this project.
-Every session (orchestrator or subagent) MUST follow these rules.
-
----
-
-## Session Startup (EVERY session)
-
-1. **Read `docs/PROGRESS.md`** — know what's done and what's next
-2. **Read the current story** in `docs/stories/` — understand acceptance criteria
-3. **Run `git log --oneline -10`** — see recent commits
-4. **Run `git branch`** — confirm correct branch
-
-Do NOT start writing code until you've done all four.
+Each Claude Code session is fully autonomous. No human interaction needed.
+Follow this protocol exactly, step by step.
 
 ---
 
-## Orchestrator Role
-
-The orchestrator (main Claude Code session) is responsible for:
-
-- **Planning**: Break the story into small milestones (max 3-5 files per milestone)
-- **Delegating**: Spawn subagents for focused file-writing tasks
-- **Verifying**: Read key files after subagent returns, run checks
-- **Committing**: Git commit after each verified milestone
-- **Updating progress**: Update `docs/PROGRESS.md` after each commit
-
-### Orchestrator Loop
+## Phase 1: Orient (read-only, ~2 min)
 
 ```
-For each milestone in the story:
-  1. Spawn subagent with focused task + exact file specs
-  2. Wait for subagent to return
-  3. Verify: quick file read + run checks (typecheck, lint)
-  4. Fix any issues (small fixes directly, big issues re-delegate)
-  5. Git commit with descriptive message
-  6. Update docs/PROGRESS.md
-  → Next milestone
+1. Read docs/PROGRESS.md → find the next story with status "Ready"
+2. Read the story file in docs/stories/<story>.md → understand acceptance criteria
+3. Run: git log --oneline -5
+4. Run: git branch → confirm on main
+5. Run: git status → confirm clean working tree
 ```
 
-### Context Protection
-
-- **Never** accumulate large file contents in orchestrator context
-- Delegate file writing to subagents — they handle the details
-- Keep orchestrator messages short: status updates, decisions, commits
-- If context is getting large, commit current work and note status in PROGRESS.md
+**STOP if**: no story is Ready (all blocked or complete). Post to Slack and exit.
 
 ---
 
-## Subagent Rules
+## Phase 2: Plan (read-only, ~5 min)
 
-When spawned as a subagent:
+```
+1. Read EVERY file listed in the story's "Files to Create/Edit" section
+2. Read related files to understand patterns (check imports, types, existing code)
+3. Write a brief plan as a comment to yourself (do NOT create a file):
+   - List exact files to create/modify/delete
+   - Note any tricky parts or edge cases
+   - Confirm the story is implementable as-written
+```
 
-1. **Read the task description carefully** — it contains everything you need
-2. **Write only the files specified** — do not create extra files
-3. **Follow existing patterns** — check existing config files if unsure about style
-4. **No git operations** — the orchestrator handles all commits
-5. **No architectural decisions** — follow the specs given to you
-6. **Return a clear summary** — list files created/modified and any issues encountered
-
-### File Writing Standards
-
-- TypeScript strict mode — no `any` types unless absolutely necessary
-- Single quotes, no semicolons, 2-space indent (prettier config)
-- Import order: react/electron → packages → @/shared → @/main → @/renderer → relative
-- No `console.log` in production code (use `console.warn` or `console.error` if needed)
-- No duplicate functions or unused imports
+**STOP if**: story spec is unclear or contradicts existing code. Post to Slack asking for clarification and exit.
 
 ---
 
-## Git Commit Strategy
+## Phase 3: Implement (write code, ~15 min)
 
-### Branch Naming
 ```
-feature/story-X.Y-short-description
+1. Create branch: git checkout -b feature/story-<X.Y>-<short-name>
+2. Write code — follow these rules:
+   - Read a file BEFORE editing it
+   - TypeScript strict, Tailwind only, no console.log
+   - Single quotes, no semicolons, 2-space indent
+   - Use optional chaining for window.electronAPI?.
+   - No duplicate functions, no unused imports
+   - Follow existing patterns in the codebase
+3. Commit after each logical milestone (don't wait until the end)
 ```
-
-### Commit Messages
-```
-feat: short description of what was added
-fix: short description of what was fixed
-chore: tooling, config, or docs update
-```
-
-### When to Commit
-- After each milestone (group of related files that work together)
-- After fixing a failing check
-- Before moving to the next logical step
-- **NEVER** commit broken code — verify first
-
-### Commit Checklist
-Before every commit:
-- [ ] `bun typecheck` passes (once package.json exists)
-- [ ] `bun lint` passes (once package.json exists)
-- [ ] No duplicate functions
-- [ ] No unused imports
-- [ ] Files match the story spec
 
 ---
 
-## Progress Tracking
+## Phase 4: Verify (mandatory, ~3 min)
 
-### Slack Updates (MANDATORY for orchestrator)
-
-Channel: `#content-pipeline-app` — ID: `C0AGCQNCKPU`
-
-Post a Slack message after each milestone commit using this format:
 ```
-*Content Pipeline | Story X.Y — Title*
-Step N/total complete: Brief description of what was done
-Commit: <hash>
-Next: What comes next
-```
-
-Post a summary when a story is fully complete:
-```
-*Content Pipeline | Story X.Y COMPLETE*
-All acceptance criteria met. PR ready / merged.
-Next story: X.Y — Title
+1. bun lint → fix any errors
+2. bun typecheck → fix any errors
+3. bun run build → fix any errors (NOT "bun build")
+4. Re-read each modified file → check for:
+   - Duplicate functions
+   - Unused imports
+   - Mixed old/new patterns
+   - Missing cleanup in ipc.ts (removeHandler)
 ```
 
-### After Each Commit
-Update `docs/PROGRESS.md` with:
-- What was committed
-- Current status of the story
-- What's next
-
-### After Each Story
-Update `docs/PROGRESS.md` with:
-- Story marked as complete
-- Any notes for the next story
-- Update the "Current Story" field
+**Loop**: if anything fails, fix and re-verify. Do NOT skip this phase.
 
 ---
 
-## Parallel Work
+## Phase 5: Merge (git operations, ~1 min)
 
-Subagents can run in parallel when their files don't overlap:
-- Main process files (src/main/*) and renderer files (src/renderer/*) are independent
-- Config files should be written sequentially (they may reference each other)
-- Always verify after parallel agents return — check for conflicts
+```
+1. git checkout main
+2. git merge feature/story-<X.Y>-<short-name> --no-edit
+3. git push --no-verify
+4. git branch -d feature/story-<X.Y>-<short-name>
+```
+
+NO pull requests. Direct merge to main during development.
 
 ---
 
-## Recovery
+## Phase 6: Update Docs (~2 min)
 
-If a session dies or context overflows:
-1. Check `docs/PROGRESS.md` for last known state
-2. Run `git log --oneline -10` to see committed work
-3. Run `git status` to see uncommitted changes
-4. Continue from where things left off — don't restart the story
+```
+1. Update docs/PROGRESS.md:
+   - Move completed story from execution order to completed section
+   - Update "Next Story" to the next Ready story
+   - Unblock any stories that depended on the completed one (change "Blocked" → "Ready")
+   - Add milestone log entry
+2. Commit: git add docs/PROGRESS.md && git commit -m "chore: mark story X.Y complete"
+3. git push --no-verify
+```
+
+---
+
+## Phase 7: Notify (~1 min)
+
+Post to Slack channel `#content-pipeline-app` (ID: `C0AGCQNCKPU`):
+
+```
+*Content Pipeline | Story X.Y — Title COMPLETE*
+Summary: 1-2 sentences of what was built
+Files: N created, M modified
+Next: Story X.Y — Title
+```
+
+---
+
+## Phase 8: Exit
+
+Session is done. The next session will pick up the next Ready story.
+
+---
+
+## Rules
+
+### DO
+- Follow the phases in order, every time
+- Read files before editing them
+- Run all three checks (lint, typecheck, build) before merging
+- Update PROGRESS.md after every story
+- Post to Slack after every story
+- Keep commits small and descriptive
+
+### DO NOT
+- Skip the verify phase
+- Merge broken code to main
+- Work on multiple stories in one session
+- Create files not mentioned in the story spec
+- Add features beyond the acceptance criteria
+- Use subagents or parallel execution — work sequentially
+- Leave uncommitted changes
+
+### Recovery
+If a session dies mid-story:
+1. Next session reads PROGRESS.md → sees story still "Ready"
+2. Checks git status/log for partial work
+3. Continues from where it left off (don't restart)
+
+---
+
+## File Conventions
+
+- Story specs: `docs/stories/<X.Y>-<name>.md`
+- Progress: `docs/PROGRESS.md` (source of truth for what's next)
+- Main process: `src/main/` (Node.js, file I/O, IPC)
+- Renderer: `src/renderer/` (React, Tailwind)
+- Shared types: `src/shared/types.ts`
+- Preload: `src/main/preload.cjs` (CommonJS)
+- Config: tsconfig.json, .eslintrc.json, vitest.config.ts, prettier.config.js
+
+## Commit Message Format
+
+```
+feat: <what was added>     — new functionality
+fix: <what was fixed>      — bug fix
+chore: <what changed>      — docs, config, tooling
+```
