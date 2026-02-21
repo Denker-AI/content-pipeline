@@ -34,6 +34,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   content: {
     list: () => ipcRenderer.invoke('content:list'),
+    read: (filePath) => ipcRenderer.invoke('content:read', filePath),
+    listVersions: (filePath) =>
+      ipcRenderer.invoke('content:listVersions', filePath),
     openProject: () => ipcRenderer.invoke('content:openProject'),
     getProjectRoot: () => ipcRenderer.invoke('content:getProjectRoot'),
   },

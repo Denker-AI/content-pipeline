@@ -23,6 +23,23 @@ export interface ContentItem {
   date: string | null
 }
 
+// Rendering hint for the preview pane
+export type RenderMode =
+  | 'newsletter' // 600px iframe
+  | 'linkedin-preview' // feed-width iframe
+  | 'linkedin-text' // rendered text + char count
+  | 'carousel-slide' // 1080x1350 aspect ratio
+  | 'blog' // rendered markdown
+  | 'asset' // raw HTML iframe
+  | 'unknown'
+
+// Version info for content with multiple drafts
+export interface ContentVersion {
+  label: string // "v1", "v2", "final"
+  path: string // absolute path
+  isFinal: boolean
+}
+
 // Terminal IPC API exposed via preload script
 export interface TerminalAPI {
   onData: (callback: (data: string) => void) => () => void
@@ -39,6 +56,8 @@ export interface FileWatcherAPI {
 // Content API exposed via preload
 export interface ContentAPI {
   list: () => Promise<ContentItem[]>
+  read: (filePath: string) => Promise<string>
+  listVersions: (filePath: string) => Promise<ContentVersion[]>
   openProject: () => Promise<string | null>
   getProjectRoot: () => Promise<string>
 }
