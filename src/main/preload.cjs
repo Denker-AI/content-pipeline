@@ -21,6 +21,20 @@ contextBridge.exposeInMainWorld('electronAPI', {
     },
     resize: (cols, rows) => {
       ipcRenderer.send('terminal:resize', cols, rows)
-    }
-  }
+    },
+  },
+  files: {
+    onFileChange: (callback) => {
+      const listener = (_event, data) => callback(data)
+      ipcRenderer.on('file:change', listener)
+      return () => {
+        ipcRenderer.removeListener('file:change', listener)
+      }
+    },
+  },
+  content: {
+    list: () => ipcRenderer.invoke('content:list'),
+    openProject: () => ipcRenderer.invoke('content:openProject'),
+    getProjectRoot: () => ipcRenderer.invoke('content:getProjectRoot'),
+  },
 })
