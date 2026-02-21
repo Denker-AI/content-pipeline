@@ -64,4 +64,23 @@ contextBridge.exposeInMainWorld('electronAPI', {
       }
     },
   },
+  pipeline: {
+    listPipelineItems: () => ipcRenderer.invoke('pipeline:list'),
+    createContent: (type) => ipcRenderer.invoke('pipeline:create', type),
+    updateStage: (metadataPath, stage) =>
+      ipcRenderer.invoke('pipeline:updateStage', metadataPath, stage),
+    updateMetadata: (metadataPath, metadata) =>
+      ipcRenderer.invoke('pipeline:updateMetadata', metadataPath, metadata),
+    readMetadata: (metadataPath) =>
+      ipcRenderer.invoke('pipeline:readMetadata', metadataPath),
+    activateContent: (item) => ipcRenderer.invoke('pipeline:activate', item),
+    getActiveContent: () => ipcRenderer.invoke('pipeline:getActive'),
+    onPipelineChanged: (callback) => {
+      const listener = () => callback()
+      ipcRenderer.on('pipeline:contentChanged', listener)
+      return () => {
+        ipcRenderer.removeListener('pipeline:contentChanged', listener)
+      }
+    },
+  },
 })

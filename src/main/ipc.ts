@@ -4,11 +4,27 @@ import { dialog, ipcMain } from 'electron'
 import fs from 'fs/promises'
 import path from 'path'
 
-import type { ProjectSettings, UserSettings } from '@/shared/types'
+import type {
+  ContentMetadata,
+  ContentStage,
+  ContentType,
+  PipelineItem,
+  ProjectSettings,
+  UserSettings,
+} from '@/shared/types'
 
 import { listContent, listDir, listVersions } from './content'
 import { onFileChange, startWatcher, stopWatcher } from './file-watcher'
-import { createPty, destroyPty, resizePty, writePty } from './pty'
+import {
+  createContentPiece,
+  getActiveContent,
+  listPipelineItems,
+  readMetadata,
+  setActiveContent,
+  updateStage,
+  writeMetadata,
+} from './pipeline'
+import { changePtyDirectory, createPty, destroyPty, resizePty, writePty } from './pty'
 import {
   loadProjectSettings,
   loadUserSettings,
@@ -16,6 +32,7 @@ import {
   saveUserSettings,
 } from './settings'
 import { TerminalParser } from './terminal-parser'
+import { createWorktree, isGitRepo } from './worktree'
 
 let projectRoot: string = process.cwd()
 
@@ -137,10 +154,126 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
       saveProjectSettings(projectRoot, settings),
   )
 
+  // Pipeline IPC handlers
+  ipcMain.handle('pipeline:list', async () => {
+    return listPipelineItems(getContentDir())
+  })
+
+  ipcMain.handle(
+    'pipeline:create',
+    async (_event, type: ContentType) => {
+      const contentDir = getContentDir()
+      const item = await createContentPiece(contentDir, type)
+
+      // If project is a git repo, create a worktree
+      if (await isGitRepo(projectRoot)) {
+        const branch = `content/${item.id}`
+        const worktreePath = path.join(projectRoot, '.worktrees', item.id)
+        const worktree = await createWorktree(projectRoot, branch, worktreePath)
+        await writeMetadata(item.metadataPath, {
+          worktreeBranch: worktree.branch,
+          worktreePath: worktree.path,
+        })
+        item.worktreeBranch = worktree.branch
+        item.worktreePath = worktree.path
+      }
+
+      // Activate the new content piece
+      setActiveContent(item)
+      const watchDir = item.worktreePath
+        ? path.join(item.worktreePath, 'content')
+        : contentDir
+      stopWatcher()
+      startWatcher(watchDir)
+      if (item.worktreePath) {
+        changePtyDirectory(item.worktreePath)
+      }
+
+      // Type starter prompt into PTY (no Enter — let user complete)
+      const starterPrompts: Record<string, string> = {
+        linkedin: 'Create a LinkedIn post about ',
+        blog: 'Write a blog post about ',
+        newsletter: 'Create a newsletter about ',
+      }
+      const prompt = starterPrompts[type]
+      if (prompt) {
+        writePty(prompt)
+      }
+
+      // Notify renderer
+      if (!mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('pipeline:contentChanged')
+      }
+
+      return item
+    },
+  )
+
+  ipcMain.handle(
+    'pipeline:updateStage',
+    async (_event, metadataPath: string, stage: ContentStage) => {
+      await updateStage(metadataPath, stage)
+      if (!mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('pipeline:contentChanged')
+      }
+    },
+  )
+
+  ipcMain.handle(
+    'pipeline:updateMetadata',
+    async (_event, metadataPath: string, updates: Partial<ContentMetadata>) => {
+      await writeMetadata(metadataPath, updates)
+      if (!mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('pipeline:contentChanged')
+      }
+    },
+  )
+
+  ipcMain.handle(
+    'pipeline:readMetadata',
+    async (_event, metadataPath: string) => {
+      return readMetadata(metadataPath)
+    },
+  )
+
+  ipcMain.handle(
+    'pipeline:activate',
+    async (_event, item: PipelineItem) => {
+      setActiveContent(item)
+
+      // Switch PTY directory if worktree
+      if (item.worktreePath) {
+        changePtyDirectory(item.worktreePath)
+      }
+
+      // Restart file watcher on active content's directory
+      const watchDir = item.worktreePath
+        ? path.join(item.worktreePath, 'content')
+        : item.contentDir
+      stopWatcher()
+      startWatcher(watchDir)
+    },
+  )
+
+  ipcMain.handle('pipeline:getActive', () => {
+    return getActiveContent()
+  })
+
+  // Watch for metadata.json changes and notify renderer
+  const unsubscribePipeline = onFileChange((event) => {
+    if (
+      event.path.endsWith('metadata.json') &&
+      !mainWindow.isDestroyed()
+    ) {
+      mainWindow.webContents.send('pipeline:contentChanged')
+    }
+  })
+
   // Cleanup
   mainWindow.on('closed', () => {
     destroyPty()
     unsubscribe()
+    unsubscribePipeline()
     stopWatcher()
     ipcMain.removeAllListeners('terminal:input')
     ipcMain.removeAllListeners('terminal:resize')
@@ -154,5 +287,12 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     ipcMain.removeHandler('settings:saveUser')
     ipcMain.removeHandler('settings:getProject')
     ipcMain.removeHandler('settings:saveProject')
+    ipcMain.removeHandler('pipeline:list')
+    ipcMain.removeHandler('pipeline:create')
+    ipcMain.removeHandler('pipeline:updateStage')
+    ipcMain.removeHandler('pipeline:updateMetadata')
+    ipcMain.removeHandler('pipeline:readMetadata')
+    ipcMain.removeHandler('pipeline:activate')
+    ipcMain.removeHandler('pipeline:getActive')
   })
 }
