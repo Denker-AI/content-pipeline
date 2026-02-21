@@ -1,7 +1,12 @@
 import fs from 'fs/promises'
 import path from 'path'
 
-import type { ContentItem, ContentType, ContentVersion } from '@/shared/types'
+import type {
+  ContentItem,
+  ContentType,
+  ContentVersion,
+  DirEntry,
+} from '@/shared/types'
 
 /**
  * Detect content type from relative path within content/.
@@ -102,6 +107,55 @@ export async function listContent(contentDir: string): Promise<ContentItem[]> {
   })
 
   return items
+}
+
+/**
+ * List immediate children of a directory (non-recursive).
+ * Directories first, then files. Sorted alphabetically within each group.
+ */
+export async function listDir(
+  dirPath: string,
+  contentDir: string,
+): Promise<DirEntry[]> {
+  let entries: import('fs').Dirent[]
+  try {
+    entries = (await fs.readdir(dirPath, {
+      withFileTypes: true,
+    })) as import('fs').Dirent[]
+  } catch {
+    return []
+  }
+
+  const dirs: DirEntry[] = []
+  const files: DirEntry[] = []
+
+  for (const entry of entries) {
+    const name = String(entry.name)
+    if (name.startsWith('.')) continue
+
+    const fullPath = path.join(dirPath, name)
+    const relativePath = path.relative(contentDir, fullPath)
+
+    const item: DirEntry = {
+      name,
+      path: fullPath,
+      relativePath,
+      isDirectory: entry.isDirectory(),
+      contentType: entry.isDirectory() ? 'unknown' : detectContentType(relativePath),
+      date: extractDate(relativePath),
+    }
+
+    if (entry.isDirectory()) {
+      dirs.push(item)
+    } else {
+      files.push(item)
+    }
+  }
+
+  dirs.sort((a, b) => a.name.localeCompare(b.name))
+  files.sort((a, b) => a.name.localeCompare(b.name))
+
+  return [...dirs, ...files]
 }
 
 /**

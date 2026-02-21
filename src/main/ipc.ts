@@ -4,7 +4,7 @@ import { dialog, ipcMain } from 'electron'
 import fs from 'fs/promises'
 import path from 'path'
 
-import { listContent, listVersions } from './content'
+import { listContent, listDir, listVersions } from './content'
 import { onFileChange, startWatcher, stopWatcher } from './file-watcher'
 import { createPty, destroyPty, resizePty, writePty } from './pty'
 import { TerminalParser } from './terminal-parser'
@@ -62,6 +62,15 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     return listContent(getContentDir())
   })
 
+  ipcMain.handle('content:listDir', async (_event, dirPath: string) => {
+    const contentDir = getContentDir()
+    const resolved = path.resolve(dirPath)
+    if (!resolved.startsWith(contentDir)) {
+      throw new Error('Access denied: directory outside content directory')
+    }
+    return listDir(resolved, contentDir)
+  })
+
   ipcMain.handle('content:read', async (_event, filePath: string) => {
     // Security: only allow reading from content directory
     const contentDir = getContentDir()
@@ -107,6 +116,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     ipcMain.removeAllListeners('terminal:input')
     ipcMain.removeAllListeners('terminal:resize')
     ipcMain.removeHandler('content:list')
+    ipcMain.removeHandler('content:listDir')
     ipcMain.removeHandler('content:read')
     ipcMain.removeHandler('content:listVersions')
     ipcMain.removeHandler('content:getProjectRoot')

@@ -33,6 +33,16 @@ export type RenderMode =
   | 'asset' // raw HTML iframe
   | 'unknown'
 
+// Directory entry for folder browsing
+export interface DirEntry {
+  name: string
+  path: string // absolute path
+  relativePath: string // relative to content/
+  isDirectory: boolean
+  contentType: ContentType // detected type (for files)
+  date: string | null
+}
+
 // Version info for content with multiple drafts
 export interface ContentVersion {
   label: string // "v1", "v2", "final"
@@ -56,6 +66,7 @@ export interface FileWatcherAPI {
 // Content API exposed via preload
 export interface ContentAPI {
   list: () => Promise<ContentItem[]>
+  listDir: (dirPath: string) => Promise<DirEntry[]>
   read: (filePath: string) => Promise<string>
   listVersions: (filePath: string) => Promise<ContentVersion[]>
   openProject: () => Promise<string | null>

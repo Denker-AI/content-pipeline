@@ -34,6 +34,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   content: {
     list: () => ipcRenderer.invoke('content:list'),
+    listDir: (dirPath) => ipcRenderer.invoke('content:listDir', dirPath),
     read: (filePath) => ipcRenderer.invoke('content:read', filePath),
     listVersions: (filePath) =>
       ipcRenderer.invoke('content:listVersions', filePath),
