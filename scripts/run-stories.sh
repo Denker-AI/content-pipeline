@@ -57,11 +57,45 @@ while true; do
   echo ""
 
   # Run Claude in headless mode with full permissions
+  # --output-format stream-json streams progress as JSON lines
+  # We pipe through a filter to show human-readable progress
   claude -p "$PROMPT" \
     --dangerously-skip-permissions \
     --model opus \
-    --verbose \
-    2>&1 || true
+    --output-format stream-json \
+    2>&1 | while IFS= read -r line; do
+      # Extract text content from stream-json for readable output
+      type=$(echo "$line" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('type',''))" 2>/dev/null || echo "")
+      if [ "$type" = "assistant" ]; then
+        # Show assistant text messages
+        echo "$line" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+for block in d.get('message',{}).get('content',[]):
+  if block.get('type') == 'text':
+    print(block['text'])
+  elif block.get('type') == 'tool_use':
+    name = block.get('name','')
+    inp = block.get('input',{})
+    if name == 'Bash':
+      print(f'  > {inp.get(\"command\",\"\")[:120]}')
+    elif name in ('Read','Write','Edit'):
+      print(f'  [{name}] {inp.get(\"file_path\",\"\")[:100]}')
+    elif name == 'Glob':
+      print(f'  [Glob] {inp.get(\"pattern\",\"\")}')
+    elif name == 'Grep':
+      print(f'  [Grep] {inp.get(\"pattern\",\"\")}')
+    else:
+      print(f'  [{name}]')
+" 2>/dev/null || true
+      elif [ "$type" = "result" ]; then
+        echo "$line" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+print(d.get('result','')[:500])
+" 2>/dev/null || true
+      fi
+    done || true
 
   # Don't exit on failure — continue to next iteration
   echo ""
