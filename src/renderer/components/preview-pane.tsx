@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
-import type { PipelineItem } from '@/shared/types'
+import type { DetectedComponent, PipelineItem } from '@/shared/types'
 
 import { useContent } from '../hooks/use-content'
 
 import { ComponentBrowser } from './component-browser'
+import { ComponentPreview } from './component-preview'
 import { ContentRenderer } from './content-renderer'
 import { PipelineSidebar } from './pipeline-sidebar'
 import { VersionSelector } from './version-selector'
@@ -12,9 +13,14 @@ import { VersionSelector } from './version-selector'
 const tabs = ['Content', 'Components'] as const
 type Tab = (typeof tabs)[number]
 
+const DEFAULT_APP_URL = 'http://localhost:3000'
+
 export function PreviewPane() {
   const [activeTab, setActiveTab] = useState<Tab>('Content')
   const [activeContentDir, setActiveContentDir] = useState<string | undefined>()
+  const [previewComponent, setPreviewComponent] =
+    useState<DetectedComponent | null>(null)
+  const [appUrl, setAppUrl] = useState(DEFAULT_APP_URL)
   const {
     selectedItem,
     fileContent,
@@ -28,9 +34,27 @@ export function PreviewPane() {
     openProject,
   } = useContent(activeContentDir)
 
+  // Load appUrl from user settings
+  useEffect(() => {
+    window.electronAPI?.settings
+      .getUser()
+      .then((s) => {
+        if (s.appUrl) setAppUrl(s.appUrl)
+      })
+      .catch(() => {})
+  }, [])
+
   const handleItemSelect = (item: PipelineItem) => {
     setActiveContentDir(item.contentDir)
   }
+
+  const handlePreview = useCallback((component: DetectedComponent) => {
+    setPreviewComponent(component)
+  }, [])
+
+  const handleBackFromPreview = useCallback(() => {
+    setPreviewComponent(null)
+  }, [])
 
   return (
     <div className="flex h-full flex-col bg-zinc-900">
@@ -40,7 +64,10 @@ export function PreviewPane() {
           {tabs.map((tab) => (
             <button
               key={tab}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => {
+                setActiveTab(tab)
+                if (tab !== 'Components') setPreviewComponent(null)
+              }}
               className={`px-4 py-2 text-sm transition-colors ${
                 activeTab === tab
                   ? 'border-b-2 border-blue-500 text-white'
@@ -104,7 +131,16 @@ export function PreviewPane() {
         </div>
       )}
 
-      {activeTab === 'Components' && <ComponentBrowser />}
+      {activeTab === 'Components' &&
+        (previewComponent ? (
+          <ComponentPreview
+            componentName={previewComponent.name}
+            appUrl={appUrl}
+            onBack={handleBackFromPreview}
+          />
+        ) : (
+          <ComponentBrowser onPreview={handlePreview} />
+        ))}
     </div>
   )
 }

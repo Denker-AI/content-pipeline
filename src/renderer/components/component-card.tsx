@@ -2,9 +2,10 @@ import type { DetectedComponent } from '@/shared/types'
 
 interface ComponentCardProps {
   component: DetectedComponent
+  onPreview: (component: DetectedComponent) => void
 }
 
-export function ComponentCard({ component }: ComponentCardProps) {
+export function ComponentCard({ component, onPreview }: ComponentCardProps) {
   return (
     <div className="rounded border border-zinc-700 bg-zinc-800 p-3">
       <div className="flex items-start justify-between">
@@ -16,7 +17,10 @@ export function ComponentCard({ component }: ComponentCardProps) {
             {component.path}
           </p>
         </div>
-        <button className="ml-2 shrink-0 rounded bg-blue-600 px-2 py-1 text-xs text-white transition-colors hover:bg-blue-500">
+        <button
+          onClick={() => onPreview(component)}
+          className="ml-2 shrink-0 rounded bg-blue-600 px-2 py-1 text-xs text-white transition-colors hover:bg-blue-500"
+        >
           Preview
         </button>
       </div>
