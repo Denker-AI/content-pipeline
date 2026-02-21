@@ -3,8 +3,8 @@
 ## Current State
 - **Phase**: 2 — Live Preview + File Watching
 - **Story**: 2.1 — File Watcher (next up)
-- **Branch**: `feature/story-1.1-scaffold-electron-app` (Phase 1 complete, ready for PR)
-- **Status**: Phase 1 complete
+- **Branch**: `main` (Phase 1 merged)
+- **Status**: Phase 1 complete, merged to main
 
 ---
 
@@ -14,10 +14,10 @@
 
 | Story | Title | Status | Branch | Notes |
 |-------|-------|--------|--------|-------|
-| 1.1 | Scaffold Electron App | Complete | feature/story-1.1-scaffold-electron-app | c922364 |
-| 1.2 | Split Pane Layout | Complete | feature/story-1.1-scaffold-electron-app | 15532b7 |
-| 1.3 | Terminal Integration | Complete | feature/story-1.1-scaffold-electron-app | 85ed0cf |
-| 1.4 | Terminal Output Parsing | Complete | feature/story-1.1-scaffold-electron-app | 909540a |
+| 1.1 | Scaffold Electron App | Complete | main | c922364 |
+| 1.2 | Split Pane Layout | Complete | main | 15532b7 |
+| 1.3 | Terminal Integration | Complete | main | 85ed0cf |
+| 1.4 | Terminal Output Parsing | Complete | main | 909540a |
 
 ### Phase 2: Live Preview + File Watching
 
@@ -78,6 +78,14 @@
 - [x] File change detection (Write/Edit tool patterns)
 - [x] Session ID and token/cost extraction
 - [x] Live status bar updates via parsed events
+
+### Runtime Fixes (post-QA)
+- [x] Preload script as CJS (Electron sandbox requires CommonJS)
+- [x] node-pty spawn-helper chmod +x (postinstall)
+- [x] electron-rebuild for native module ABI compatibility
+- [x] Strip CLAUDECODE env var so `claude` can run inside terminal
+- [x] Optional chaining for window.electronAPI in renderer
+- [x] import.meta.url for __dirname in ESM main process
 
 ---
 
