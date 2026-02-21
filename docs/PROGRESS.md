@@ -1,9 +1,9 @@
 # Project Progress
 
 ## Current State
-- **Next Story**: 3.2 — Component Preview
+- **Next Story**: 3.3 — Capture Tools
 - **Branch**: `main`
-- **Status**: Story 8.5 complete. Phase 8 done.
+- **Status**: Story 3.2 complete. Phase 8 done.
 
 ---
 
@@ -18,8 +18,8 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 | 3 | 8.3 | Pipeline IPC + Preload | Complete | cf6db58 |
 | 4 | 8.4 | Pipeline Sidebar UI | Complete | ad5d210 |
 | 5 | 8.5 | Pipeline Integration | Complete | e05d37f |
-| 6 | 3.2 | Component Preview | Ready | 3.1 |
-| 7 | 3.3 | Capture Tools | Blocked by 3.2 | 3.2 |
+| 6 | 3.2 | Component Preview | Complete | cf1db75 |
+| 7 | 3.3 | Capture Tools | Ready | 3.2 |
 | 8 | 4.1 | Annotations | Ready | 2.2 |
 | 9 | 5.1 | LinkedIn Publisher | Ready | 6.2 |
 | 10 | 5.2 | Resend Newsletter | Ready | 6.2 |
@@ -55,6 +55,7 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 | Story | Title | Commit |
 |-------|-------|--------|
 | 3.1 | Component Browser | 7dc01e2 |
+| 3.2 | Component Preview | cf1db75 |
 | 6.2 | Settings Panel | 1d4216a |
 | 8.1 | Pipeline Types + Metadata | c84da5a |
 | 8.2 | Worktree Management | 1ff2c22 |
@@ -128,3 +129,11 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 - Sidebar widened to w-72 (288px)
 - folder-browser.tsx deleted (replaced by PipelineSidebar)
 - No FolderBrowser references remain in codebase
+
+### Story 3.2 — Component Preview
+- ComponentPreview: iframe loading localhost/content-preview with toolbar (Back, Reload, URL)
+- Auto-reload every 3s while waiting for Claude to generate the preview page
+- Preview button on ComponentCard types PTY prompt asking Claude to create preview page
+- ComponentBrowser passes onPreview up to PreviewPane for state management
+- PreviewPane switches Components tab between browser list and preview iframe
+- appUrl loaded from user settings (default: http://localhost:3000)
