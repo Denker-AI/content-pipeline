@@ -1,9 +1,9 @@
 # Project Progress
 
 ## Current State
-- **Next Story**: 8.4 — Pipeline Sidebar UI
+- **Next Story**: 8.5 — Pipeline Integration
 - **Branch**: `main`
-- **Status**: Story 8.3 complete. Continuing Phase 8.
+- **Status**: Story 8.4 complete. Continuing Phase 8.
 
 ---
 
@@ -16,8 +16,8 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 | 1 | 8.1 | Pipeline Types + Metadata | Complete | c84da5a |
 | 2 | 8.2 | Worktree Management | Complete | 1ff2c22 |
 | 3 | 8.3 | Pipeline IPC + Preload | Complete | cf6db58 |
-| 4 | 8.4 | Pipeline Sidebar UI | Ready | 8.3 |
-| 5 | 8.5 | Pipeline Integration | Blocked by 8.4 | 8.4 |
+| 4 | 8.4 | Pipeline Sidebar UI | Complete | ad5d210 |
+| 5 | 8.5 | Pipeline Integration | Ready | 8.4 |
 | 6 | 3.2 | Component Preview | Ready | 3.1 |
 | 7 | 3.3 | Capture Tools | Blocked by 3.2 | 3.2 |
 | 8 | 4.1 | Annotations | Ready | 2.2 |
@@ -59,6 +59,7 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 | 8.1 | Pipeline Types + Metadata | c84da5a |
 | 8.2 | Worktree Management | 1ff2c22 |
 | 8.3 | Pipeline IPC + Preload | cf6db58 |
+| 8.4 | Pipeline Sidebar UI | ad5d210 |
 
 ---
 
@@ -111,3 +112,11 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 - metadata.json change detection emits pipeline:contentChanged
 - Preload exposes complete pipeline API namespace
 - Cleanup removes all pipeline handlers on window close
+
+### Story 8.4 — Pipeline Sidebar UI
+- StageBadge: color-coded pill with clickable dropdown to change stage
+- PipelineCard: title, date, stage badge, active state with blue border
+- PipelineSection: collapsible sections per content type with "+" button
+- PipelineSidebar: search input, sections for linkedin/blog/newsletter
+- usePipeline hook: loads items, subscribes to changes, groups by type
+- Replaces FolderBrowser in PreviewPane, Library tab removed (merged into sidebar)
