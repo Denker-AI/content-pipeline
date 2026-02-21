@@ -13,12 +13,16 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     }
   })
 
-  createPty((data: string) => {
-    if (!mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('terminal:data', data)
-    }
-    parser.feed(data)
-  })
+  try {
+    createPty((data: string) => {
+      if (!mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('terminal:data', data)
+      }
+      parser.feed(data)
+    })
+  } catch (err) {
+    console.error('Failed to create PTY:', err)
+  }
 
   ipcMain.on('terminal:input', (_event, data: string) => {
     writePty(data)

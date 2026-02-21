@@ -46,20 +46,24 @@ export function useTerminal(containerRef: React.RefObject<HTMLDivElement | null>
     terminalRef.current = terminal
     fitAddonRef.current = fitAddon
 
-    // Connect to PTY via preload bridge
-    const cleanup = window.electronAPI.terminal.onData((data) => {
-      terminal.write(data)
-    })
+    // Connect to PTY via preload bridge (may be unavailable outside Electron)
+    const api = window.electronAPI?.terminal
+    let cleanup: (() => void) | undefined
 
-    terminal.onData((data) => {
-      window.electronAPI.terminal.sendInput(data)
-    })
+    if (api) {
+      cleanup = api.onData((data) => {
+        terminal.write(data)
+      })
 
-    // Send initial size
-    window.electronAPI.terminal.resize(terminal.cols, terminal.rows)
+      terminal.onData((data) => {
+        api.sendInput(data)
+      })
+
+      api.resize(terminal.cols, terminal.rows)
+    }
 
     return () => {
-      cleanup()
+      cleanup?.()
       terminal.dispose()
       terminalRef.current = null
       fitAddonRef.current = null
@@ -69,7 +73,7 @@ export function useTerminal(containerRef: React.RefObject<HTMLDivElement | null>
   const fit = useCallback(() => {
     if (fitAddonRef.current && terminalRef.current) {
       fitAddonRef.current.fit()
-      window.electronAPI.terminal.resize(
+      window.electronAPI?.terminal.resize(
         terminalRef.current.cols,
         terminalRef.current.rows
       )

@@ -1,9 +1,21 @@
+import fs from 'fs'
 import path from 'path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import electron from 'vite-plugin-electron'
 import renderer from 'vite-plugin-electron-renderer'
+
+// Copy preload.cjs to dist/main/ (it's CJS, can't go through Vite ESM build)
+function copyPreload() {
+  return {
+    name: 'copy-preload',
+    writeBundle() {
+      fs.mkdirSync('dist/main', { recursive: true })
+      fs.copyFileSync('src/main/preload.cjs', 'dist/main/preload.cjs')
+    }
+  }
+}
 
 export default defineConfig({
   plugins: [
@@ -16,23 +28,10 @@ export default defineConfig({
           build: {
             outDir: 'dist/main',
             rollupOptions: {
-              external: ['electron']
+              external: ['electron', 'node-pty']
             }
-          }
-        }
-      },
-      {
-        entry: 'src/main/preload.ts',
-        onstart(args) {
-          args.reload()
-        },
-        vite: {
-          build: {
-            outDir: 'dist/main',
-            rollupOptions: {
-              external: ['electron']
-            }
-          }
+          },
+          plugins: [copyPreload()]
         }
       }
     ]),

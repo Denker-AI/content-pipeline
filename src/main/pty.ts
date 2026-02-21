@@ -5,14 +5,23 @@ import os from 'os'
 let ptyProcess: IPty | null = null
 
 export function createPty(onData: (data: string) => void): IPty {
-  const shell = process.env.SHELL || (process.platform === 'win32' ? 'powershell.exe' : '/bin/zsh')
+  const shell =
+    process.env.SHELL ||
+    (process.platform === 'win32' ? 'powershell.exe' : '/bin/zsh')
+  const home = process.env.HOME || os.homedir()
+
+  // Ensure PATH is available for the shell
+  const env = { ...process.env } as Record<string, string>
+  if (!env.PATH) {
+    env.PATH = '/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
+  }
 
   ptyProcess = pty.spawn(shell, [], {
     name: 'xterm-256color',
     cols: 80,
     rows: 24,
-    cwd: process.env.HOME || os.homedir(),
-    env: process.env as Record<string, string>
+    cwd: home,
+    env
   })
 
   ptyProcess.onData(onData)

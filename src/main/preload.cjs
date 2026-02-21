@@ -1,27 +1,25 @@
-import { contextBridge, ipcRenderer } from 'electron'
+const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('electronAPI', {
   terminal: {
-    onData: (callback: (data: string) => void) => {
-      const listener = (_event: Electron.IpcRendererEvent, data: string) =>
-        callback(data)
+    onData: (callback) => {
+      const listener = (_event, data) => callback(data)
       ipcRenderer.on('terminal:data', listener)
       return () => {
         ipcRenderer.removeListener('terminal:data', listener)
       }
     },
-    onParsed: (callback: (event: unknown) => void) => {
-      const listener = (_event: Electron.IpcRendererEvent, data: unknown) =>
-        callback(data)
+    onParsed: (callback) => {
+      const listener = (_event, data) => callback(data)
       ipcRenderer.on('terminal:parsed', listener)
       return () => {
         ipcRenderer.removeListener('terminal:parsed', listener)
       }
     },
-    sendInput: (data: string) => {
+    sendInput: (data) => {
       ipcRenderer.send('terminal:input', data)
     },
-    resize: (cols: number, rows: number) => {
+    resize: (cols, rows) => {
       ipcRenderer.send('terminal:resize', cols, rows)
     }
   }

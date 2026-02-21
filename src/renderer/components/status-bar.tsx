@@ -8,23 +8,24 @@ export function StatusBar() {
   const [tokens, setTokens] = useState(0)
 
   useEffect(() => {
-    const cleanup = window.electronAPI.terminal.onParsed(
-      (event: ParsedEvent) => {
-        switch (event.type) {
-          case 'session-id':
-            setSessionId(String(event.data.sessionId))
-            break
-          case 'token-cost':
-            if (event.data.tokens !== undefined) {
-              setTokens(Number(event.data.tokens))
-            }
-            if (event.data.cost !== undefined) {
-              setCost(Number(event.data.cost))
-            }
-            break
-        }
+    const api = window.electronAPI?.terminal
+    if (!api) return
+
+    const cleanup = api.onParsed((event: ParsedEvent) => {
+      switch (event.type) {
+        case 'session-id':
+          setSessionId(String(event.data.sessionId))
+          break
+        case 'token-cost':
+          if (event.data.tokens !== undefined) {
+            setTokens(Number(event.data.tokens))
+          }
+          if (event.data.cost !== undefined) {
+            setCost(Number(event.data.cost))
+          }
+          break
       }
-    )
+    })
 
     return cleanup
   }, [])
