@@ -1,0 +1,10 @@
+{
+  "setup": [
+    "git fetch origin main --quiet",
+    "git reset --hard origin/main",
+    "ln -sf \"$SUPERSET_ROOT_PATH/node_modules\" node_modules",
+    "cp \"$SUPERSET_ROOT_PATH/.env\" .env 2>/dev/null || true",
+    "cp \"$SUPERSET_ROOT_PATH/.env.local\" .env.local 2>/dev/null || true"
+  ],
+  "teardown": []
+}
