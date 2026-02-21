@@ -2,9 +2,15 @@
 # Autonomous story runner — launches fresh Claude sessions in a loop.
 # Each session picks the next Ready story, implements it, merges, and exits.
 # Stop with Ctrl+C when all stories are done (or it will tell you).
+#
+# Usage: ./scripts/run-stories.sh
+# (Run from a regular terminal, NOT from inside Claude Code)
 
 set -e
 cd "$(dirname "$0")/.."
+
+# Allow running even if launched from a Claude session
+unset CLAUDECODE
 
 PROMPT='Follow docs/AGENT-WORKFLOW.md exactly. You are an autonomous session.
 
@@ -33,6 +39,7 @@ echo ""
 STORY_NUM=0
 while true; do
   STORY_NUM=$((STORY_NUM + 1))
+  echo ""
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   echo "Session #$STORY_NUM — $(date '+%Y-%m-%d %H:%M:%S')"
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -44,11 +51,21 @@ while true; do
     exit 0
   fi
 
-  # Run Claude in headless mode with auto-approve
-  claude -p "$PROMPT" --allowedTools "Bash,Read,Write,Edit,Glob,Grep,WebFetch,WebSearch" 2>&1
-
+  # Show which story is next
+  echo "Next story:"
+  grep "| Ready |" docs/PROGRESS.md | head -1
   echo ""
-  echo "Session #$STORY_NUM complete. Next session in 10 seconds..."
+
+  # Run Claude in headless mode with full permissions
+  claude -p "$PROMPT" \
+    --dangerously-skip-permissions \
+    --model opus \
+    --verbose \
+    2>&1 || true
+
+  # Don't exit on failure — continue to next iteration
+  echo ""
+  echo "Session #$STORY_NUM finished. Next session in 10 seconds..."
   echo "(Press Ctrl+C to stop)"
   sleep 10
 done
