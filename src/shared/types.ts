@@ -30,6 +30,13 @@ export interface ContentItem {
   date: string | null
 }
 
+// Git worktree info
+export interface WorktreeInfo {
+  branch: string
+  path: string          // absolute path to worktree
+  contentDir: string    // content/ inside worktree
+}
+
 // Content pipeline stages
 export type ContentStage = 'idea' | 'draft' | 'review' | 'final' | 'scheduled' | 'published'
 

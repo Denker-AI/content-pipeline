@@ -40,6 +40,10 @@ export function resizePty(cols: number, rows: number) {
   ptyProcess?.resize(cols, rows)
 }
 
+export function changePtyDirectory(dir: string) {
+  ptyProcess?.write(`\x03\ncd ${JSON.stringify(dir)}\n`)
+}
+
 export function destroyPty() {
   ptyProcess?.kill()
   ptyProcess = null
