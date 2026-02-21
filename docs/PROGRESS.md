@@ -1,9 +1,9 @@
 # Project Progress
 
 ## Current State
-- **Next Story**: 8.2 — Worktree Management
+- **Next Story**: 8.3 — Pipeline IPC + Preload
 - **Branch**: `main`
-- **Status**: Story 8.1 complete. Continuing Phase 8.
+- **Status**: Story 8.2 complete. Continuing Phase 8.
 
 ---
 
@@ -14,8 +14,8 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 | Order | Story | Title | Status | Deps |
 |-------|-------|-------|--------|------|
 | 1 | 8.1 | Pipeline Types + Metadata | Complete | c84da5a |
-| 2 | 8.2 | Worktree Management | Ready | 8.1 |
-| 3 | 8.3 | Pipeline IPC + Preload | Blocked by 8.2 | 8.1, 8.2 |
+| 2 | 8.2 | Worktree Management | Complete | 1ff2c22 |
+| 3 | 8.3 | Pipeline IPC + Preload | Ready | 8.1, 8.2 |
 | 4 | 8.4 | Pipeline Sidebar UI | Blocked by 8.3 | 8.3 |
 | 5 | 8.5 | Pipeline Integration | Blocked by 8.4 | 8.4 |
 | 6 | 3.2 | Component Preview | Ready | 3.1 |
@@ -56,6 +56,8 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 |-------|-------|--------|
 | 3.1 | Component Browser | 7dc01e2 |
 | 6.2 | Settings Panel | 1d4216a |
+| 8.1 | Pipeline Types + Metadata | c84da5a |
+| 8.2 | Worktree Management | 1ff2c22 |
 
 ---
 
@@ -93,3 +95,10 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 - pipeline.ts: listPipelineItems, createContentPiece, readMetadata, writeMetadata, updateStage
 - Legacy content auto-detected with stage 'idea'
 - Active content tracking (in-memory)
+
+### Story 8.2 — Worktree Management
+- WorktreeInfo type in shared types
+- worktree.ts: isGitRepo, createWorktree, listWorktrees, removeWorktree
+- execFile (not exec) to avoid shell injection
+- Branch collision handling with numeric suffix (-2, -3)
+- changePtyDirectory() in pty.ts for worktree activation
