@@ -7,7 +7,7 @@ function stripAnsi(str: string): string {
 }
 
 export interface ParsedEvent {
-  type: 'file-changed' | 'session-id' | 'token-cost'
+  type: 'file-changed' | 'session-id' | 'token-cost' | 'component-found'
   data: Record<string, string | number>
 }
 
@@ -40,6 +40,7 @@ export class TerminalParser {
     this.parseFileChange(line)
     this.parseSessionId(line)
     this.parseTokenCost(line)
+    this.parseComponentPath(line)
   }
 
   private parseFileChange(line: string) {
@@ -94,6 +95,31 @@ export class TerminalParser {
       }
       this.emit(event)
     }
+  }
+
+  private parseComponentPath(line: string) {
+    // Match file paths ending in .tsx or .jsx (e.g. src/components/Button.tsx)
+    const match = line.match(
+      /(?:^|\s|['"`])([./\w-]+\/[\w-]+\.(?:tsx|jsx))\b/,
+    )
+    if (!match) return
+
+    const filePath = match[1]
+    // Extract filename without extension
+    const filename = filePath.split('/').pop()?.replace(/\.(tsx|jsx)$/, '')
+    if (!filename) return
+
+    // Convert filename to PascalCase component name
+    // Handle kebab-case (my-component), snake_case (my_component), or already PascalCase
+    const name = filename
+      .split(/[-_]/)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join('')
+
+    this.emit({
+      type: 'component-found',
+      data: { path: filePath, name },
+    })
   }
 
   private emit(event: ParsedEvent) {

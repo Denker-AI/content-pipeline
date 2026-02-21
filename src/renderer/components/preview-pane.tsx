@@ -4,6 +4,7 @@ import type { DirEntry } from '@/shared/types'
 
 import { useContent } from '../hooks/use-content'
 
+import { ComponentBrowser } from './component-browser'
 import { ContentRenderer } from './content-renderer'
 import { FolderBrowser } from './folder-browser'
 import { VersionSelector } from './version-selector'
@@ -121,13 +122,11 @@ export function PreviewPane() {
         </div>
       )}
 
-      {activeTab !== 'Content' && (
+      {activeTab === 'Components' && <ComponentBrowser />}
+
+      {activeTab === 'Library' && (
         <div className="flex flex-1 items-center justify-center text-zinc-500">
-          <p className="text-sm">
-            {activeTab === 'Components'
-              ? 'Component browser'
-              : 'Content library'}
-          </p>
+          <p className="text-sm">Content library</p>
         </div>
       )}
     </div>

@@ -25,6 +25,9 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
   parser.onEvent((event) => {
     if (!mainWindow.isDestroyed()) {
       mainWindow.webContents.send('terminal:parsed', event)
+      if (event.type === 'component-found') {
+        mainWindow.webContents.send('terminal:component', event.data)
+      }
     }
   })
 

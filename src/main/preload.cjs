@@ -32,6 +32,15 @@ contextBridge.exposeInMainWorld('electronAPI', {
       }
     },
   },
+  components: {
+    onComponentFound: (callback) => {
+      const listener = (_event, data) => callback(data)
+      ipcRenderer.on('terminal:component', listener)
+      return () => {
+        ipcRenderer.removeListener('terminal:component', listener)
+      }
+    },
+  },
   content: {
     list: () => ipcRenderer.invoke('content:list'),
     listDir: (dirPath) => ipcRenderer.invoke('content:listDir', dirPath),

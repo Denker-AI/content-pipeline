@@ -1,7 +1,14 @@
 // Parsed terminal event types
 export interface ParsedEvent {
-  type: 'file-changed' | 'session-id' | 'token-cost'
+  type: 'file-changed' | 'session-id' | 'token-cost' | 'component-found'
   data: Record<string, string | number>
+}
+
+// Component detected from terminal output
+export interface DetectedComponent {
+  name: string // PascalCase component name from filename
+  path: string // File path as shown in terminal
+  description: string // Empty or extracted comment
 }
 
 // File watcher event types
@@ -73,11 +80,19 @@ export interface ContentAPI {
   getProjectRoot: () => Promise<string>
 }
 
+// Component API exposed via preload
+export interface ComponentAPI {
+  onComponentFound: (
+    callback: (component: DetectedComponent) => void,
+  ) => () => void
+}
+
 // Global window type augmentation
 export interface ElectronAPI {
   terminal: TerminalAPI
   files: FileWatcherAPI
   content: ContentAPI
+  components: ComponentAPI
 }
 
 declare global {
