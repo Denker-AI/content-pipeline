@@ -23,6 +23,7 @@ export function createWindow(): BrowserWindow {
 
   if (process.env.VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL)
+    mainWindow.webContents.openDevTools({ mode: 'bottom' })
   } else {
     mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'))
   }
