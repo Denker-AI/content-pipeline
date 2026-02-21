@@ -10,11 +10,14 @@ export function createPty(onData: (data: string) => void): IPty {
     (process.platform === 'win32' ? 'powershell.exe' : '/bin/zsh')
   const home = process.env.HOME || os.homedir()
 
-  // Ensure PATH is available for the shell
+  // Clean env for the PTY shell
   const env = { ...process.env } as Record<string, string>
   if (!env.PATH) {
     env.PATH = '/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
   }
+  // Remove Claude Code session markers so `claude` can launch inside the terminal
+  delete env.CLAUDECODE
+  delete env.CLAUDE_CODE_SESSION
 
   ptyProcess = pty.spawn(shell, [], {
     name: 'xterm-256color',
