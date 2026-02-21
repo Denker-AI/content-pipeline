@@ -30,6 +30,45 @@ export interface ContentItem {
   date: string | null
 }
 
+// Content pipeline stages
+export type ContentStage = 'idea' | 'draft' | 'review' | 'final' | 'scheduled' | 'published'
+
+// Metadata stored in each content folder's metadata.json
+export interface ContentMetadata {
+  type: ContentType
+  stage: ContentStage
+  title: string
+  createdAt: string   // ISO 8601
+  updatedAt: string   // ISO 8601
+  worktreeBranch?: string
+  worktreePath?: string
+}
+
+// A content piece as displayed in the pipeline sidebar
+export interface PipelineItem {
+  id: string              // unique slug: <type>/<date-slug>
+  type: ContentType
+  stage: ContentStage
+  title: string
+  date: string
+  metadataPath: string    // absolute path to metadata.json
+  contentDir: string      // absolute path to the content folder
+  worktreeBranch?: string
+  worktreePath?: string
+}
+
+// Pipeline API exposed via preload
+export interface PipelineAPI {
+  listPipelineItems: () => Promise<PipelineItem[]>
+  createContent: (type: ContentType) => Promise<PipelineItem>
+  updateStage: (metadataPath: string, stage: ContentStage) => Promise<void>
+  updateMetadata: (metadataPath: string, metadata: Partial<ContentMetadata>) => Promise<void>
+  readMetadata: (metadataPath: string) => Promise<ContentMetadata>
+  activateContent: (item: PipelineItem) => Promise<void>
+  getActiveContent: () => Promise<PipelineItem | null>
+  onPipelineChanged: (callback: () => void) => () => void
+}
+
 // Rendering hint for the preview pane
 export type RenderMode =
   | 'newsletter' // 600px iframe
@@ -123,6 +162,7 @@ export interface ElectronAPI {
   content: ContentAPI
   components: ComponentAPI
   settings: SettingsAPI
+  pipeline: PipelineAPI
 }
 
 declare global {
