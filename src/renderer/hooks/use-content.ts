@@ -31,7 +31,7 @@ function detectRenderMode(relativePath: string): RenderMode {
   return 'unknown'
 }
 
-export function useContent() {
+export function useContent(activeContentDir?: string) {
   const [selectedItem, setSelectedItem] = useState<SelectedFile | null>(null)
   const [fileContent, setFileContent] = useState<string>('')
   const [renderMode, setRenderMode] = useState<RenderMode>('unknown')
@@ -50,6 +50,31 @@ export function useContent() {
       setContentDir(`${root}/content`)
     })
   }, [])
+
+  // Auto-select first renderable file when activeContentDir changes
+  useEffect(() => {
+    const api = window.electronAPI?.content
+    if (!api || !activeContentDir) return
+
+    let cancelled = false
+    api.listDir(activeContentDir).then((entries) => {
+      if (cancelled) return
+      const file = entries.find(
+        (e) => !e.isDirectory && e.name !== 'metadata.json',
+      )
+      if (file) {
+        selectFile(file.path, file.relativePath, file.contentType)
+      } else {
+        setSelectedItem(null)
+        setFileContent('')
+        setVersions([])
+      }
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [activeContentDir]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Select and load a file
   const selectFile = useCallback(

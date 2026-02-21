@@ -1,5 +1,7 @@
 import { useState } from 'react'
 
+import type { PipelineItem } from '@/shared/types'
+
 import { useContent } from '../hooks/use-content'
 
 import { ComponentBrowser } from './component-browser'
@@ -12,6 +14,7 @@ type Tab = (typeof tabs)[number]
 
 export function PreviewPane() {
   const [activeTab, setActiveTab] = useState<Tab>('Content')
+  const [activeContentDir, setActiveContentDir] = useState<string | undefined>()
   const {
     selectedItem,
     fileContent,
@@ -23,7 +26,11 @@ export function PreviewPane() {
     refreshCount,
     selectVersion,
     openProject,
-  } = useContent()
+  } = useContent(activeContentDir)
+
+  const handleItemSelect = (item: PipelineItem) => {
+    setActiveContentDir(item.contentDir)
+  }
 
   return (
     <div className="flex h-full flex-col bg-zinc-900">
@@ -56,9 +63,9 @@ export function PreviewPane() {
       {activeTab === 'Content' && (
         <div className="flex min-h-0 flex-1">
           {/* Left: pipeline sidebar */}
-          <div className="flex w-56 shrink-0 flex-col border-r border-zinc-700">
+          <div className="flex w-72 shrink-0 flex-col border-r border-zinc-700">
             <PipelineSidebar
-              onItemSelect={() => {}}
+              onItemSelect={handleItemSelect}
               onOpenProject={openProject}
               hasProject={!!contentDir}
             />
