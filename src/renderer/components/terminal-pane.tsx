@@ -1,7 +1,29 @@
+import { useEffect, useRef } from 'react'
+
+import { useTerminal } from '../hooks/use-terminal'
+
+import 'xterm/css/xterm.css'
+
 export function TerminalPane() {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const { fit } = useTerminal(containerRef)
+
+  useEffect(() => {
+    const observer = new ResizeObserver(() => {
+      fit()
+    })
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current)
+    }
+
+    return () => observer.disconnect()
+  }, [fit])
+
   return (
-    <div className="flex h-full items-center justify-center bg-zinc-950 text-zinc-500">
-      <p className="text-sm">Terminal will go here</p>
-    </div>
+    <div
+      ref={containerRef}
+      className="h-full w-full bg-zinc-950 p-1"
+    />
   )
 }
