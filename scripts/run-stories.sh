@@ -4,7 +4,7 @@
 # Stop with Ctrl+C when all stories are done (or it will tell you).
 #
 # Usage: ./scripts/run-stories.sh
-# (Run from a regular terminal, NOT from inside Claude Code)
+# Logs: ./scripts/run-stories.sh 2>&1 | tee logs/run.log
 
 set -e
 cd "$(dirname "$0")/.."
@@ -56,48 +56,12 @@ while true; do
   grep "| Ready |" docs/PROGRESS.md | head -1
   echo ""
 
-  # Run Claude in headless mode with full permissions
-  # --output-format stream-json streams progress as JSON lines
-  # We pipe through a filter to show human-readable progress
+  # Run Claude in print mode — outputs final result as plain text
   claude -p "$PROMPT" \
     --dangerously-skip-permissions \
     --model opus \
-    --output-format stream-json \
-    2>&1 | while IFS= read -r line; do
-      # Extract text content from stream-json for readable output
-      type=$(echo "$line" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('type',''))" 2>/dev/null || echo "")
-      if [ "$type" = "assistant" ]; then
-        # Show assistant text messages
-        echo "$line" | python3 -c "
-import sys, json
-d = json.load(sys.stdin)
-for block in d.get('message',{}).get('content',[]):
-  if block.get('type') == 'text':
-    print(block['text'])
-  elif block.get('type') == 'tool_use':
-    name = block.get('name','')
-    inp = block.get('input',{})
-    if name == 'Bash':
-      print(f'  > {inp.get(\"command\",\"\")[:120]}')
-    elif name in ('Read','Write','Edit'):
-      print(f'  [{name}] {inp.get(\"file_path\",\"\")[:100]}')
-    elif name == 'Glob':
-      print(f'  [Glob] {inp.get(\"pattern\",\"\")}')
-    elif name == 'Grep':
-      print(f'  [Grep] {inp.get(\"pattern\",\"\")}')
-    else:
-      print(f'  [{name}]')
-" 2>/dev/null || true
-      elif [ "$type" = "result" ]; then
-        echo "$line" | python3 -c "
-import sys, json
-d = json.load(sys.stdin)
-print(d.get('result','')[:500])
-" 2>/dev/null || true
-      fi
-    done || true
+    2>&1 || true
 
-  # Don't exit on failure — continue to next iteration
   echo ""
   echo "Session #$STORY_NUM finished. Next session in 10 seconds..."
   echo "(Press Ctrl+C to stop)"
