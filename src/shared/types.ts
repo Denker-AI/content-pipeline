@@ -87,12 +87,42 @@ export interface ComponentAPI {
   ) => () => void
 }
 
+// User-level settings (stored in ~/.content-pipeline/settings.json)
+export interface UserSettings {
+  appUrl: string
+  authCookies: Record<string, string>
+  linkedinToken: string
+  resendApiKey: string
+  blogWebhookUrl: string
+  theme: 'light' | 'dark'
+}
+
+// Project-level settings (stored in content-pipeline.json in project root)
+export interface ProjectSettings {
+  persona: {
+    company: string
+    product: string
+    tone: string
+    audience: string
+  }
+}
+
+// Settings API exposed via preload
+export interface SettingsAPI {
+  getUser: () => Promise<UserSettings>
+  saveUser: (settings: UserSettings) => Promise<void>
+  getProject: () => Promise<ProjectSettings>
+  saveProject: (settings: ProjectSettings) => Promise<void>
+  onOpen: (callback: () => void) => () => void
+}
+
 // Global window type augmentation
 export interface ElectronAPI {
   terminal: TerminalAPI
   files: FileWatcherAPI
   content: ContentAPI
   components: ComponentAPI
+  settings: SettingsAPI
 }
 
 declare global {
