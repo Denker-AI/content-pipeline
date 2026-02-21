@@ -1,9 +1,9 @@
 # Project Progress
 
 ## Current State
-- **Next Story**: 8.3 — Pipeline IPC + Preload
+- **Next Story**: 8.4 — Pipeline Sidebar UI
 - **Branch**: `main`
-- **Status**: Story 8.2 complete. Continuing Phase 8.
+- **Status**: Story 8.3 complete. Continuing Phase 8.
 
 ---
 
@@ -15,8 +15,8 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 |-------|-------|-------|--------|------|
 | 1 | 8.1 | Pipeline Types + Metadata | Complete | c84da5a |
 | 2 | 8.2 | Worktree Management | Complete | 1ff2c22 |
-| 3 | 8.3 | Pipeline IPC + Preload | Ready | 8.1, 8.2 |
-| 4 | 8.4 | Pipeline Sidebar UI | Blocked by 8.3 | 8.3 |
+| 3 | 8.3 | Pipeline IPC + Preload | Complete | cf6db58 |
+| 4 | 8.4 | Pipeline Sidebar UI | Ready | 8.3 |
 | 5 | 8.5 | Pipeline Integration | Blocked by 8.4 | 8.4 |
 | 6 | 3.2 | Component Preview | Ready | 3.1 |
 | 7 | 3.3 | Capture Tools | Blocked by 3.2 | 3.2 |
@@ -58,6 +58,7 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 | 6.2 | Settings Panel | 1d4216a |
 | 8.1 | Pipeline Types + Metadata | c84da5a |
 | 8.2 | Worktree Management | 1ff2c22 |
+| 8.3 | Pipeline IPC + Preload | cf6db58 |
 
 ---
 
@@ -102,3 +103,11 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 - execFile (not exec) to avoid shell injection
 - Branch collision handling with numeric suffix (-2, -3)
 - changePtyDirectory() in pty.ts for worktree activation
+
+### Story 8.3 — Pipeline IPC + Preload
+- 7 IPC handlers: pipeline:list, create, updateStage, updateMetadata, readMetadata, activate, getActive
+- pipeline:create: creates content + worktree + activates PTY + types starter prompt
+- pipeline:activate: switches PTY directory + restarts file watcher
+- metadata.json change detection emits pipeline:contentChanged
+- Preload exposes complete pipeline API namespace
+- Cleanup removes all pipeline handlers on window close
