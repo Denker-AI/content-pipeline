@@ -1,10 +1,10 @@
 # Project Progress
 
 ## Current State
-- **Phase**: 3 — Component Browser + Capture (next)
-- **Story**: 3.1 — Component Browser (next up)
-- **Branch**: `main` (Phase 2 merged)
-- **Status**: Phase 2 complete, merged to main
+- **Phase**: 3 — Component Browser + Capture (in progress)
+- **Story**: 3.2 — Component Preview (next up)
+- **Branch**: `main` (Stories 3.1 + 6.2 merged)
+- **Status**: Stories 3.1 and 6.2 complete, merged to main
 
 ---
 
@@ -31,8 +31,8 @@
 
 | Story | Title | Status | Branch | Notes |
 |-------|-------|--------|--------|-------|
-| 3.1 | Component Browser | Ready | — | |
-| 3.2 | Component Preview | Blocked by 3.1 | — | |
+| 3.1 | Component Browser | Complete | main | 7dc01e2 |
+| 3.2 | Component Preview | Ready | — | |
 | 3.3 | Capture Tools | Blocked by 3.2 | — | |
 
 ### Phase 4-7: Later phases
@@ -44,7 +44,7 @@
 | 5.2 | Resend Publisher | Blocked |
 | 5.3 | Blog Publisher | Blocked |
 | 6.1 | Content Library | Blocked |
-| 6.2 | Settings Panel | Ready |
+| 6.2 | Settings Panel | Complete |
 | 7.1 | Packaging | Blocked by all |
 | 7.2 | Homebrew + npm | Blocked by 7.1 |
 
@@ -115,6 +115,23 @@
 - [x] DirEntry type for folder/file entries with content type detection
 - [x] Split Content tab layout: folder browser sidebar (left) + preview (right)
 - [x] DevTools auto-open in dev mode for debugging
+
+### Story 3.1 — Component Browser
+- [x] Terminal parser detects .tsx/.jsx file paths in Claude output
+- [x] PascalCase component name extraction from filenames
+- [x] ComponentBrowser with deduplicated component list
+- [x] ComponentCard with name, path, and Preview button
+- [x] Components tab wired up in PreviewPane
+- [x] IPC + preload for component-found events
+
+### Story 6.2 — Settings Panel
+- [x] Settings manager: read/write user settings (~/.content-pipeline/settings.json)
+- [x] Settings manager: read/write project settings (content-pipeline.json)
+- [x] Settings IPC handlers (getUser, saveUser, getProject, saveProject)
+- [x] SettingsPanel modal with User Settings and Project Settings sections
+- [x] Theme toggle (light/dark), API key inputs, persona config
+- [x] Application menu with Settings item (Cmd+,)
+- [x] Keyboard shortcut Cmd+, to open settings
 
 ---
 
