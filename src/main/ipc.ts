@@ -4,9 +4,17 @@ import { dialog, ipcMain } from 'electron'
 import fs from 'fs/promises'
 import path from 'path'
 
+import type { ProjectSettings, UserSettings } from '@/shared/types'
+
 import { listContent, listDir, listVersions } from './content'
 import { onFileChange, startWatcher, stopWatcher } from './file-watcher'
 import { createPty, destroyPty, resizePty, writePty } from './pty'
+import {
+  loadProjectSettings,
+  loadUserSettings,
+  saveProjectSettings,
+  saveUserSettings,
+} from './settings'
 import { TerminalParser } from './terminal-parser'
 
 let projectRoot: string = process.cwd()
@@ -108,6 +116,24 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     return projectRoot
   })
 
+  // Settings IPC handlers
+  ipcMain.handle('settings:getUser', async () => loadUserSettings())
+
+  ipcMain.handle(
+    'settings:saveUser',
+    async (_event, settings: UserSettings) => saveUserSettings(settings),
+  )
+
+  ipcMain.handle('settings:getProject', async () =>
+    loadProjectSettings(projectRoot),
+  )
+
+  ipcMain.handle(
+    'settings:saveProject',
+    async (_event, settings: ProjectSettings) =>
+      saveProjectSettings(projectRoot, settings),
+  )
+
   // Cleanup
   mainWindow.on('closed', () => {
     destroyPty()
@@ -121,5 +147,9 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     ipcMain.removeHandler('content:listVersions')
     ipcMain.removeHandler('content:getProjectRoot')
     ipcMain.removeHandler('content:openProject')
+    ipcMain.removeHandler('settings:getUser')
+    ipcMain.removeHandler('settings:saveUser')
+    ipcMain.removeHandler('settings:getProject')
+    ipcMain.removeHandler('settings:saveProject')
   })
 }

@@ -41,4 +41,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
     openProject: () => ipcRenderer.invoke('content:openProject'),
     getProjectRoot: () => ipcRenderer.invoke('content:getProjectRoot'),
   },
+  settings: {
+    getUser: () => ipcRenderer.invoke('settings:getUser'),
+    saveUser: (settings) => ipcRenderer.invoke('settings:saveUser', settings),
+    getProject: () => ipcRenderer.invoke('settings:getProject'),
+    saveProject: (settings) =>
+      ipcRenderer.invoke('settings:saveProject', settings),
+    onOpen: (callback) => {
+      const listener = () => callback()
+      ipcRenderer.on('settings:open', listener)
+      return () => {
+        ipcRenderer.removeListener('settings:open', listener)
+      }
+    },
+  },
 })
