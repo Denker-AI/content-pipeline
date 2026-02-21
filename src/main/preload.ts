@@ -10,6 +10,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
         ipcRenderer.removeListener('terminal:data', listener)
       }
     },
+    onParsed: (callback: (event: unknown) => void) => {
+      const listener = (_event: Electron.IpcRendererEvent, data: unknown) =>
+        callback(data)
+      ipcRenderer.on('terminal:parsed', listener)
+      return () => {
+        ipcRenderer.removeListener('terminal:parsed', listener)
+      }
+    },
     sendInput: (data: string) => {
       ipcRenderer.send('terminal:input', data)
     },
