@@ -1,9 +1,9 @@
 # Project Progress
 
 ## Current State
-- **Next Story**: 8.5 — Pipeline Integration
+- **Next Story**: 3.2 — Component Preview
 - **Branch**: `main`
-- **Status**: Story 8.4 complete. Continuing Phase 8.
+- **Status**: Story 8.5 complete. Phase 8 done.
 
 ---
 
@@ -17,7 +17,7 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 | 2 | 8.2 | Worktree Management | Complete | 1ff2c22 |
 | 3 | 8.3 | Pipeline IPC + Preload | Complete | cf6db58 |
 | 4 | 8.4 | Pipeline Sidebar UI | Complete | ad5d210 |
-| 5 | 8.5 | Pipeline Integration | Ready | 8.4 |
+| 5 | 8.5 | Pipeline Integration | Complete | e05d37f |
 | 6 | 3.2 | Component Preview | Ready | 3.1 |
 | 7 | 3.3 | Capture Tools | Blocked by 3.2 | 3.2 |
 | 8 | 4.1 | Annotations | Ready | 2.2 |
@@ -60,6 +60,7 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 | 8.2 | Worktree Management | 1ff2c22 |
 | 8.3 | Pipeline IPC + Preload | cf6db58 |
 | 8.4 | Pipeline Sidebar UI | ad5d210 |
+| 8.5 | Pipeline Integration | e05d37f |
 
 ---
 
@@ -120,3 +121,10 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 - PipelineSidebar: search input, sections for linkedin/blog/newsletter
 - usePipeline hook: loads items, subscribes to changes, groups by type
 - Replaces FolderBrowser in PreviewPane, Library tab removed (merged into sidebar)
+
+### Story 8.5 — Pipeline Integration
+- useContent accepts activeContentDir to auto-select first renderable file
+- PipelineSidebar onItemSelect wired to update content preview
+- Sidebar widened to w-72 (288px)
+- folder-browser.tsx deleted (replaced by PipelineSidebar)
+- No FolderBrowser references remain in codebase
