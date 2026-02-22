@@ -1,3 +1,5 @@
+import fs from 'fs'
+import fsPromises from 'fs/promises'
 import path from 'path'
 import { chromium } from 'playwright-core'
 
@@ -44,7 +46,7 @@ function findChromium(): string {
     ]
     for (const p of paths) {
       try {
-        require('fs').accessSync(p)
+        fs.accessSync(p)
         return p
       } catch {
         // not found, try next
@@ -60,7 +62,7 @@ function findChromium(): string {
     ]
     for (const p of paths) {
       try {
-        require('fs').accessSync(p)
+        fs.accessSync(p)
         return p
       } catch {
         // not found, try next
@@ -75,7 +77,7 @@ function findChromium(): string {
     ]
     for (const p of paths) {
       try {
-        require('fs').accessSync(p)
+        fs.accessSync(p)
         return p
       } catch {
         // not found, try next
@@ -117,12 +119,11 @@ export async function takeScreenshot(
     }
 
     // Ensure output directory exists
-    const fs = await import('fs/promises')
-    await fs.mkdir(path.dirname(outputPath), { recursive: true })
+    await fsPromises.mkdir(path.dirname(outputPath), { recursive: true })
 
     await page.screenshot({ path: outputPath, type: 'png' })
 
-    const stats = await fs.stat(outputPath)
+    const stats = await fsPromises.stat(outputPath)
 
     return {
       path: outputPath,
@@ -159,8 +160,7 @@ export async function recordVideo(
   })
 
   try {
-    const fs = await import('fs/promises')
-    await fs.mkdir(outputDir, { recursive: true })
+    await fsPromises.mkdir(outputDir, { recursive: true })
 
     const context = await browser.newContext({
       viewport: { width, height },
@@ -191,7 +191,7 @@ export async function recordVideo(
 
     await context.close()
 
-    const stats = await fs.stat(videoPath)
+    const stats = await fsPromises.stat(videoPath)
 
     return {
       path: videoPath,
