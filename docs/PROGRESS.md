@@ -1,9 +1,9 @@
 # Project Progress
 
 ## Current State
-- **Next Story**: 4.1 — Annotations
+- **Next Story**: 5.1 — LinkedIn Publisher
 - **Branch**: `main`
-- **Status**: Story 3.3 complete. Phase 8 done.
+- **Status**: Story 4.1 complete. Phase 8 done.
 
 ---
 
@@ -20,7 +20,7 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 | 5 | 8.5 | Pipeline Integration | Complete | e05d37f |
 | 6 | 3.2 | Component Preview | Complete | cf1db75 |
 | 7 | 3.3 | Capture Tools | Complete | 47a4342 |
-| 8 | 4.1 | Annotations | Ready | 2.2 |
+| 8 | 4.1 | Annotations | Complete | 34c05f2 |
 | 9 | 5.1 | LinkedIn Publisher | Ready | 6.2 |
 | 10 | 5.2 | Resend Newsletter | Ready | 6.2 |
 | 11 | 5.3 | Blog Publisher | Ready | 6.2 |
@@ -62,6 +62,7 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 | 8.2 | Worktree Management | 1ff2c22 |
 | 8.3 | Pipeline IPC + Preload | cf6db58 |
 | 8.4 | Pipeline Sidebar UI | ad5d210 |
+| 4.1 | Annotations | 34c05f2 |
 | 8.5 | Pipeline Integration | e05d37f |
 
 ---
@@ -138,6 +139,17 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 - ComponentBrowser passes onPreview up to PreviewPane for state management
 - PreviewPane switches Components tab between browser list and preview iframe
 - appUrl loaded from user settings (default: http://localhost:3000)
+
+### Story 4.1 — Annotations
+- AnnotationComment type in shared/types.ts
+- useComments hook: add, resolve, delete, clearAll, buildPrompt, sendToTerminal
+- CommentPin: numbered circle marker positioned by percentage coordinates
+- CommentOverlay: transparent click handler over preview with popover for text input
+- Extracts near-text from iframe contentDocument.elementFromPoint
+- CommentSidebar: comment list with resolve/delete + "Send to Claude" button
+- Annotate toggle button in preview toolbar
+- Comments cleared when switching content items
+- Prompt format: "Revise <file>:\n(1) Near "<text>": "<comment>"\n..."
 
 ### Story 3.3 — Capture Tools
 - screenshot.ts: Playwright-based PNG capture with retina (2x) scaling
