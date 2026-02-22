@@ -11,6 +11,7 @@ import { CommentSidebar } from './comment-sidebar'
 import { ComponentBrowser } from './component-browser'
 import { ComponentPreview } from './component-preview'
 import { ContentRenderer } from './content-renderer'
+import { LinkedInPublisher } from './linkedin-publisher'
 import { PipelineSidebar } from './pipeline-sidebar'
 import { VersionSelector } from './version-selector'
 
@@ -27,6 +28,7 @@ export function PreviewPane() {
   const [activeContentType, setActiveContentType] = useState<ContentType | undefined>()
   const [appUrl, setAppUrl] = useState(DEFAULT_APP_URL)
   const [selectedCommentId, setSelectedCommentId] = useState<string | null>(null)
+  const [publishOpen, setPublishOpen] = useState(false)
   const {
     selectedItem,
     fileContent,
@@ -140,6 +142,15 @@ export function PreviewPane() {
                   />
                 )}
               </div>
+              {selectedItem && activeContentType === 'linkedin' && (
+                <button
+                  onClick={() => setPublishOpen(true)}
+                  className="mr-1 rounded bg-blue-600 px-2 py-1 text-xs text-white hover:bg-blue-500"
+                  title="Publish to LinkedIn"
+                >
+                  Publish
+                </button>
+              )}
               {selectedItem && (
                 <button
                   onClick={toggleAnnotating}
@@ -227,6 +238,15 @@ export function PreviewPane() {
         ) : (
           <ComponentBrowser onPreview={handlePreview} />
         ))}
+
+      {/* LinkedIn publish dialog */}
+      {activeContentDir && (
+        <LinkedInPublisher
+          isOpen={publishOpen}
+          onClose={() => setPublishOpen(false)}
+          contentDir={activeContentDir}
+        />
+      )}
     </div>
   )
 }
