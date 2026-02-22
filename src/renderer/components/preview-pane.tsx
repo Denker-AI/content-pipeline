@@ -13,6 +13,7 @@ import { ComponentPreview } from './component-preview'
 import { ContentRenderer } from './content-renderer'
 import { LinkedInPublisher } from './linkedin-publisher'
 import { PipelineSidebar } from './pipeline-sidebar'
+import { ResendSender } from './resend-sender'
 import { VersionSelector } from './version-selector'
 
 const tabs = ['Content', 'Components'] as const
@@ -29,6 +30,7 @@ export function PreviewPane() {
   const [appUrl, setAppUrl] = useState(DEFAULT_APP_URL)
   const [selectedCommentId, setSelectedCommentId] = useState<string | null>(null)
   const [publishOpen, setPublishOpen] = useState(false)
+  const [newsletterSendOpen, setNewsletterSendOpen] = useState(false)
   const {
     selectedItem,
     fileContent,
@@ -151,6 +153,15 @@ export function PreviewPane() {
                   Publish
                 </button>
               )}
+              {selectedItem && activeContentType === 'newsletter' && (
+                <button
+                  onClick={() => setNewsletterSendOpen(true)}
+                  className="mr-1 rounded bg-blue-600 px-2 py-1 text-xs text-white hover:bg-blue-500"
+                  title="Send newsletter via Resend"
+                >
+                  Send Newsletter
+                </button>
+              )}
               {selectedItem && (
                 <button
                   onClick={toggleAnnotating}
@@ -244,6 +255,15 @@ export function PreviewPane() {
         <LinkedInPublisher
           isOpen={publishOpen}
           onClose={() => setPublishOpen(false)}
+          contentDir={activeContentDir}
+        />
+      )}
+
+      {/* Resend newsletter dialog */}
+      {activeContentDir && (
+        <ResendSender
+          isOpen={newsletterSendOpen}
+          onClose={() => setNewsletterSendOpen(false)}
           contentDir={activeContentDir}
         />
       )}
