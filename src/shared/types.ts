@@ -198,6 +198,17 @@ export interface CaptureAPI {
   video: (request: CaptureVideoRequest) => Promise<VideoResult>
 }
 
+// Annotation comment for click-to-comment on preview
+export interface AnnotationComment {
+  id: string
+  pinNumber: number
+  x: number          // percentage (0-100) relative to preview area
+  y: number          // percentage (0-100) relative to preview area
+  text: string
+  nearText: string   // text extracted near the click position
+  resolved: boolean
+}
+
 // Global window type augmentation
 export interface ElectronAPI {
   terminal: TerminalAPI

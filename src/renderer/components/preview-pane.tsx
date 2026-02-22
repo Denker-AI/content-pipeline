@@ -2,9 +2,12 @@ import { useCallback, useEffect, useState } from 'react'
 
 import type { ContentType, DetectedComponent, PipelineItem } from '@/shared/types'
 
+import { useComments } from '../hooks/use-comments'
 import { useContent } from '../hooks/use-content'
 
 import { CaptureToolbar } from './capture-toolbar'
+import { CommentOverlay } from './comment-overlay'
+import { CommentSidebar } from './comment-sidebar'
 import { ComponentBrowser } from './component-browser'
 import { ComponentPreview } from './component-preview'
 import { ContentRenderer } from './content-renderer'
@@ -23,6 +26,7 @@ export function PreviewPane() {
     useState<DetectedComponent | null>(null)
   const [activeContentType, setActiveContentType] = useState<ContentType | undefined>()
   const [appUrl, setAppUrl] = useState(DEFAULT_APP_URL)
+  const [selectedCommentId, setSelectedCommentId] = useState<string | null>(null)
   const {
     selectedItem,
     fileContent,
@@ -35,6 +39,17 @@ export function PreviewPane() {
     selectVersion,
     openProject,
   } = useContent(activeContentDir)
+
+  const {
+    comments,
+    annotating,
+    toggleAnnotating,
+    addComment,
+    resolveComment,
+    deleteComment,
+    clearAll,
+    sendToTerminal,
+  } = useComments()
 
   // Load appUrl from user settings
   useEffect(() => {
@@ -49,6 +64,9 @@ export function PreviewPane() {
   const handleItemSelect = (item: PipelineItem) => {
     setActiveContentDir(item.contentDir)
     setActiveContentType(item.type)
+    // Clear comments when switching content
+    clearAll()
+    setSelectedCommentId(null)
   }
 
   const handlePreview = useCallback((component: DetectedComponent) => {
@@ -58,6 +76,14 @@ export function PreviewPane() {
   const handleBackFromPreview = useCallback(() => {
     setPreviewComponent(null)
   }, [])
+
+  const handleSendToClaude = useCallback(() => {
+    if (selectedItem) {
+      sendToTerminal(selectedItem.relativePath)
+    }
+  }, [selectedItem, sendToTerminal])
+
+  const hasComments = comments.length > 0
 
   return (
     <div className="flex h-full flex-col bg-zinc-900">
@@ -101,29 +127,56 @@ export function PreviewPane() {
             />
           </div>
 
-          {/* Right: preview */}
+          {/* Center: preview */}
           <div className="flex min-w-0 flex-1 flex-col">
-            {/* Version selector */}
-            {selectedItem && versions.length > 0 && (
-              <VersionSelector
-                versions={versions}
-                currentPath={selectedItem.path}
-                onSelect={selectVersion}
-              />
-            )}
+            {/* Toolbar: version selector + annotate toggle */}
+            <div className="flex shrink-0 items-center border-b border-zinc-700">
+              <div className="flex-1">
+                {selectedItem && versions.length > 0 && (
+                  <VersionSelector
+                    versions={versions}
+                    currentPath={selectedItem.path}
+                    onSelect={selectVersion}
+                  />
+                )}
+              </div>
+              {selectedItem && (
+                <button
+                  onClick={toggleAnnotating}
+                  className={`mr-2 rounded px-2 py-1 text-xs transition-colors ${
+                    annotating
+                      ? 'bg-red-500/20 text-red-400 ring-1 ring-red-500/40'
+                      : 'text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'
+                  }`}
+                  title={annotating ? 'Exit annotation mode' : 'Click to annotate'}
+                >
+                  {annotating ? 'Annotating' : 'Annotate'}
+                </button>
+              )}
+            </div>
 
-            {/* Content area */}
-            <div className="min-h-0 flex-1 overflow-auto">
+            {/* Content area with comment overlay */}
+            <div className="min-h-0 flex-1">
               {loading ? (
                 <div className="flex h-full items-center justify-center text-zinc-500">
                   <p className="text-sm">Loading...</p>
                 </div>
               ) : selectedItem ? (
-                <ContentRenderer
-                  content={fileContent}
-                  renderMode={renderMode}
-                  refreshCount={refreshCount}
-                />
+                <CommentOverlay
+                  comments={comments}
+                  annotating={annotating}
+                  onAddComment={addComment}
+                  selectedCommentId={selectedCommentId}
+                  onSelectComment={setSelectedCommentId}
+                >
+                  <div className="h-full overflow-auto">
+                    <ContentRenderer
+                      content={fileContent}
+                      renderMode={renderMode}
+                      refreshCount={refreshCount}
+                    />
+                  </div>
+                </CommentOverlay>
               ) : (
                 <div className="flex h-full items-center justify-center text-zinc-500">
                   <p className="text-sm">Select content to preview</p>
@@ -140,6 +193,19 @@ export function PreviewPane() {
               />
             )}
           </div>
+
+          {/* Right: comment sidebar */}
+          {hasComments && (
+            <CommentSidebar
+              comments={comments}
+              selectedCommentId={selectedCommentId}
+              onSelectComment={setSelectedCommentId}
+              onResolve={resolveComment}
+              onDelete={deleteComment}
+              onClearAll={clearAll}
+              onSendToClaude={handleSendToClaude}
+            />
+          )}
         </div>
       )}
 
