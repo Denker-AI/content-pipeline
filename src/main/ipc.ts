@@ -16,6 +16,7 @@ import type {
 } from '@/shared/types'
 
 import { captureScreenshot, captureVideo } from './capture'
+import { publishToLinkedIn } from './linkedin'
 import { listContent, listDir, listVersions } from './content'
 import { onFileChange, startWatcher, stopWatcher } from './file-watcher'
 import {
@@ -277,6 +278,15 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     },
   )
 
+  // Publish IPC handlers
+  ipcMain.handle(
+    'publish:linkedin',
+    async (_event, contentDir: string) => {
+      const settings = await loadUserSettings()
+      return publishToLinkedIn(contentDir, settings.linkedinToken)
+    },
+  )
+
   // Watch for metadata.json changes and notify renderer
   const unsubscribePipeline = onFileChange((event) => {
     if (
@@ -314,5 +324,6 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     ipcMain.removeHandler('pipeline:getActive')
     ipcMain.removeHandler('capture:screenshot')
     ipcMain.removeHandler('capture:video')
+    ipcMain.removeHandler('publish:linkedin')
   })
 }

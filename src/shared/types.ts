@@ -198,6 +198,22 @@ export interface CaptureAPI {
   video: (request: CaptureVideoRequest) => Promise<VideoResult>
 }
 
+// LinkedIn publish types
+export interface LinkedInPublishRequest {
+  contentDir: string
+  token: string
+}
+
+export interface LinkedInPublishResult {
+  postId: string
+  postUrl: string
+}
+
+// Publish API exposed via preload
+export interface PublishAPI {
+  linkedin: (contentDir: string) => Promise<LinkedInPublishResult>
+}
+
 // Annotation comment for click-to-comment on preview
 export interface AnnotationComment {
   id: string
@@ -218,6 +234,7 @@ export interface ElectronAPI {
   settings: SettingsAPI
   pipeline: PipelineAPI
   capture: CaptureAPI
+  publish: PublishAPI
 }
 
 declare global {
