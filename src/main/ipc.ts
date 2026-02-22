@@ -16,9 +16,9 @@ import type {
 } from '@/shared/types'
 
 import { captureScreenshot, captureVideo } from './capture'
-import { publishToLinkedIn } from './linkedin'
 import { listContent, listDir, listVersions } from './content'
 import { onFileChange, startWatcher, stopWatcher } from './file-watcher'
+import { publishToLinkedIn } from './linkedin'
 import {
   createContentPiece,
   getActiveContent,
