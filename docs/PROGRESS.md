@@ -1,9 +1,9 @@
 # Project Progress
 
 ## Current State
-- **Next Story**: 5.3 — Blog Publisher
+- **Next Story**: 7.1 — Packaging
 - **Branch**: `main`
-- **Status**: Story 5.2 complete. Phase 8 done.
+- **Status**: Story 5.3 complete. Phase 8 done.
 
 ---
 
@@ -23,8 +23,8 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 | 8 | 4.1 | Annotations | Complete | 34c05f2 |
 | 9 | 5.1 | LinkedIn Publisher | Complete | 869173e |
 | 10 | 5.2 | Resend Newsletter | Complete | 0602fe8 |
-| 11 | 5.3 | Blog Publisher | Ready | 6.2 |
-| 12 | 7.1 | Packaging | Blocked by all | All |
+| 11 | 5.3 | Blog Publisher | Complete | 4a42c83 |
+| 12 | 7.1 | Packaging | Ready | All |
 | 13 | 7.2 | Homebrew + npm | Blocked by 7.1 | 7.1 |
 
 **Note**: Story 6.1 (Content Library) merged into 8.4/8.5 — pipeline sidebar IS the library.
@@ -66,6 +66,7 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 | 8.5 | Pipeline Integration | e05d37f |
 | 5.1 | LinkedIn Publisher | 869173e |
 | 5.2 | Resend Newsletter | 0602fe8 |
+| 5.3 | Blog Publisher | 4a42c83 |
 
 ---
 
@@ -181,3 +182,12 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 - IPC handlers + preload for capture:screenshot and capture:video
 - CaptureToolbar integrated into both Content and Components preview tabs
 - Status bar shows capture result (path + file size)
+
+### Story 5.3 — Blog Publisher
+- webhook.ts: parse YAML frontmatter from .md files, convert markdown body to HTML via marked
+- Generic webhook POST with title, slug, description, tags, content (HTML), markdown, metadata
+- Updates frontmatter with status: published and published_at after successful POST
+- Writes blog.json with webhook_url, status, published_at, title, slug, status_code
+- BlogPublisher: publish form showing title, slug, SEO preview, webhook destination
+- "Publish Blog" button in preview toolbar (blog content only)
+- IPC handler for publish:blog, preload exposes publish.blog()
