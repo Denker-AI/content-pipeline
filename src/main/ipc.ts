@@ -31,7 +31,6 @@ import {
 } from './pipeline'
 import { changePtyDirectory, createPty, destroyPty, resizePty, writePty } from './pty'
 import { listAudiences, sendNewsletter } from './resend'
-import { publishBlogToWebhook } from './webhook'
 import {
   loadProjectSettings,
   loadUserSettings,
@@ -39,6 +38,7 @@ import {
   saveUserSettings,
 } from './settings'
 import { TerminalParser } from './terminal-parser'
+import { publishBlogToWebhook } from './webhook'
 import { createWorktree, isGitRepo } from './worktree'
 
 let projectRoot: string = process.cwd()
