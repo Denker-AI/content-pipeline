@@ -72,6 +72,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   publish: {
     linkedin: (contentDir) =>
       ipcRenderer.invoke('publish:linkedin', contentDir),
+    resendListAudiences: () =>
+      ipcRenderer.invoke('publish:resend:audiences'),
+    resendSend: (request) =>
+      ipcRenderer.invoke('publish:resend:send', request),
   },
   pipeline: {
     listPipelineItems: () => ipcRenderer.invoke('pipeline:list'),

@@ -12,6 +12,7 @@ import type {
   ContentType,
   PipelineItem,
   ProjectSettings,
+  ResendSendRequest,
   UserSettings,
 } from '@/shared/types'
 
@@ -19,6 +20,7 @@ import { captureScreenshot, captureVideo } from './capture'
 import { listContent, listDir, listVersions } from './content'
 import { onFileChange, startWatcher, stopWatcher } from './file-watcher'
 import { publishToLinkedIn } from './linkedin'
+import { listAudiences, sendNewsletter } from './resend'
 import {
   createContentPiece,
   getActiveContent,
@@ -287,6 +289,25 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     },
   )
 
+  ipcMain.handle('publish:resend:audiences', async () => {
+    const settings = await loadUserSettings()
+    return listAudiences(settings.resendApiKey)
+  })
+
+  ipcMain.handle(
+    'publish:resend:send',
+    async (_event, request: ResendSendRequest) => {
+      const settings = await loadUserSettings()
+      return sendNewsletter(
+        request.contentDir,
+        settings.resendApiKey,
+        request.audienceId,
+        request.subject,
+        request.previewText,
+      )
+    },
+  )
+
   // Watch for metadata.json changes and notify renderer
   const unsubscribePipeline = onFileChange((event) => {
     if (
@@ -325,5 +346,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     ipcMain.removeHandler('capture:screenshot')
     ipcMain.removeHandler('capture:video')
     ipcMain.removeHandler('publish:linkedin')
+    ipcMain.removeHandler('publish:resend:audiences')
+    ipcMain.removeHandler('publish:resend:send')
   })
 }

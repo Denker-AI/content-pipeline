@@ -209,9 +209,28 @@ export interface LinkedInPublishResult {
   postUrl: string
 }
 
+// Resend newsletter types
+export interface ResendAudience {
+  id: string
+  name: string
+}
+
+export interface ResendSendRequest {
+  contentDir: string
+  audienceId: string
+  subject: string
+  previewText: string
+}
+
+export interface ResendSendResult {
+  broadcastId: string
+}
+
 // Publish API exposed via preload
 export interface PublishAPI {
   linkedin: (contentDir: string) => Promise<LinkedInPublishResult>
+  resendListAudiences: () => Promise<ResendAudience[]>
+  resendSend: (request: ResendSendRequest) => Promise<ResendSendResult>
 }
 
 // Annotation comment for click-to-comment on preview
