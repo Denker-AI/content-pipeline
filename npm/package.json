@@ -1,0 +1,27 @@
+{
+  "name": "content-pipeline",
+  "version": "0.1.0",
+  "description": "Desktop app wrapping Claude Code with visual content creation tools",
+  "bin": {
+    "content-pipeline": "bin/content-pipeline.js"
+  },
+  "keywords": [
+    "claude",
+    "content",
+    "electron",
+    "desktop",
+    "publishing",
+    "newsletter",
+    "linkedin",
+    "blog"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/denkerapp/content-pipeline.git"
+  },
+  "homepage": "https://github.com/denkerapp/content-pipeline",
+  "engines": {
+    "node": ">=18"
+  }
+}

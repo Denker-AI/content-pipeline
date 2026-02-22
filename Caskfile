@@ -1,0 +1,19 @@
+cask "content-pipeline" do
+  version :latest
+  sha256 :no_check
+
+  url "https://github.com/denkerapp/content-pipeline/releases/latest/download/Content-Pipeline-arm64.dmg",
+      verified: "github.com/denkerapp/content-pipeline/"
+
+  name "Content Pipeline"
+  desc "Desktop app wrapping Claude Code with visual content creation tools"
+  homepage "https://github.com/denkerapp/content-pipeline"
+
+  app "Content Pipeline.app"
+
+  zap trash: [
+    "~/Library/Application Support/content-pipeline",
+    "~/Library/Preferences/com.denker.content-pipeline.plist",
+    "~/Library/Caches/com.denker.content-pipeline",
+  ]
+end
