@@ -1,9 +1,9 @@
 # Project Progress
 
 ## Current State
-- **Next Story**: 3.3 — Capture Tools
+- **Next Story**: 4.1 — Annotations
 - **Branch**: `main`
-- **Status**: Story 3.2 complete. Phase 8 done.
+- **Status**: Story 3.3 complete. Phase 8 done.
 
 ---
 
@@ -19,7 +19,7 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 | 4 | 8.4 | Pipeline Sidebar UI | Complete | ad5d210 |
 | 5 | 8.5 | Pipeline Integration | Complete | e05d37f |
 | 6 | 3.2 | Component Preview | Complete | cf1db75 |
-| 7 | 3.3 | Capture Tools | Ready | 3.2 |
+| 7 | 3.3 | Capture Tools | Complete | 47a4342 |
 | 8 | 4.1 | Annotations | Ready | 2.2 |
 | 9 | 5.1 | LinkedIn Publisher | Ready | 6.2 |
 | 10 | 5.2 | Resend Newsletter | Ready | 6.2 |
@@ -56,6 +56,7 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 |-------|-------|--------|
 | 3.1 | Component Browser | 7dc01e2 |
 | 3.2 | Component Preview | cf1db75 |
+| 3.3 | Capture Tools | 47a4342 |
 | 6.2 | Settings Panel | 1d4216a |
 | 8.1 | Pipeline Types + Metadata | c84da5a |
 | 8.2 | Worktree Management | 1ff2c22 |
@@ -137,3 +138,12 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 - ComponentBrowser passes onPreview up to PreviewPane for state management
 - PreviewPane switches Components tab between browser list and preview iframe
 - appUrl loaded from user settings (default: http://localhost:3000)
+
+### Story 3.3 — Capture Tools
+- screenshot.ts: Playwright-based PNG capture with retina (2x) scaling
+- capture.ts: orchestrator with auto output path (carousel-images for LinkedIn)
+- capture-toolbar.tsx: size preset dropdown, custom dimensions, PNG + video buttons
+- size-presets.ts: LinkedIn Carousel (1080x1350), OG Image (1200x627), Newsletter Hero (600x300)
+- IPC handlers + preload for capture:screenshot and capture:video
+- CaptureToolbar integrated into both Content and Components preview tabs
+- Status bar shows capture result (path + file size)
