@@ -20,7 +20,6 @@ import { captureScreenshot, captureVideo } from './capture'
 import { listContent, listDir, listVersions } from './content'
 import { onFileChange, startWatcher, stopWatcher } from './file-watcher'
 import { publishToLinkedIn } from './linkedin'
-import { listAudiences, sendNewsletter } from './resend'
 import {
   createContentPiece,
   getActiveContent,
@@ -31,6 +30,7 @@ import {
   writeMetadata,
 } from './pipeline'
 import { changePtyDirectory, createPty, destroyPty, resizePty, writePty } from './pty'
+import { listAudiences, sendNewsletter } from './resend'
 import {
   loadProjectSettings,
   loadUserSettings,
