@@ -1,9 +1,9 @@
 # Project Progress
 
 ## Current State
-- **Next Story**: 7.2 — Homebrew + npm
+- **Next Story**: All stories complete
 - **Branch**: `main`
-- **Status**: Story 7.1 complete. Phase 8 done.
+- **Status**: Story 7.2 complete. All planned stories finished.
 
 ---
 
@@ -25,7 +25,7 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 | 10 | 5.2 | Resend Newsletter | Complete | 0602fe8 |
 | 11 | 5.3 | Blog Publisher | Complete | 4a42c83 |
 | 12 | 7.1 | Packaging | Complete | 72f756f |
-| 13 | 7.2 | Homebrew + npm | Ready | 7.1 |
+| 13 | 7.2 | Homebrew + npm | Complete | 4d644d9 |
 
 **Note**: Story 6.1 (Content Library) merged into 8.4/8.5 — pipeline sidebar IS the library.
 
@@ -68,6 +68,7 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 | 5.2 | Resend Newsletter | 0602fe8 |
 | 5.3 | Blog Publisher | 4a42c83 |
 | 7.1 | Packaging | 72f756f |
+| 7.2 | Homebrew + npm | 4d644d9 |
 
 ---
 
@@ -199,3 +200,8 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 - BlogPublisher: publish form showing title, slug, SEO preview, webhook destination
 - "Publish Blog" button in preview toolbar (blog content only)
 - IPC handler for publish:blog, preload exposes publish.blog()
+
+### Story 7.2 — Homebrew + npm
+- Caskfile: Homebrew cask formula for `brew install --cask content-pipeline` on macOS
+- npm/package.json + npm/bin/content-pipeline.js: global CLI launcher that detects platform and launches installed app
+- README.md: installation instructions (Homebrew, npm, direct download), features, development setup, architecture
