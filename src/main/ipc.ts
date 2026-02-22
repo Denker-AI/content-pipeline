@@ -5,6 +5,8 @@ import fs from 'fs/promises'
 import path from 'path'
 
 import type {
+  CaptureScreenshotRequest,
+  CaptureVideoRequest,
   ContentMetadata,
   ContentStage,
   ContentType,
@@ -13,6 +15,7 @@ import type {
   UserSettings,
 } from '@/shared/types'
 
+import { captureScreenshot, captureVideo } from './capture'
 import { listContent, listDir, listVersions } from './content'
 import { onFileChange, startWatcher, stopWatcher } from './file-watcher'
 import {
@@ -259,6 +262,21 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     return getActiveContent()
   })
 
+  // Capture IPC handlers
+  ipcMain.handle(
+    'capture:screenshot',
+    async (_event, request: CaptureScreenshotRequest) => {
+      return captureScreenshot(request)
+    },
+  )
+
+  ipcMain.handle(
+    'capture:video',
+    async (_event, request: CaptureVideoRequest) => {
+      return captureVideo(request)
+    },
+  )
+
   // Watch for metadata.json changes and notify renderer
   const unsubscribePipeline = onFileChange((event) => {
     if (
@@ -294,5 +312,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     ipcMain.removeHandler('pipeline:readMetadata')
     ipcMain.removeHandler('pipeline:activate')
     ipcMain.removeHandler('pipeline:getActive')
+    ipcMain.removeHandler('capture:screenshot')
+    ipcMain.removeHandler('capture:video')
   })
 }

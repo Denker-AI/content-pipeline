@@ -64,6 +64,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
       }
     },
   },
+  capture: {
+    screenshot: (request) =>
+      ipcRenderer.invoke('capture:screenshot', request),
+    video: (request) => ipcRenderer.invoke('capture:video', request),
+  },
   pipeline: {
     listPipelineItems: () => ipcRenderer.invoke('pipeline:list'),
     createContent: (type) => ipcRenderer.invoke('pipeline:create', type),

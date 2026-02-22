@@ -162,6 +162,42 @@ export interface SettingsAPI {
   onOpen: (callback: () => void) => () => void
 }
 
+// Capture API types
+export interface CaptureScreenshotRequest {
+  url?: string
+  html?: string
+  width: number
+  height: number
+  presetName: string
+  contentDir: string
+  contentType?: ContentType
+}
+
+export interface CaptureVideoRequest {
+  url?: string
+  html?: string
+  width: number
+  height: number
+  duration: number
+  contentDir: string
+}
+
+export interface CaptureResult {
+  path: string
+  size: number
+  width: number
+  height: number
+}
+
+export interface VideoResult extends CaptureResult {
+  duration: number
+}
+
+export interface CaptureAPI {
+  screenshot: (request: CaptureScreenshotRequest) => Promise<CaptureResult>
+  video: (request: CaptureVideoRequest) => Promise<VideoResult>
+}
+
 // Global window type augmentation
 export interface ElectronAPI {
   terminal: TerminalAPI
@@ -170,6 +206,7 @@ export interface ElectronAPI {
   components: ComponentAPI
   settings: SettingsAPI
   pipeline: PipelineAPI
+  capture: CaptureAPI
 }
 
 declare global {

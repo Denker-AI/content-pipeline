@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import type { DetectedComponent, PipelineItem } from '@/shared/types'
+import type { ContentType, DetectedComponent, PipelineItem } from '@/shared/types'
 
 import { useContent } from '../hooks/use-content'
 
+import { CaptureToolbar } from './capture-toolbar'
 import { ComponentBrowser } from './component-browser'
 import { ComponentPreview } from './component-preview'
 import { ContentRenderer } from './content-renderer'
@@ -20,6 +21,7 @@ export function PreviewPane() {
   const [activeContentDir, setActiveContentDir] = useState<string | undefined>()
   const [previewComponent, setPreviewComponent] =
     useState<DetectedComponent | null>(null)
+  const [activeContentType, setActiveContentType] = useState<ContentType | undefined>()
   const [appUrl, setAppUrl] = useState(DEFAULT_APP_URL)
   const {
     selectedItem,
@@ -46,6 +48,7 @@ export function PreviewPane() {
 
   const handleItemSelect = (item: PipelineItem) => {
     setActiveContentDir(item.contentDir)
+    setActiveContentType(item.type)
   }
 
   const handlePreview = useCallback((component: DetectedComponent) => {
@@ -127,17 +130,34 @@ export function PreviewPane() {
                 </div>
               )}
             </div>
+
+            {/* Capture toolbar */}
+            {selectedItem && activeContentDir && (
+              <CaptureToolbar
+                htmlContent={fileContent || undefined}
+                contentDir={activeContentDir}
+                contentType={activeContentType}
+              />
+            )}
           </div>
         </div>
       )}
 
       {activeTab === 'Components' &&
         (previewComponent ? (
-          <ComponentPreview
-            componentName={previewComponent.name}
-            appUrl={appUrl}
-            onBack={handleBackFromPreview}
-          />
+          <div className="flex min-h-0 flex-1 flex-col">
+            <ComponentPreview
+              componentName={previewComponent.name}
+              appUrl={appUrl}
+              onBack={handleBackFromPreview}
+            />
+            {contentDir && (
+              <CaptureToolbar
+                contentUrl={`${appUrl}/content-preview`}
+                contentDir={contentDir}
+              />
+            )}
+          </div>
         ) : (
           <ComponentBrowser onPreview={handlePreview} />
         ))}
