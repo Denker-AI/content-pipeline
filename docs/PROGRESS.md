@@ -1,9 +1,9 @@
 # Project Progress
 
 ## Current State
-- **Next Story**: 7.1 — Packaging
+- **Next Story**: 7.2 — Homebrew + npm
 - **Branch**: `main`
-- **Status**: Story 5.3 complete. Phase 8 done.
+- **Status**: Story 7.1 complete. Phase 8 done.
 
 ---
 
@@ -24,8 +24,8 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 | 9 | 5.1 | LinkedIn Publisher | Complete | 869173e |
 | 10 | 5.2 | Resend Newsletter | Complete | 0602fe8 |
 | 11 | 5.3 | Blog Publisher | Complete | 4a42c83 |
-| 12 | 7.1 | Packaging | Ready | All |
-| 13 | 7.2 | Homebrew + npm | Blocked by 7.1 | 7.1 |
+| 12 | 7.1 | Packaging | Complete | 72f756f |
+| 13 | 7.2 | Homebrew + npm | Ready | 7.1 |
 
 **Note**: Story 6.1 (Content Library) merged into 8.4/8.5 — pipeline sidebar IS the library.
 
@@ -67,6 +67,7 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 | 5.1 | LinkedIn Publisher | 869173e |
 | 5.2 | Resend Newsletter | 0602fe8 |
 | 5.3 | Blog Publisher | 4a42c83 |
+| 7.1 | Packaging | 72f756f |
 
 ---
 
@@ -182,6 +183,13 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 - IPC handlers + preload for capture:screenshot and capture:video
 - CaptureToolbar integrated into both Content and Components preview tabs
 - Status bar shows capture result (path + file size)
+
+### Story 7.1 — Packaging
+- electron-builder.yml: GitHub publish provider, DMG drag-to-Applications, NSIS installer config
+- electron-updater: auto-update checks on app startup (packaged builds only)
+- GitHub Actions release.yml: matrix build (macOS/Linux/Windows) on v* tag push
+- Artifacts uploaded to GitHub Releases with auto-generated release notes
+- `bun package` produces platform-specific installers (.dmg, .AppImage, .exe)
 
 ### Story 5.3 — Blog Publisher
 - webhook.ts: parse YAML frontmatter from .md files, convert markdown body to HTML via marked
