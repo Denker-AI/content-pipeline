@@ -1,9 +1,9 @@
 # Project Progress
 
 ## Current State
-- **Next Story**: 5.2 — Resend Newsletter
+- **Next Story**: 5.3 — Blog Publisher
 - **Branch**: `main`
-- **Status**: Story 5.1 complete. Phase 8 done.
+- **Status**: Story 5.2 complete. Phase 8 done.
 
 ---
 
@@ -22,7 +22,7 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 | 7 | 3.3 | Capture Tools | Complete | 47a4342 |
 | 8 | 4.1 | Annotations | Complete | 34c05f2 |
 | 9 | 5.1 | LinkedIn Publisher | Complete | 869173e |
-| 10 | 5.2 | Resend Newsletter | Ready | 6.2 |
+| 10 | 5.2 | Resend Newsletter | Complete | 0602fe8 |
 | 11 | 5.3 | Blog Publisher | Ready | 6.2 |
 | 12 | 7.1 | Packaging | Blocked by all | All |
 | 13 | 7.2 | Homebrew + npm | Blocked by 7.1 | 7.1 |
@@ -65,6 +65,7 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 | 4.1 | Annotations | 34c05f2 |
 | 8.5 | Pipeline Integration | e05d37f |
 | 5.1 | LinkedIn Publisher | 869173e |
+| 5.2 | Resend Newsletter | 0602fe8 |
 
 ---
 
@@ -161,6 +162,16 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 - LinkedInPublisher: post text preview with char counter (3000 limit), image count
 - "Publish" button in preview toolbar (LinkedIn content only)
 - IPC handler reads token from user settings, preload exposes publish.linkedin()
+
+### Story 5.2 — Resend Newsletter
+- resend.ts: list audiences, create broadcast, send broadcast via Resend API
+- Reads email.html from content directory for broadcast body
+- Writes newsletter.json with broadcast_id, status: sent, sent_at, audience_id, subject
+- ResendSender: audience dropdown, subject line, preview text inputs
+- Confirmation warning before sending (irreversible action)
+- "Send Newsletter" button in preview toolbar (newsletter content only)
+- IPC handlers for publish:resend:audiences and publish:resend:send
+- Preload exposes publish.resendListAudiences() and publish.resendSend()
 
 ### Story 3.3 — Capture Tools
 - screenshot.ts: Playwright-based PNG capture with retina (2x) scaling
