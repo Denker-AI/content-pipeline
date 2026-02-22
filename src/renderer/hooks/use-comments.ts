@@ -14,21 +14,17 @@ export function useComments() {
 
   const addComment = useCallback(
     (x: number, y: number, text: string, nearText: string) => {
-      const pinNumber =
-        comments.filter((c) => !c.resolved).length + 1
-      const comment: AnnotationComment = {
-        id: `comment-${nextId++}`,
-        pinNumber,
-        x,
-        y,
-        text,
-        nearText,
-        resolved: false,
-      }
-      setComments((prev) => [...prev, comment])
-      return comment.id
+      const id = `comment-${nextId++}`
+      setComments((prev) => {
+        const pinNumber = prev.filter((c) => !c.resolved).length + 1
+        return [
+          ...prev,
+          { id, pinNumber, x, y, text, nearText, resolved: false },
+        ]
+      })
+      return id
     },
-    [comments],
+    [],
   )
 
   const resolveComment = useCallback((id: string) => {
