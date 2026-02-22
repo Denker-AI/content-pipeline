@@ -31,6 +31,7 @@ import {
 } from './pipeline'
 import { changePtyDirectory, createPty, destroyPty, resizePty, writePty } from './pty'
 import { listAudiences, sendNewsletter } from './resend'
+import { publishBlogToWebhook } from './webhook'
 import {
   loadProjectSettings,
   loadUserSettings,
@@ -308,6 +309,14 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     },
   )
 
+  ipcMain.handle(
+    'publish:blog',
+    async (_event, contentDir: string) => {
+      const settings = await loadUserSettings()
+      return publishBlogToWebhook(contentDir, settings.blogWebhookUrl)
+    },
+  )
+
   // Watch for metadata.json changes and notify renderer
   const unsubscribePipeline = onFileChange((event) => {
     if (
@@ -348,5 +357,6 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     ipcMain.removeHandler('publish:linkedin')
     ipcMain.removeHandler('publish:resend:audiences')
     ipcMain.removeHandler('publish:resend:send')
+    ipcMain.removeHandler('publish:blog')
   })
 }

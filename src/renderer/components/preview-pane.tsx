@@ -11,6 +11,7 @@ import { CommentSidebar } from './comment-sidebar'
 import { ComponentBrowser } from './component-browser'
 import { ComponentPreview } from './component-preview'
 import { ContentRenderer } from './content-renderer'
+import { BlogPublisher } from './blog-publisher'
 import { LinkedInPublisher } from './linkedin-publisher'
 import { PipelineSidebar } from './pipeline-sidebar'
 import { ResendSender } from './resend-sender'
@@ -31,6 +32,7 @@ export function PreviewPane() {
   const [selectedCommentId, setSelectedCommentId] = useState<string | null>(null)
   const [publishOpen, setPublishOpen] = useState(false)
   const [newsletterSendOpen, setNewsletterSendOpen] = useState(false)
+  const [blogPublishOpen, setBlogPublishOpen] = useState(false)
   const {
     selectedItem,
     fileContent,
@@ -162,6 +164,15 @@ export function PreviewPane() {
                   Send Newsletter
                 </button>
               )}
+              {selectedItem && activeContentType === 'blog' && (
+                <button
+                  onClick={() => setBlogPublishOpen(true)}
+                  className="mr-1 rounded bg-blue-600 px-2 py-1 text-xs text-white hover:bg-blue-500"
+                  title="Publish blog via webhook"
+                >
+                  Publish Blog
+                </button>
+              )}
               {selectedItem && (
                 <button
                   onClick={toggleAnnotating}
@@ -264,6 +275,15 @@ export function PreviewPane() {
         <ResendSender
           isOpen={newsletterSendOpen}
           onClose={() => setNewsletterSendOpen(false)}
+          contentDir={activeContentDir}
+        />
+      )}
+
+      {/* Blog publish dialog */}
+      {activeContentDir && (
+        <BlogPublisher
+          isOpen={blogPublishOpen}
+          onClose={() => setBlogPublishOpen(false)}
           contentDir={activeContentDir}
         />
       )}

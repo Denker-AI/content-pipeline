@@ -226,11 +226,24 @@ export interface ResendSendResult {
   broadcastId: string
 }
 
+// Blog webhook publish types
+export interface BlogPublishRequest {
+  contentDir: string
+}
+
+export interface BlogPublishResult {
+  title: string
+  slug: string
+  webhookUrl: string
+  statusCode: number
+}
+
 // Publish API exposed via preload
 export interface PublishAPI {
   linkedin: (contentDir: string) => Promise<LinkedInPublishResult>
   resendListAudiences: () => Promise<ResendAudience[]>
   resendSend: (request: ResendSendRequest) => Promise<ResendSendResult>
+  blog: (contentDir: string) => Promise<BlogPublishResult>
 }
 
 // Annotation comment for click-to-comment on preview
