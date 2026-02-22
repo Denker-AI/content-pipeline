@@ -1,6 +1,7 @@
 import { app, BrowserWindow, Menu } from 'electron'
 
 import { registerIpcHandlers } from './ipc'
+import { initAutoUpdater } from './updater'
 import { createWindow } from './window'
 
 function setupMenu(mainWindow: BrowserWindow) {
@@ -34,6 +35,9 @@ app.whenReady().then(() => {
   const mainWindow = createWindow()
   registerIpcHandlers(mainWindow)
   setupMenu(mainWindow)
+  if (app.isPackaged) {
+    initAutoUpdater(mainWindow)
+  }
 })
 
 app.on('window-all-closed', () => {
