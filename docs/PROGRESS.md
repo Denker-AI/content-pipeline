@@ -1,9 +1,9 @@
 # Project Progress
 
 ## Current State
-- **Next Story**: 5.1 — LinkedIn Publisher
+- **Next Story**: 5.2 — Resend Newsletter
 - **Branch**: `main`
-- **Status**: Story 4.1 complete. Phase 8 done.
+- **Status**: Story 5.1 complete. Phase 8 done.
 
 ---
 
@@ -21,7 +21,7 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 | 6 | 3.2 | Component Preview | Complete | cf1db75 |
 | 7 | 3.3 | Capture Tools | Complete | 47a4342 |
 | 8 | 4.1 | Annotations | Complete | 34c05f2 |
-| 9 | 5.1 | LinkedIn Publisher | Ready | 6.2 |
+| 9 | 5.1 | LinkedIn Publisher | Complete | 869173e |
 | 10 | 5.2 | Resend Newsletter | Ready | 6.2 |
 | 11 | 5.3 | Blog Publisher | Ready | 6.2 |
 | 12 | 7.1 | Packaging | Blocked by all | All |
@@ -64,6 +64,7 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 | 8.4 | Pipeline Sidebar UI | ad5d210 |
 | 4.1 | Annotations | 34c05f2 |
 | 8.5 | Pipeline Integration | e05d37f |
+| 5.1 | LinkedIn Publisher | 869173e |
 
 ---
 
@@ -150,6 +151,16 @@ Stories are executed in this exact order. Each session picks the next `Ready` st
 - Annotate toggle button in preview toolbar
 - Comments cleared when switching content items
 - Prompt format: "Revise <file>:\n(1) Near "<text>": "<comment>"\n..."
+
+### Story 5.1 — LinkedIn Publisher
+- linkedin.ts: OAuth2 profile lookup via /v2/userinfo, image upload via /rest/images
+- Text-only, single image, and multi-image (carousel) post support
+- Reads post-text.md for post body, carousel-images/ for images
+- Writes post.json with linkedin_post_id, status, published_at, url
+- PublishDialog: reusable confirmation modal with loading/error states
+- LinkedInPublisher: post text preview with char counter (3000 limit), image count
+- "Publish" button in preview toolbar (LinkedIn content only)
+- IPC handler reads token from user settings, preload exposes publish.linkedin()
 
 ### Story 3.3 — Capture Tools
 - screenshot.ts: Playwright-based PNG capture with retina (2x) scaling
