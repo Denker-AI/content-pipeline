@@ -6,6 +6,12 @@ directories:
 files:
   - dist/**/*
   - package.json
+
+publish:
+  provider: github
+  owner: denkerapp
+  repo: content-pipeline
+
 mac:
   target:
     - target: dmg
@@ -13,13 +19,33 @@ mac:
         - arm64
         - x64
   category: public.app-category.developer-tools
+  icon: resources/icon.icns
+
+dmg:
+  contents:
+    - x: 130
+      y: 220
+    - x: 410
+      y: 220
+      type: link
+      path: /Applications
+
 linux:
   target:
     - target: AppImage
       arch:
         - x64
+  icon: resources/icon.png
+  category: Development
+
 win:
   target:
     - target: nsis
       arch:
         - x64
+  icon: resources/icon.ico
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  deleteAppDataOnUninstall: true
