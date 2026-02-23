@@ -29,9 +29,12 @@ export function PipelineCard({
   onStageChange,
 }: PipelineCardProps) {
   return (
-    <button
+    <div
+      role="button"
+      tabIndex={0}
       onClick={() => onSelect(item)}
-      className={`flex w-full items-center gap-2 border-l-2 px-3 py-2 text-left transition-colors ${
+      onKeyDown={(e) => e.key === 'Enter' && onSelect(item)}
+      className={`flex w-full cursor-pointer items-center gap-2 border-l-2 px-3 py-2 text-left transition-colors ${
         isActive
           ? 'border-blue-500 bg-zinc-100 dark:bg-zinc-800'
           : 'border-transparent hover:bg-zinc-100 dark:hover:bg-zinc-700/50'
@@ -49,6 +52,6 @@ export function PipelineCard({
         stage={item.stage}
         onChange={(stage) => onStageChange(item, stage)}
       />
-    </button>
+    </div>
   )
 }
