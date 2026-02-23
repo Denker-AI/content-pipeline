@@ -1,6 +1,6 @@
 // Parsed terminal event types
 export interface ParsedEvent {
-  type: 'file-changed' | 'session-id' | 'token-cost' | 'component-found' | 'cwd-changed'
+  type: 'file-changed' | 'session-id' | 'token-cost' | 'component-found' | 'cwd-changed' | 'component-preview-html'
   data: Record<string, string | number>
 }
 
@@ -122,17 +122,24 @@ export interface ContentAPI {
   list: () => Promise<ContentItem[]>
   listDir: (dirPath: string) => Promise<DirEntry[]>
   read: (filePath: string) => Promise<string>
+  readAsDataUrl: (filePath: string) => Promise<string>
   listVersions: (filePath: string) => Promise<ContentVersion[]>
   openProject: () => Promise<string | null>
   getProjectRoot: () => Promise<string>
   onProjectChanged: (callback: (root: string) => void) => () => void
 }
 
+// Result from component render attempt
+export type ComponentRenderResult =
+  | { ok: true; html: string }
+  | { ok: false; source: string; error: string }
+
 // Component API exposed via preload
 export interface ComponentAPI {
-  onComponentFound: (
-    callback: (component: DetectedComponent) => void,
-  ) => () => void
+  onComponentFound: (callback: (component: DetectedComponent) => void) => () => void
+  onPreviewHtml: (callback: (html: string) => void) => () => void
+  scan: () => Promise<DetectedComponent[]>
+  render: (filePath: string) => Promise<ComponentRenderResult>
 }
 
 // User-level settings (stored in ~/.content-pipeline/settings.json)

@@ -7,7 +7,7 @@ function stripAnsi(str: string): string {
 }
 
 export interface ParsedEvent {
-  type: 'file-changed' | 'session-id' | 'token-cost' | 'component-found' | 'cwd-changed'
+  type: 'file-changed' | 'session-id' | 'token-cost' | 'component-found' | 'cwd-changed' | 'component-preview-html'
   data: Record<string, string | number>
 }
 
@@ -21,6 +21,7 @@ const OSC7_REGEX = /\x1b\]7;file:\/\/[^/]*([^\x07\x1b]+)(?:\x07|\x1b\\)/g
 export class TerminalParser {
   private buffer = ''
   private listeners: EventCallback[] = []
+  private previewHtmlBuffer: string[] | null = null
 
   onEvent(callback: EventCallback): () => void {
     this.listeners.push(callback)
@@ -49,7 +50,26 @@ export class TerminalParser {
     this.buffer = lines.pop() || ''
 
     for (const line of lines) {
-      this.parseLine(stripAnsi(line))
+      const stripped = stripAnsi(line)
+
+      if (stripped.trim() === '===HTML_PREVIEW_START===') {
+        this.previewHtmlBuffer = []
+        continue
+      }
+      if (stripped.trim() === '===HTML_PREVIEW_END===') {
+        if (this.previewHtmlBuffer !== null) {
+          const html = this.previewHtmlBuffer.join('\n')
+          this.emit({ type: 'component-preview-html', data: { html } })
+          this.previewHtmlBuffer = null
+        }
+        continue
+      }
+      if (this.previewHtmlBuffer !== null) {
+        this.previewHtmlBuffer.push(stripped)
+        continue
+      }
+
+      this.parseLine(stripped)
     }
   }
 

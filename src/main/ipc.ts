@@ -17,6 +17,8 @@ import type {
 } from '@/shared/types'
 
 import { captureScreenshot, captureVideo } from './capture'
+import { renderComponentToHtml } from './component-renderer'
+import { scanComponents } from './component-scanner'
 import { listContent, listDir, listVersions } from './content'
 import { onFileChange, startWatcher, stopWatcher } from './file-watcher'
 import { publishToLinkedIn } from './linkedin'
@@ -73,6 +75,9 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
       mainWindow.webContents.send('terminal:parsed', event)
       if (event.type === 'component-found') {
         mainWindow.webContents.send('terminal:component', event.data)
+      }
+      if (event.type === 'component-preview-html') {
+        mainWindow.webContents.send('terminal:component-preview-html', event.data.html)
       }
       if (event.type === 'cwd-changed') {
         const newDir = event.data.dir as string
@@ -145,6 +150,22 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
       throw new Error('Access denied: file outside content directory')
     }
     return fs.readFile(resolved, 'utf-8')
+  })
+
+  ipcMain.handle('content:readAsDataUrl', async (_event, filePath: string) => {
+    const contentDir = getContentDir()
+    const resolved = path.resolve(filePath)
+    if (!resolved.startsWith(contentDir)) {
+      throw new Error('Access denied: file outside content directory')
+    }
+    const ext = path.extname(filePath).toLowerCase().slice(1)
+    const mimeMap: Record<string, string> = {
+      png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg',
+      gif: 'image/gif', webp: 'image/webp',
+    }
+    const mime = mimeMap[ext] ?? 'application/octet-stream'
+    const buf = await fs.readFile(resolved)
+    return `data:${mime};base64,${buf.toString('base64')}`
   })
 
   ipcMain.handle(
@@ -362,6 +383,16 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     },
   )
 
+  // Component scan IPC handler — walks project directory for .tsx/.jsx files
+  ipcMain.handle('component:scan', async () => {
+    return scanComponents(projectRoot)
+  })
+
+  // Component render IPC handler — reads source for Claude fallback
+  ipcMain.handle('component:render', async (_event, filePath: string) => {
+    return renderComponentToHtml(filePath, projectRoot)
+  })
+
   // Shell IPC handlers
   ipcMain.handle('shell:openExternal', async (_event, url: string) => {
     await shell.openExternal(url)
@@ -404,6 +435,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     ipcMain.removeHandler('content:list')
     ipcMain.removeHandler('content:listDir')
     ipcMain.removeHandler('content:read')
+    ipcMain.removeHandler('content:readAsDataUrl')
     ipcMain.removeHandler('content:listVersions')
     ipcMain.removeHandler('content:getProjectRoot')
     ipcMain.removeHandler('content:openProject')
@@ -427,6 +459,8 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     ipcMain.removeHandler('seo:analyze')
     ipcMain.removeHandler('project:isConfigured')
     ipcMain.removeHandler('project:install')
+    ipcMain.removeHandler('component:scan')
+    ipcMain.removeHandler('component:render')
     ipcMain.removeHandler('shell:openExternal')
     ipcMain.removeHandler('shell:showItemInFolder')
   })

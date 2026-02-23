@@ -40,11 +40,21 @@ contextBridge.exposeInMainWorld('electronAPI', {
         ipcRenderer.removeListener('terminal:component', listener)
       }
     },
+    onPreviewHtml: (callback) => {
+      const listener = (_event, html) => callback(html)
+      ipcRenderer.on('terminal:component-preview-html', listener)
+      return () => {
+        ipcRenderer.removeListener('terminal:component-preview-html', listener)
+      }
+    },
+    scan: () => ipcRenderer.invoke('component:scan'),
+    render: (filePath) => ipcRenderer.invoke('component:render', filePath),
   },
   content: {
     list: () => ipcRenderer.invoke('content:list'),
     listDir: (dirPath) => ipcRenderer.invoke('content:listDir', dirPath),
     read: (filePath) => ipcRenderer.invoke('content:read', filePath),
+    readAsDataUrl: (filePath) => ipcRenderer.invoke('content:readAsDataUrl', filePath),
     listVersions: (filePath) =>
       ipcRenderer.invoke('content:listVersions', filePath),
     openProject: () => ipcRenderer.invoke('content:openProject'),

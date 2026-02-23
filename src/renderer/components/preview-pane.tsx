@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import type { ContentType, ContentVersion, DetectedComponent, RenderMode } from '@/shared/types'
+import type { ComponentRenderResult, ContentType, ContentVersion, DetectedComponent, RenderMode } from '@/shared/types'
 
 import { useComments } from '../hooks/use-comments'
 
@@ -17,8 +17,6 @@ import { SeoPanel } from './seo-panel'
 import { VersionSelector } from './version-selector'
 
 type Tab = 'Content' | 'Components' | 'SEO'
-
-const DEFAULT_APP_URL = 'http://localhost:3000'
 
 interface SelectedFile {
   path: string
@@ -55,7 +53,8 @@ export function PreviewPane({
 }: PreviewPaneProps) {
   const [activeTab, setActiveTab] = useState<Tab>('Content')
   const [previewComponent, setPreviewComponent] = useState<DetectedComponent | null>(null)
-  const [appUrl, setAppUrl] = useState(DEFAULT_APP_URL)
+  const [previewHtml, setPreviewHtml] = useState<string | null>(null)
+  const [previewError, setPreviewError] = useState<string | null>(null)
   const [selectedCommentId, setSelectedCommentId] = useState<string | null>(null)
   const [publishOpen, setPublishOpen] = useState(false)
   const [newsletterSendOpen, setNewsletterSendOpen] = useState(false)
@@ -78,17 +77,41 @@ export function PreviewPane({
     setSelectedCommentId(null)
   }, [activeContentDir, clearAll])
 
-  // Load appUrl from user settings
+  // Subscribe to Claude-generated HTML previews (fallback if esbuild fails)
   useEffect(() => {
-    window.electronAPI?.settings
-      .getUser()
-      .then((s) => {
-        if (s.appUrl) setAppUrl(s.appUrl)
-      })
-      .catch(() => {})
+    const api = window.electronAPI?.components
+    if (!api) return
+    return api.onPreviewHtml((html) => {
+      setPreviewHtml(html)
+      setPreviewError(null)
+    })
   }, [])
 
+  // Render component via esbuild when selection changes; auto-fall back to Claude if it fails
+  useEffect(() => {
+    if (!previewComponent) return
+    setPreviewHtml(null)
+    setPreviewError(null)
+    window.electronAPI?.components
+      .render(previewComponent.path)
+      .then((result: ComponentRenderResult) => {
+        if (result.ok) {
+          setPreviewHtml(result.html)
+        } else {
+          // esbuild failed — automatically ask Claude using the actual source code
+          setPreviewError('generating')
+          const prompt = `Here is the source code for the ${previewComponent.name} component:\n\n\`\`\`tsx\n${result.source}\n\`\`\`\n\nCreate a self-contained HTML preview with realistic mock data that accurately represents how this component looks and functions. Use only vanilla HTML, CSS, and JS (no external dependencies). Output the complete HTML between these exact marker lines on their own lines: ===HTML_PREVIEW_START=== and ===HTML_PREVIEW_END===`
+          window.electronAPI?.terminal.sendInput(prompt + '\n')
+        }
+      })
+      .catch(() => {
+        setPreviewError('failed')
+      })
+  }, [previewComponent])
+
   const handlePreview = useCallback((component: DetectedComponent) => {
+    setPreviewHtml(null)
+    setPreviewError(null)
     setPreviewComponent(component)
   }, [])
 
@@ -250,24 +273,32 @@ export function PreviewPane({
         </div>
       )}
 
-      {activeTab === 'Components' &&
-        (previewComponent ? (
-          <div className="flex min-h-0 flex-1 flex-col">
-            <ComponentPreview
-              componentName={previewComponent.name}
-              appUrl={appUrl}
-              onBack={handleBackFromPreview}
-            />
-            {contentDir && (
-              <CaptureToolbar
-                contentUrl={`${appUrl}/content-preview`}
-                contentDir={contentDir}
-              />
-            )}
+      {activeTab === 'Components' && (
+        <>
+          {/* Always mounted so the list persists — hidden when preview is active */}
+          <div className={previewComponent ? 'hidden' : 'flex min-h-0 flex-1 flex-col'}>
+            <ComponentBrowser onPreview={handlePreview} />
           </div>
-        ) : (
-          <ComponentBrowser onPreview={handlePreview} />
-        ))}
+
+          {previewComponent && (
+            <div className="flex min-h-0 flex-1 flex-col">
+              <ComponentPreview
+                componentName={previewComponent.name}
+                componentPath={previewComponent.path}
+                htmlContent={previewHtml}
+                error={previewError}
+                onBack={handleBackFromPreview}
+              />
+              {contentDir && (
+                <CaptureToolbar
+                  htmlContent={previewHtml ?? undefined}
+                  contentDir={contentDir}
+                />
+              )}
+            </div>
+          )}
+        </>
+      )}
 
       {activeTab === 'SEO' && (
         <SeoPanel
