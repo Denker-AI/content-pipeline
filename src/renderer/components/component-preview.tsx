@@ -34,19 +34,19 @@ export function ComponentPreview({
   return (
     <div className="flex h-full flex-col">
       {/* Toolbar */}
-      <div className="flex shrink-0 items-center gap-2 border-b border-zinc-700 bg-zinc-800 px-3 py-2">
+      <div className="flex shrink-0 items-center gap-2 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 px-3 py-2">
         <button
           onClick={onBack}
-          className="rounded px-2 py-1 text-xs text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200"
+          className="rounded px-2 py-1 text-xs text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-700 hover:text-zinc-700 dark:hover:text-zinc-200"
         >
           Back
         </button>
-        <span className="text-xs font-medium text-white">{componentName}</span>
+        <span className="text-xs font-medium text-zinc-900 dark:text-white">{componentName}</span>
         <span className="flex-1" />
-        <span className="truncate text-xs text-zinc-500">{previewUrl}</span>
+        <span className="truncate text-xs text-zinc-400 dark:text-zinc-500">{previewUrl}</span>
         <button
           onClick={reload}
-          className="rounded px-2 py-1 text-xs text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200"
+          className="rounded px-2 py-1 text-xs text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-700 hover:text-zinc-700 dark:hover:text-zinc-200"
         >
           Reload
         </button>
@@ -55,16 +55,16 @@ export function ComponentPreview({
       {/* Preview iframe */}
       <div className="relative min-h-0 flex-1">
         {loading && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-zinc-900/80">
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80 dark:bg-zinc-900/80">
             <p className="text-sm text-zinc-400">
               Waiting for preview page...
             </p>
           </div>
         )}
         {error && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-zinc-900/80">
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80 dark:bg-zinc-900/80">
             <div className="text-center">
-              <p className="text-sm text-zinc-400">
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">
                 Preview not ready yet. Claude is generating it.
               </p>
               <button

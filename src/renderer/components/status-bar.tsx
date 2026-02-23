@@ -31,7 +31,7 @@ export function StatusBar() {
   }, [])
 
   return (
-    <div className="flex h-6 shrink-0 items-center justify-between border-t border-zinc-700 bg-zinc-900 px-3 text-xs text-zinc-500">
+    <div className="flex h-6 shrink-0 items-center justify-between border-t border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 text-xs text-zinc-400 dark:text-zinc-500">
       <span>Session: {sessionId ?? '—'}</span>
       <div className="flex gap-4">
         <span>Cost: ${cost.toFixed(2)}</span>

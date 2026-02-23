@@ -38,7 +38,7 @@ export function PipelineSidebar({
   if (!hasProject) {
     return (
       <div className="flex h-full flex-col items-center justify-center p-4 text-center">
-        <p className="text-xs text-zinc-500">No project open</p>
+        <p className="text-xs text-zinc-400 dark:text-zinc-500">No project open</p>
         <button
           onClick={onOpenProject}
           className="mt-2 rounded bg-blue-600 px-3 py-1 text-xs text-white hover:bg-blue-500"
@@ -52,7 +52,7 @@ export function PipelineSidebar({
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <p className="text-xs text-zinc-500">Loading...</p>
+        <p className="text-xs text-zinc-400 dark:text-zinc-500">Loading...</p>
       </div>
     )
   }
@@ -60,13 +60,13 @@ export function PipelineSidebar({
   return (
     <div className="flex h-full flex-col">
       {/* Search */}
-      <div className="shrink-0 border-b border-zinc-700 p-2">
+      <div className="shrink-0 border-b border-zinc-200 dark:border-zinc-700 p-2">
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search content..."
-          className="w-full rounded bg-zinc-800 px-2 py-1 text-xs text-zinc-200 placeholder-zinc-500 outline-none focus:ring-1 focus:ring-blue-500"
+          className="w-full rounded bg-zinc-100 dark:bg-zinc-800 px-2 py-1 text-xs text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-500 outline-none focus:ring-1 focus:ring-blue-500"
         />
       </div>
 

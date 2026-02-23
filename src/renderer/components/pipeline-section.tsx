@@ -48,26 +48,26 @@ export function PipelineSection({
           className="flex flex-1 items-center gap-2 text-left"
         >
           <span
-            className={`text-[10px] text-zinc-500 transition-transform ${
+            className={`text-[10px] text-zinc-400 dark:text-zinc-500 transition-transform ${
               isExpanded ? 'rotate-90' : ''
             }`}
           >
             &#9654;
           </span>
-          <span className="flex h-4 w-4 items-center justify-center rounded bg-zinc-700 text-[9px] font-bold text-zinc-300">
+          <span className="flex h-4 w-4 items-center justify-center rounded bg-zinc-200 dark:bg-zinc-700 text-[9px] font-bold text-zinc-600 dark:text-zinc-300">
             {TYPE_ICONS[type]}
           </span>
-          <span className="text-xs font-medium text-zinc-300">
+          <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300">
             {TYPE_LABELS[type]}
           </span>
-          <span className="text-[10px] text-zinc-500">{items.length}</span>
+          <span className="text-[10px] text-zinc-400 dark:text-zinc-500">{items.length}</span>
         </button>
         <button
           onClick={(e) => {
             e.stopPropagation()
             onCreateNew(type)
           }}
-          className="flex h-5 w-5 items-center justify-center rounded text-zinc-500 hover:bg-zinc-700 hover:text-zinc-300"
+          className="flex h-5 w-5 items-center justify-center rounded text-zinc-400 dark:text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-700 hover:text-zinc-600 dark:hover:text-zinc-300"
           title={`New ${TYPE_LABELS[type]}`}
         >
           <span className="text-sm leading-none">+</span>
@@ -88,7 +88,7 @@ export function PipelineSection({
               />
             ))
           ) : (
-            <p className="px-3 py-2 text-[10px] text-zinc-600">
+            <p className="px-3 py-2 text-[10px] text-zinc-400 dark:text-zinc-600">
               No items yet
             </p>
           )}

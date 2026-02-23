@@ -33,14 +33,14 @@ export function PipelineCard({
       onClick={() => onSelect(item)}
       className={`flex w-full items-center gap-2 border-l-2 px-3 py-2 text-left transition-colors ${
         isActive
-          ? 'border-blue-500 bg-zinc-800'
-          : 'border-transparent hover:bg-zinc-700/50'
+          ? 'border-blue-500 bg-zinc-100 dark:bg-zinc-800'
+          : 'border-transparent hover:bg-zinc-100 dark:hover:bg-zinc-700/50'
       }`}
     >
       <div className="min-w-0 flex-1">
-        <p className="truncate text-xs text-zinc-200">{item.title}</p>
+        <p className="truncate text-xs text-zinc-700 dark:text-zinc-200">{item.title}</p>
         {item.date && (
-          <p className="mt-0.5 text-[10px] text-zinc-500">
+          <p className="mt-0.5 text-[10px] text-zinc-400 dark:text-zinc-500">
             {formatDate(item.date)}
           </p>
         )}

@@ -42,7 +42,7 @@ export function SplitPane({ left, right }: SplitPaneProps) {
       </div>
       <div
         onMouseDown={handleMouseDown}
-        className="w-1 shrink-0 cursor-col-resize bg-zinc-700 transition-colors hover:bg-zinc-500"
+        className="w-1 shrink-0 cursor-col-resize bg-zinc-200 dark:bg-zinc-700 transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-500"
       />
       <div style={{ width: `${100 - leftWidth}%` }} className="h-full overflow-hidden">
         {right}

@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { ContentStage } from '@/shared/types'
 
 const STAGE_COLORS: Record<ContentStage, string> = {
-  idea: 'bg-zinc-600 text-zinc-200',
+  idea: 'bg-zinc-200 text-zinc-600 dark:bg-zinc-600 dark:text-zinc-200',
   draft: 'bg-yellow-600/20 text-yellow-400',
   review: 'bg-orange-600/20 text-orange-400',
   final: 'bg-blue-600/20 text-blue-400',
@@ -53,7 +53,7 @@ export function StageBadge({ stage, onChange }: StageBadgeProps) {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-1 w-28 rounded border border-zinc-600 bg-zinc-800 py-1 shadow-lg">
+        <div className="absolute right-0 top-full z-50 mt-1 w-28 rounded border border-zinc-200 dark:border-zinc-600 bg-white dark:bg-zinc-800 py-1 shadow-lg">
           {ALL_STAGES.map((s) => (
             <button
               key={s}
@@ -62,8 +62,8 @@ export function StageBadge({ stage, onChange }: StageBadgeProps) {
                 onChange(s)
                 setOpen(false)
               }}
-              className={`flex w-full items-center gap-2 px-3 py-1 text-left text-xs capitalize hover:bg-zinc-700 ${
-                s === stage ? 'text-white' : 'text-zinc-400'
+              className={`flex w-full items-center gap-2 px-3 py-1 text-left text-xs capitalize hover:bg-zinc-100 dark:hover:bg-zinc-700 ${
+                s === stage ? 'text-zinc-900 dark:text-white' : 'text-zinc-500 dark:text-zinc-400'
               }`}
             >
               {s === stage && <span className="text-blue-400">&#10003;</span>}

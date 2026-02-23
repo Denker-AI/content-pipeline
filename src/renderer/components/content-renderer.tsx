@@ -15,7 +15,7 @@ const modeStyles: Record<RenderMode, string> = {
   'linkedin-preview': 'max-w-[552px] mx-auto',
   'linkedin-text': 'max-w-[552px] mx-auto',
   'carousel-slide': 'max-w-[540px] mx-auto aspect-[1080/1350]',
-  blog: 'max-w-[720px] mx-auto prose prose-invert',
+  blog: 'max-w-[720px] mx-auto prose dark:prose-invert',
   asset: 'w-full h-full',
   unknown: 'w-full h-full',
 }
@@ -60,7 +60,7 @@ function MarkdownPreview({ content }: { content: string }) {
 
   return (
     <div
-      className="prose prose-invert max-w-none p-6"
+      className="prose dark:prose-invert max-w-none p-6"
       dangerouslySetInnerHTML={{ __html: html }}
     />
   )
@@ -72,14 +72,14 @@ function LinkedInTextPreview({ content }: { content: string }) {
 
   return (
     <div className="mx-auto max-w-[552px] p-6">
-      <div className="rounded-lg border border-zinc-700 bg-zinc-800 p-4">
-        <pre className="whitespace-pre-wrap font-sans text-sm text-zinc-200">
+      <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 p-4">
+        <pre className="whitespace-pre-wrap font-sans text-sm text-zinc-700 dark:text-zinc-200">
           {content}
         </pre>
       </div>
       <div className="mt-2 flex justify-end text-xs">
         <span
-          className={charCount > limit ? 'text-red-400' : 'text-zinc-500'}
+          className={charCount > limit ? 'text-red-400' : 'text-zinc-400 dark:text-zinc-500'}
         >
           {charCount.toLocaleString()} / {limit.toLocaleString()} chars
         </span>
@@ -95,7 +95,7 @@ export function ContentRenderer({
 }: ContentRendererProps) {
   if (!content) {
     return (
-      <div className="flex h-full items-center justify-center text-zinc-500">
+      <div className="flex h-full items-center justify-center text-zinc-400 dark:text-zinc-500">
         <p className="text-sm">No content to preview</p>
       </div>
     )

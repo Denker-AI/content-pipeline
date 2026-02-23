@@ -28,7 +28,7 @@ export default defineConfig({
           build: {
             outDir: 'dist/main',
             rollupOptions: {
-              external: ['electron', 'electron-updater', 'node-pty']
+              external: ['electron', 'electron-updater', 'node-pty', 'playwright-core']
             }
           },
           plugins: [copyPreload()]

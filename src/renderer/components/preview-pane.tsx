@@ -105,9 +105,9 @@ export function PreviewPane({
   const hasComments = comments.length > 0
 
   return (
-    <div className="flex h-full flex-col bg-zinc-900">
+    <div className="flex h-full flex-col bg-white dark:bg-zinc-900">
       {/* Tab bar */}
-      <div className="flex shrink-0 items-center border-b border-zinc-700">
+      <div className="flex shrink-0 items-center border-b border-zinc-200 dark:border-zinc-700">
         <div className="flex flex-1">
           {tabs.map((tab) => (
             <button
@@ -118,8 +118,8 @@ export function PreviewPane({
               }}
               className={`px-4 py-2 text-sm transition-colors ${
                 activeTab === tab
-                  ? 'border-b-2 border-blue-500 text-white'
-                  : 'text-zinc-400 hover:text-zinc-200'
+                  ? 'border-b-2 border-blue-500 text-zinc-900 dark:text-white'
+                  : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200'
               }`}
             >
               {tab}
@@ -128,7 +128,7 @@ export function PreviewPane({
         </div>
         <button
           onClick={openProject}
-          className="mr-2 shrink-0 rounded bg-zinc-700 px-2 py-1 text-xs text-zinc-300 hover:bg-zinc-600"
+          className="mr-2 shrink-0 rounded bg-zinc-200 dark:bg-zinc-700 px-2 py-1 text-xs text-zinc-600 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600"
           title={contentDir ? `Project: ${contentDir}` : 'Open project folder'}
         >
           Open
@@ -140,7 +140,7 @@ export function PreviewPane({
           {/* Preview area */}
           <div className="flex min-w-0 flex-1 flex-col">
             {/* Toolbar: version selector + action buttons */}
-            <div className="flex shrink-0 items-center border-b border-zinc-700">
+            <div className="flex shrink-0 items-center border-b border-zinc-200 dark:border-zinc-700">
               <div className="flex-1">
                 {selectedItem && versions.length > 0 && (
                   <VersionSelector
@@ -183,7 +183,7 @@ export function PreviewPane({
                   className={`mr-2 rounded px-2 py-1 text-xs transition-colors ${
                     annotating
                       ? 'bg-red-500/20 text-red-400 ring-1 ring-red-500/40'
-                      : 'text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'
+                      : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-700 hover:text-zinc-700 dark:hover:text-zinc-200'
                   }`}
                   title={annotating ? 'Exit annotation mode' : 'Click to annotate'}
                 >
@@ -195,7 +195,7 @@ export function PreviewPane({
             {/* Content area with comment overlay */}
             <div className="min-h-0 flex-1">
               {loading ? (
-                <div className="flex h-full items-center justify-center text-zinc-500">
+                <div className="flex h-full items-center justify-center text-zinc-400 dark:text-zinc-500">
                   <p className="text-sm">Loading...</p>
                 </div>
               ) : selectedItem ? (
@@ -215,7 +215,7 @@ export function PreviewPane({
                   </div>
                 </CommentOverlay>
               ) : (
-                <div className="flex h-full items-center justify-center text-zinc-500">
+                <div className="flex h-full items-center justify-center text-zinc-400 dark:text-zinc-500">
                   <p className="text-sm">Select content to preview</p>
                 </div>
               )}

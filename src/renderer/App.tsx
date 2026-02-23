@@ -55,7 +55,7 @@ export function App() {
   }, [])
 
   return (
-    <div className="flex h-screen flex-col bg-zinc-950">
+    <div className="flex h-screen flex-col bg-zinc-50 dark:bg-zinc-950">
       <div className="flex-1 overflow-hidden">
         <ThreePaneLayout
           left={

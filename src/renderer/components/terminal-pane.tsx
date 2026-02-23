@@ -23,7 +23,7 @@ export function TerminalPane() {
   return (
     <div
       ref={containerRef}
-      className="h-full w-full bg-zinc-950 p-1"
+      className="h-full w-full bg-zinc-50 dark:bg-zinc-950 p-1"
     />
   )
 }

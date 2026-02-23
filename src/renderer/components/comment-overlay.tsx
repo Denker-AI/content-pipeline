@@ -140,7 +140,7 @@ export function CommentOverlay({
             active
           />
           <div
-            className="absolute z-30 w-64 rounded-lg border border-zinc-600 bg-zinc-800 p-3 shadow-xl"
+            className="absolute z-30 w-64 rounded-lg border border-zinc-200 dark:border-zinc-600 bg-white dark:bg-zinc-800 p-3 shadow-xl"
             style={{
               left: `${Math.min(pendingPin.x, 70)}%`,
               top: `${pendingPin.y + 3}%`,
@@ -148,7 +148,7 @@ export function CommentOverlay({
             onClick={(e) => e.stopPropagation()}
           >
             {pendingPin.nearText && (
-              <p className="mb-2 truncate text-xs text-zinc-400">
+              <p className="mb-2 truncate text-xs text-zinc-500 dark:text-zinc-400">
                 Near: &quot;{pendingPin.nearText}&quot;
               </p>
             )}
@@ -158,18 +158,18 @@ export function CommentOverlay({
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Type your comment..."
-              className="w-full resize-none rounded border border-zinc-600 bg-zinc-900 px-2 py-1.5 text-sm text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none"
+              className="w-full resize-none rounded border border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-900 px-2 py-1.5 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 focus:border-blue-500 focus:outline-none"
               rows={2}
             />
             <div className="mt-2 flex items-center justify-between">
-              <span className="text-xs text-zinc-500">Enter to add</span>
+              <span className="text-xs text-zinc-400 dark:text-zinc-500">Enter to add</span>
               <div className="flex gap-1">
                 <button
                   onClick={() => {
                     setPendingPin(null)
                     setInputText('')
                   }}
-                  className="rounded px-2 py-1 text-xs text-zinc-400 hover:bg-zinc-700"
+                  className="rounded px-2 py-1 text-xs text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-700"
                 >
                   Cancel
                 </button>

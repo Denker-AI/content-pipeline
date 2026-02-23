@@ -94,15 +94,15 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   if (!isOpen) return null
 
   const inputClass =
-    'w-full rounded border border-zinc-600 bg-zinc-800 px-3 py-1.5 text-sm text-zinc-200 placeholder-zinc-500 focus:border-blue-500 focus:outline-none'
+    'w-full rounded border border-zinc-200 dark:border-zinc-600 bg-white dark:bg-zinc-800 px-3 py-1.5 text-sm text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-500 focus:border-blue-500 focus:outline-none'
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-      <div className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg border border-zinc-700 bg-zinc-900 p-6 shadow-xl">
+      <div className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-6 shadow-xl">
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 text-zinc-400 hover:text-white"
+          className="absolute right-4 top-4 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
           aria-label="Close settings"
         >
           <svg
@@ -119,17 +119,17 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
           </svg>
         </button>
 
-        <h1 className="mb-6 text-lg font-semibold text-white">Settings</h1>
+        <h1 className="mb-6 text-lg font-semibold text-zinc-900 dark:text-white">Settings</h1>
 
         {/* User Settings Section */}
         <section className="mb-8">
-          <h2 className="mb-4 text-sm font-medium text-zinc-300">
+          <h2 className="mb-4 text-sm font-medium text-zinc-600 dark:text-zinc-300">
             User Settings
           </h2>
 
           <div className="space-y-4">
             <div>
-              <label className="mb-1 block text-xs text-zinc-400">
+              <label className="mb-1 block text-xs text-zinc-500 dark:text-zinc-400">
                 App URL
               </label>
               <input
@@ -144,7 +144,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
             </div>
 
             <div>
-              <label className="mb-1 block text-xs text-zinc-400">
+              <label className="mb-1 block text-xs text-zinc-500 dark:text-zinc-400">
                 Auth Cookies (JSON)
               </label>
               <textarea
@@ -156,7 +156,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
             </div>
 
             <div>
-              <label className="mb-1 block text-xs text-zinc-400">
+              <label className="mb-1 block text-xs text-zinc-500 dark:text-zinc-400">
                 LinkedIn Token
               </label>
               <input
@@ -174,7 +174,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
             </div>
 
             <div>
-              <label className="mb-1 block text-xs text-zinc-400">
+              <label className="mb-1 block text-xs text-zinc-500 dark:text-zinc-400">
                 Resend API Key
               </label>
               <input
@@ -192,7 +192,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
             </div>
 
             <div>
-              <label className="mb-1 block text-xs text-zinc-400">
+              <label className="mb-1 block text-xs text-zinc-500 dark:text-zinc-400">
                 Blog Webhook URL
               </label>
               <input
@@ -210,7 +210,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
             </div>
 
             <div>
-              <label className="mb-1 block text-xs text-zinc-400">Theme</label>
+              <label className="mb-1 block text-xs text-zinc-500 dark:text-zinc-400">Theme</label>
               <div className="flex gap-2">
                 <button
                   onClick={() =>
@@ -219,7 +219,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                   className={`rounded px-3 py-1.5 text-sm ${
                     userSettings.theme === 'dark'
                       ? 'bg-blue-600 text-white'
-                      : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'
+                      : 'bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-600'
                   }`}
                 >
                   Dark
@@ -231,7 +231,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                   className={`rounded px-3 py-1.5 text-sm ${
                     userSettings.theme === 'light'
                       ? 'bg-blue-600 text-white'
-                      : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'
+                      : 'bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-600'
                   }`}
                 >
                   Light
@@ -254,17 +254,17 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
         </section>
 
         {/* Divider */}
-        <div className="mb-8 border-t border-zinc-700" />
+        <div className="mb-8 border-t border-zinc-200 dark:border-zinc-700" />
 
         {/* Project Settings Section */}
         <section>
-          <h2 className="mb-4 text-sm font-medium text-zinc-300">
+          <h2 className="mb-4 text-sm font-medium text-zinc-600 dark:text-zinc-300">
             Project Settings
           </h2>
 
           <div className="space-y-4">
             <div>
-              <label className="mb-1 block text-xs text-zinc-400">
+              <label className="mb-1 block text-xs text-zinc-500 dark:text-zinc-400">
                 Company
               </label>
               <input
@@ -285,7 +285,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
             </div>
 
             <div>
-              <label className="mb-1 block text-xs text-zinc-400">
+              <label className="mb-1 block text-xs text-zinc-500 dark:text-zinc-400">
                 Product
               </label>
               <input
@@ -306,7 +306,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
             </div>
 
             <div>
-              <label className="mb-1 block text-xs text-zinc-400">Tone</label>
+              <label className="mb-1 block text-xs text-zinc-500 dark:text-zinc-400">Tone</label>
               <input
                 type="text"
                 className={inputClass}
@@ -325,7 +325,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
             </div>
 
             <div>
-              <label className="mb-1 block text-xs text-zinc-400">
+              <label className="mb-1 block text-xs text-zinc-500 dark:text-zinc-400">
                 Audience
               </label>
               <input

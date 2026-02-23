@@ -41,7 +41,7 @@ export function ComponentBrowser({ onPreview }: ComponentBrowserProps) {
 
   if (components.length === 0) {
     return (
-      <div className="flex flex-1 items-center justify-center p-8 text-zinc-500">
+      <div className="flex flex-1 items-center justify-center p-8 text-zinc-400 dark:text-zinc-500">
         <p className="text-sm">Ask Claude to search for components</p>
       </div>
     )

@@ -110,7 +110,7 @@ export function CaptureToolbar({
   }, [canCapture, getSize, videoDuration, contentUrl, htmlContent, contentDir])
 
   return (
-    <div className="flex flex-col gap-2 border-t border-zinc-700 bg-zinc-800 px-3 py-2">
+    <div className="flex flex-col gap-2 border-t border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 px-3 py-2">
       {/* Preset selector + capture buttons */}
       <div className="flex items-center gap-2">
         {/* Size preset dropdown */}
@@ -124,7 +124,7 @@ export function CaptureToolbar({
               setSelectedPreset(Number(e.target.value))
             }
           }}
-          className="rounded bg-zinc-700 px-2 py-1 text-xs text-zinc-200"
+          className="rounded bg-zinc-200 dark:bg-zinc-700 px-2 py-1 text-xs text-zinc-700 dark:text-zinc-200"
         >
           {SIZE_PRESETS.map((preset, i) => (
             <option key={preset.name} value={i}>
@@ -141,16 +141,16 @@ export function CaptureToolbar({
               type="number"
               value={customWidth}
               onChange={(e) => setCustomWidth(Number(e.target.value))}
-              className="w-16 rounded bg-zinc-700 px-1 py-1 text-xs text-zinc-200"
+              className="w-16 rounded bg-zinc-200 dark:bg-zinc-700 px-1 py-1 text-xs text-zinc-700 dark:text-zinc-200"
               min={100}
               max={3840}
             />
-            <span className="text-xs text-zinc-500">x</span>
+            <span className="text-xs text-zinc-400 dark:text-zinc-500">x</span>
             <input
               type="number"
               value={customHeight}
               onChange={(e) => setCustomHeight(Number(e.target.value))}
-              className="w-16 rounded bg-zinc-700 px-1 py-1 text-xs text-zinc-200"
+              className="w-16 rounded bg-zinc-200 dark:bg-zinc-700 px-1 py-1 text-xs text-zinc-700 dark:text-zinc-200"
               min={100}
               max={3840}
             />
@@ -173,11 +173,11 @@ export function CaptureToolbar({
             type="number"
             value={videoDuration}
             onChange={(e) => setVideoDuration(Number(e.target.value))}
-            className="w-12 rounded bg-zinc-700 px-1 py-1 text-xs text-zinc-200"
+            className="w-12 rounded bg-zinc-200 dark:bg-zinc-700 px-1 py-1 text-xs text-zinc-700 dark:text-zinc-200"
             min={1}
             max={60}
           />
-          <span className="text-xs text-zinc-500">s</span>
+          <span className="text-xs text-zinc-400 dark:text-zinc-500">s</span>
         </div>
 
         <button
