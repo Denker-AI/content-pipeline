@@ -1,6 +1,6 @@
 // Parsed terminal event types
 export interface ParsedEvent {
-  type: 'file-changed' | 'session-id' | 'token-cost' | 'component-found'
+  type: 'file-changed' | 'session-id' | 'token-cost' | 'component-found' | 'cwd-changed'
   data: Record<string, string | number>
 }
 
@@ -124,6 +124,7 @@ export interface ContentAPI {
   listVersions: (filePath: string) => Promise<ContentVersion[]>
   openProject: () => Promise<string | null>
   getProjectRoot: () => Promise<string>
+  onProjectChanged: (callback: (root: string) => void) => () => void
 }
 
 // Component API exposed via preload

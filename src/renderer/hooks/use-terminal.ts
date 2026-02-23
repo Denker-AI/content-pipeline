@@ -67,33 +67,45 @@ export function useTerminal(containerRef: React.RefObject<HTMLDivElement | null>
 
     const fitAddon = new FitAddon()
     terminal.loadAddon(fitAddon)
-    terminal.open(containerRef.current)
-    // Defer initial fit so xterm's rendering layer (CharSizeService) is ready
-    requestAnimationFrame(() => {
-      try { fitAddon.fit() } catch { /* ignore if container already gone */ }
+
+    let dataCleanup: (() => void) | undefined
+
+    // Defer open() so the container has proper layout and CharSizeService
+    // can measure character dimensions without throwing on undefined dimensions
+    const rafId = requestAnimationFrame(() => {
+      if (!containerRef.current) return
+
+      terminal.open(containerRef.current)
+      terminalRef.current = terminal
+      fitAddonRef.current = fitAddon
+
+      // Second RAF: fit after open() has finished rendering
+      requestAnimationFrame(() => {
+        try {
+          fitAddon.fit()
+        } catch {
+          // ignore if container is already gone
+        }
+      })
+
+      // Connect to PTY via preload bridge (may be unavailable outside Electron)
+      const api = window.electronAPI?.terminal
+      if (api) {
+        dataCleanup = api.onData((data) => {
+          terminal.write(data)
+        })
+
+        terminal.onData((data) => {
+          api.sendInput(data)
+        })
+
+        api.resize(terminal.cols, terminal.rows)
+      }
     })
 
-    terminalRef.current = terminal
-    fitAddonRef.current = fitAddon
-
-    // Connect to PTY via preload bridge (may be unavailable outside Electron)
-    const api = window.electronAPI?.terminal
-    let cleanup: (() => void) | undefined
-
-    if (api) {
-      cleanup = api.onData((data) => {
-        terminal.write(data)
-      })
-
-      terminal.onData((data) => {
-        api.sendInput(data)
-      })
-
-      api.resize(terminal.cols, terminal.rows)
-    }
-
     return () => {
-      cleanup?.()
+      cancelAnimationFrame(rafId)
+      dataCleanup?.()
       terminal.dispose()
       terminalRef.current = null
       fitAddonRef.current = null

@@ -49,6 +49,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.invoke('content:listVersions', filePath),
     openProject: () => ipcRenderer.invoke('content:openProject'),
     getProjectRoot: () => ipcRenderer.invoke('content:getProjectRoot'),
+    onProjectChanged: (callback) => {
+      const listener = (_event, data) => callback(data)
+      ipcRenderer.on('content:projectChanged', listener)
+      return () => {
+        ipcRenderer.removeListener('content:projectChanged', listener)
+      }
+    },
   },
   settings: {
     getUser: () => ipcRenderer.invoke('settings:getUser'),

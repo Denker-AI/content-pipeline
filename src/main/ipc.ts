@@ -66,11 +66,28 @@ export function getContentDir(): string {
 export function registerIpcHandlers(mainWindow: BrowserWindow) {
   const parser = new TerminalParser()
 
-  parser.onEvent((event) => {
+  parser.onEvent(async (event) => {
     if (!mainWindow.isDestroyed()) {
       mainWindow.webContents.send('terminal:parsed', event)
       if (event.type === 'component-found') {
         mainWindow.webContents.send('terminal:component', event.data)
+      }
+      if (event.type === 'cwd-changed') {
+        const newDir = event.data.dir as string
+        if (!newDir || newDir === projectRoot) return
+        // Only switch project root if the new dir has a content/ subdirectory
+        try {
+          await fs.access(path.join(newDir, 'content'))
+          projectRoot = newDir
+          stopWatcher()
+          startWatcher(getContentDir())
+          const settings = await loadUserSettings()
+          await saveUserSettings({ ...settings, projectRoot: newDir })
+          mainWindow.webContents.send('content:projectChanged', newDir)
+          mainWindow.webContents.send('pipeline:contentChanged')
+        } catch {
+          // No content/ directory — not a project root, ignore
+        }
       }
     }
   })

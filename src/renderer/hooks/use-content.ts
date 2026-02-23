@@ -41,7 +41,7 @@ export function useContent(activeContentDir?: string) {
   const [contentDir, setContentDir] = useState<string>('')
   const refreshCountRef = useRef(0)
 
-  // Load project root on mount
+  // Load project root on mount and listen for auto-detected changes
   useEffect(() => {
     const api = window.electronAPI?.content
     if (!api) return
@@ -49,6 +49,14 @@ export function useContent(activeContentDir?: string) {
       setProjectRoot(root)
       setContentDir(`${root}/content`)
     })
+    const cleanup = api.onProjectChanged?.((newRoot: string) => {
+      setProjectRoot(newRoot)
+      setContentDir(`${newRoot}/content`)
+      setSelectedItem(null)
+      setFileContent('')
+      setVersions([])
+    })
+    return cleanup
   }, [])
 
   // Auto-select first renderable file when activeContentDir changes

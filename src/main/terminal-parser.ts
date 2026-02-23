@@ -7,11 +7,16 @@ function stripAnsi(str: string): string {
 }
 
 export interface ParsedEvent {
-  type: 'file-changed' | 'session-id' | 'token-cost' | 'component-found'
+  type: 'file-changed' | 'session-id' | 'token-cost' | 'component-found' | 'cwd-changed'
   data: Record<string, string | number>
 }
 
 type EventCallback = (event: ParsedEvent) => void
+
+// Matches OSC 7 directory-change notifications emitted by modern shells:
+// ESC ] 7 ; file://hostname/path BEL  or  ESC ] 7 ; file://hostname/path ESC \
+// eslint-disable-next-line no-control-regex
+const OSC7_REGEX = /\x1b\]7;file:\/\/[^/]*([^\x07\x1b]+)(?:\x07|\x1b\\)/g
 
 export class TerminalParser {
   private buffer = ''
@@ -25,6 +30,18 @@ export class TerminalParser {
   }
 
   feed(data: string) {
+    // Scan raw bytes for OSC 7 before buffering (contains URI-encoded path)
+    OSC7_REGEX.lastIndex = 0
+    let osc7Match: RegExpExecArray | null
+    while ((osc7Match = OSC7_REGEX.exec(data)) !== null) {
+      try {
+        const dir = decodeURIComponent(osc7Match[1])
+        this.emit({ type: 'cwd-changed', data: { dir } })
+      } catch {
+        // invalid URI encoding — skip
+      }
+    }
+
     this.buffer += data
 
     // Process complete lines
@@ -41,6 +58,7 @@ export class TerminalParser {
     this.parseSessionId(line)
     this.parseTokenCost(line)
     this.parseComponentPath(line)
+    this.parseCwdChange(line)
   }
 
   private parseFileChange(line: string) {
@@ -120,6 +138,26 @@ export class TerminalParser {
       type: 'component-found',
       data: { path: filePath, name },
     })
+  }
+
+  private parseCwdChange(line: string) {
+    // Worktree script announcements: "Worktree already exists: /path" or "Worktree created: /path"
+    const worktreeMatch = line.match(/Worktree (?:already exists|created)[:\s]+(.+)/)
+    if (worktreeMatch) {
+      this.emit({ type: 'cwd-changed', data: { dir: worktreeMatch[1].trim() } })
+      return
+    }
+
+    // Bare absolute path on its own line (e.g. Claude Code welcome banner shows cwd)
+    // Only match lines that look like a project dir (not a file path with an extension)
+    const barePathMatch = line.match(/^\s*(\/(?:Users|home|workspace|root|srv|opt)[^\s│╰╮╭├╤]+?)\s*[│]?\s*$/)
+    if (barePathMatch) {
+      const dir = barePathMatch[1].trim().replace(/\/$/, '')
+      // Ignore paths that look like files (have an extension)
+      if (!dir.match(/\.\w{1,5}$/)) {
+        this.emit({ type: 'cwd-changed', data: { dir } })
+      }
+    }
   }
 
   private emit(event: ParsedEvent) {
