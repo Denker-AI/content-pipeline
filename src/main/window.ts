@@ -12,7 +12,7 @@ export function createWindow(): BrowserWindow {
     width: 1200,
     height: 800,
     title: 'Content Pipeline',
-    backgroundColor: '#09090b',
+    backgroundColor: '#ffffff',
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,

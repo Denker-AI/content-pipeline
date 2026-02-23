@@ -68,7 +68,10 @@ export function useTerminal(containerRef: React.RefObject<HTMLDivElement | null>
     const fitAddon = new FitAddon()
     terminal.loadAddon(fitAddon)
     terminal.open(containerRef.current)
-    fitAddon.fit()
+    // Defer initial fit so xterm's rendering layer (CharSizeService) is ready
+    requestAnimationFrame(() => {
+      try { fitAddon.fit() } catch { /* ignore if container already gone */ }
+    })
 
     terminalRef.current = terminal
     fitAddonRef.current = fitAddon
@@ -99,11 +102,15 @@ export function useTerminal(containerRef: React.RefObject<HTMLDivElement | null>
 
   const fit = useCallback(() => {
     if (fitAddonRef.current && terminalRef.current) {
-      fitAddonRef.current.fit()
-      window.electronAPI?.terminal.resize(
-        terminalRef.current.cols,
-        terminalRef.current.rows
-      )
+      try {
+        fitAddonRef.current.fit()
+        window.electronAPI?.terminal.resize(
+          terminalRef.current.cols,
+          terminalRef.current.rows
+        )
+      } catch {
+        // ignore transient fit errors
+      }
     }
   }, [])
 
