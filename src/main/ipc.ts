@@ -1,5 +1,5 @@
 import type { BrowserWindow } from 'electron'
-import { dialog, ipcMain } from 'electron'
+import { dialog, ipcMain, shell } from 'electron'
 
 import fs from 'fs/promises'
 import path from 'path'
@@ -20,6 +20,7 @@ import { captureScreenshot, captureVideo } from './capture'
 import { listContent, listDir, listVersions } from './content'
 import { onFileChange, startWatcher, stopWatcher } from './file-watcher'
 import { publishToLinkedIn } from './linkedin'
+import { installProjectConfig, isProjectConfigured } from './onboarding'
 import {
   createContentPiece,
   getActiveContent,
@@ -361,6 +362,27 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     },
   )
 
+  // Shell IPC handlers
+  ipcMain.handle('shell:openExternal', async (_event, url: string) => {
+    await shell.openExternal(url)
+  })
+
+  ipcMain.handle('shell:showItemInFolder', (_event, filePath: string) => {
+    shell.showItemInFolder(filePath)
+  })
+
+  // Project onboarding IPC handlers
+  ipcMain.handle('project:isConfigured', async () => {
+    return isProjectConfigured(projectRoot)
+  })
+
+  ipcMain.handle('project:install', async () => {
+    await installProjectConfig(projectRoot)
+    if (!mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('pipeline:contentChanged')
+    }
+  })
+
   // Watch for metadata.json changes and notify renderer
   const unsubscribePipeline = onFileChange((event) => {
     if (
@@ -403,5 +425,9 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     ipcMain.removeHandler('publish:resend:send')
     ipcMain.removeHandler('publish:blog')
     ipcMain.removeHandler('seo:analyze')
+    ipcMain.removeHandler('project:isConfigured')
+    ipcMain.removeHandler('project:install')
+    ipcMain.removeHandler('shell:openExternal')
+    ipcMain.removeHandler('shell:showItemInFolder')
   })
 }

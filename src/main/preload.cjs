@@ -90,6 +90,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
     analyze: (contentDir, keyword) =>
       ipcRenderer.invoke('seo:analyze', contentDir, keyword),
   },
+  shell: {
+    openExternal: (url) => ipcRenderer.invoke('shell:openExternal', url),
+    showItemInFolder: (filePath) => ipcRenderer.invoke('shell:showItemInFolder', filePath),
+  },
+  project: {
+    isConfigured: () => ipcRenderer.invoke('project:isConfigured'),
+    install: () => ipcRenderer.invoke('project:install'),
+  },
   pipeline: {
     listPipelineItems: () => ipcRenderer.invoke('pipeline:list'),
     createContent: (type) => ipcRenderer.invoke('pipeline:create', type),

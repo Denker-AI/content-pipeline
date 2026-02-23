@@ -49,6 +49,7 @@ export interface ContentMetadata {
   updatedAt: string   // ISO 8601
   worktreeBranch?: string
   worktreePath?: string
+  scheduledAt?: string  // ISO 8601, set when stage is 'scheduled'
 }
 
 // A content piece as displayed in the pipeline sidebar
@@ -291,6 +292,18 @@ export interface AnnotationComment {
   resolved: boolean
 }
 
+// Shell API exposed via preload
+export interface ShellAPI {
+  openExternal: (url: string) => Promise<void>
+  showItemInFolder: (filePath: string) => Promise<void>
+}
+
+// Project onboarding API exposed via preload
+export interface ProjectAPI {
+  isConfigured: () => Promise<boolean>
+  install: () => Promise<void>
+}
+
 // Global window type augmentation
 export interface ElectronAPI {
   terminal: TerminalAPI
@@ -302,6 +315,8 @@ export interface ElectronAPI {
   capture: CaptureAPI
   publish: PublishAPI
   seo: SEOAPI
+  shell: ShellAPI
+  project: ProjectAPI
 }
 
 declare global {

@@ -16,6 +16,7 @@ export function usePipeline() {
     () => new Set(SECTION_TYPES),
   )
   const [searchQuery, setSearchQuery] = useState('')
+  const [isConfigured, setIsConfigured] = useState(true)
 
   // Load items
   const loadItems = useCallback(async () => {
@@ -38,10 +39,27 @@ export function usePipeline() {
     }
   }, [])
 
+  // Check if project is configured
+  const checkConfigured = useCallback(async () => {
+    const api = window.electronAPI?.project
+    if (!api) return
+    const configured = await api.isConfigured()
+    setIsConfigured(configured)
+  }, [])
+
+  // Install config
+  const installConfig = useCallback(async () => {
+    const api = window.electronAPI?.project
+    if (!api) return
+    await api.install()
+    setIsConfigured(true)
+  }, [])
+
   // Load on mount
   useEffect(() => {
     loadItems()
-  }, [loadItems])
+    checkConfigured()
+  }, [loadItems, checkConfigured])
 
   // Subscribe to pipeline changes
   useEffect(() => {
@@ -53,6 +71,17 @@ export function usePipeline() {
     })
     return cleanup
   }, [loadItems])
+
+  // Re-check config when project changes
+  useEffect(() => {
+    const api = window.electronAPI?.content
+    if (!api) return
+
+    const cleanup = api.onProjectChanged(() => {
+      checkConfigured()
+    })
+    return cleanup
+  }, [checkConfigured])
 
   // Create content
   const createContent = useCallback(async (type: ContentType) => {
@@ -135,9 +164,11 @@ export function usePipeline() {
     expandedSections,
     searchQuery,
     setSearchQuery,
+    isConfigured,
     createContent,
     activateItem,
     updateStage,
     toggleSection,
+    installConfig,
   }
 }

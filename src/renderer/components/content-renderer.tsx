@@ -77,11 +77,14 @@ function HtmlPreview({
     return (
       <div
         ref={wrapperRef}
-        className="w-full overflow-hidden"
+        className="relative w-full overflow-hidden"
         style={{ height: naturalHeight * scale }}
       >
         <div
           style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
             width: naturalWidth,
             height: naturalHeight,
             transform: `scale(${scale})`,
@@ -212,11 +215,11 @@ export function ContentRenderer({
     )
   }
 
-  // LinkedIn preview: constrained to 552px, auto-height
+  // LinkedIn preview: constrained to 552px, auto-height, scripts for toggle + scaler
   if (renderMode === 'linkedin-preview') {
     return (
       <div className="mx-auto max-w-[552px] py-4">
-        <HtmlPreview content={content} refreshCount={refreshCount} />
+        <HtmlPreview content={content} refreshCount={refreshCount} allowScripts />
       </div>
     )
   }

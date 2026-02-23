@@ -24,10 +24,12 @@ export function PipelineSidebar({
     expandedSections,
     searchQuery,
     setSearchQuery,
+    isConfigured,
     createContent,
     activateItem,
     updateStage,
     toggleSection,
+    installConfig,
   } = usePipeline()
 
   const handleSelect = (item: PipelineItem) => {
@@ -69,6 +71,28 @@ export function PipelineSidebar({
           className="w-full rounded bg-zinc-100 dark:bg-zinc-800 px-2 py-1 text-xs text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-500 outline-none focus:ring-1 focus:ring-blue-500"
         />
       </div>
+
+      {/* Setup banner */}
+      {!isConfigured && (
+        <div className="shrink-0 border-b border-zinc-200 dark:border-zinc-700 p-2">
+          <div className="rounded border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30 p-2 text-xs">
+            <p className="font-medium text-amber-800 dark:text-amber-300">
+              Claude Code not set up
+            </p>
+            <p className="mt-0.5 text-amber-700 dark:text-amber-400">
+              Install slash commands and templates for this project.
+            </p>
+            <div className="mt-2 flex justify-end">
+              <button
+                onClick={installConfig}
+                className="rounded bg-amber-600 px-2 py-1 text-white hover:bg-amber-500 dark:bg-amber-700 dark:hover:bg-amber-600"
+              >
+                Install
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Sections */}
       <div className="min-h-0 flex-1 overflow-y-auto">
