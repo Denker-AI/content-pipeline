@@ -1,6 +1,6 @@
 import { app, BrowserWindow, Menu } from 'electron'
 
-import { registerIpcHandlers } from './ipc'
+import { initProjectRoot, registerIpcHandlers } from './ipc'
 import { initAutoUpdater } from './updater'
 import { createWindow } from './window'
 
@@ -31,7 +31,8 @@ function setupMenu(mainWindow: BrowserWindow) {
   Menu.setApplicationMenu(Menu.buildFromTemplate(template))
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  await initProjectRoot()
   const mainWindow = createWindow()
   registerIpcHandlers(mainWindow)
   setupMenu(mainWindow)

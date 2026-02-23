@@ -141,6 +141,7 @@ export interface UserSettings {
   resendApiKey: string
   blogWebhookUrl: string
   theme: 'light' | 'dark'
+  projectRoot?: string
 }
 
 // Project-level settings (stored in content-pipeline.json in project root)

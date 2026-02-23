@@ -47,6 +47,18 @@ export function getProjectRoot(): string {
   return projectRoot
 }
 
+export async function initProjectRoot(): Promise<void> {
+  const settings = await loadUserSettings()
+  if (settings.projectRoot) {
+    try {
+      await fs.access(settings.projectRoot)
+      projectRoot = settings.projectRoot
+    } catch {
+      // saved root no longer accessible — keep process.cwd()
+    }
+  }
+}
+
 export function getContentDir(): string {
   return path.join(projectRoot, 'content')
 }
@@ -140,6 +152,11 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     projectRoot = result.filePaths[0]
     stopWatcher()
     startWatcher(getContentDir())
+
+    // Persist so next launch auto-loads this project
+    const settings = await loadUserSettings()
+    await saveUserSettings({ ...settings, projectRoot })
+
     return projectRoot
   })
 
