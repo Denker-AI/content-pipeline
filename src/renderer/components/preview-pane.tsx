@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import type { ContentType, DetectedComponent, PipelineItem } from '@/shared/types'
+import type { ContentType, ContentVersion, DetectedComponent, RenderMode } from '@/shared/types'
 
 import { useComments } from '../hooks/use-comments'
-import { useContent } from '../hooks/use-content'
 
 import { BlogPublisher } from './blog-publisher'
 import { CaptureToolbar } from './capture-toolbar'
@@ -13,7 +12,6 @@ import { ComponentBrowser } from './component-browser'
 import { ComponentPreview } from './component-preview'
 import { ContentRenderer } from './content-renderer'
 import { LinkedInPublisher } from './linkedin-publisher'
-import { PipelineSidebar } from './pipeline-sidebar'
 import { ResendSender } from './resend-sender'
 import { VersionSelector } from './version-selector'
 
@@ -22,29 +20,46 @@ type Tab = (typeof tabs)[number]
 
 const DEFAULT_APP_URL = 'http://localhost:3000'
 
-export function PreviewPane() {
+interface SelectedFile {
+  path: string
+  relativePath: string
+  contentType: ContentType
+}
+
+interface PreviewPaneProps {
+  activeContentDir?: string
+  activeContentType?: ContentType
+  selectedItem: SelectedFile | null
+  fileContent: string
+  renderMode: RenderMode
+  versions: ContentVersion[]
+  loading: boolean
+  contentDir: string
+  refreshCount: number
+  selectVersion: (version: ContentVersion) => void
+  openProject: () => void
+}
+
+export function PreviewPane({
+  activeContentDir,
+  activeContentType,
+  selectedItem,
+  fileContent,
+  renderMode,
+  versions,
+  loading,
+  contentDir,
+  refreshCount,
+  selectVersion,
+  openProject,
+}: PreviewPaneProps) {
   const [activeTab, setActiveTab] = useState<Tab>('Content')
-  const [activeContentDir, setActiveContentDir] = useState<string | undefined>()
-  const [previewComponent, setPreviewComponent] =
-    useState<DetectedComponent | null>(null)
-  const [activeContentType, setActiveContentType] = useState<ContentType | undefined>()
+  const [previewComponent, setPreviewComponent] = useState<DetectedComponent | null>(null)
   const [appUrl, setAppUrl] = useState(DEFAULT_APP_URL)
   const [selectedCommentId, setSelectedCommentId] = useState<string | null>(null)
   const [publishOpen, setPublishOpen] = useState(false)
   const [newsletterSendOpen, setNewsletterSendOpen] = useState(false)
   const [blogPublishOpen, setBlogPublishOpen] = useState(false)
-  const {
-    selectedItem,
-    fileContent,
-    renderMode,
-    versions,
-    loading,
-    projectRoot,
-    contentDir,
-    refreshCount,
-    selectVersion,
-    openProject,
-  } = useContent(activeContentDir)
 
   const {
     comments,
@@ -57,6 +72,12 @@ export function PreviewPane() {
     sendToTerminal,
   } = useComments()
 
+  // Clear comments when switching content
+  useEffect(() => {
+    clearAll()
+    setSelectedCommentId(null)
+  }, [activeContentDir, clearAll])
+
   // Load appUrl from user settings
   useEffect(() => {
     window.electronAPI?.settings
@@ -66,14 +87,6 @@ export function PreviewPane() {
       })
       .catch(() => {})
   }, [])
-
-  const handleItemSelect = (item: PipelineItem) => {
-    setActiveContentDir(item.contentDir)
-    setActiveContentType(item.type)
-    // Clear comments when switching content
-    clearAll()
-    setSelectedCommentId(null)
-  }
 
   const handlePreview = useCallback((component: DetectedComponent) => {
     setPreviewComponent(component)
@@ -116,7 +129,7 @@ export function PreviewPane() {
         <button
           onClick={openProject}
           className="mr-2 shrink-0 rounded bg-zinc-700 px-2 py-1 text-xs text-zinc-300 hover:bg-zinc-600"
-          title={projectRoot ? `Project: ${projectRoot}` : 'Open project folder'}
+          title={contentDir ? `Project: ${contentDir}` : 'Open project folder'}
         >
           Open
         </button>
@@ -124,18 +137,9 @@ export function PreviewPane() {
 
       {activeTab === 'Content' && (
         <div className="flex min-h-0 flex-1">
-          {/* Left: pipeline sidebar */}
-          <div className="flex w-72 shrink-0 flex-col border-r border-zinc-700">
-            <PipelineSidebar
-              onItemSelect={handleItemSelect}
-              onOpenProject={openProject}
-              hasProject={!!contentDir}
-            />
-          </div>
-
-          {/* Center: preview */}
+          {/* Preview area */}
           <div className="flex min-w-0 flex-1 flex-col">
-            {/* Toolbar: version selector + annotate toggle */}
+            {/* Toolbar: version selector + action buttons */}
             <div className="flex shrink-0 items-center border-b border-zinc-700">
               <div className="flex-1">
                 {selectedItem && versions.length > 0 && (
