@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import type { ComponentRenderResult, ContentType, ContentVersion, DetectedComponent, RenderMode } from '@/shared/types'
 
@@ -87,24 +87,45 @@ export function PreviewPane({
     })
   }, [])
 
-  // Render component via esbuild when selection changes; auto-fall back to Claude if it fails
+  // Tracks the component path we last sent to Claude — prevents stale results
+  const activePathRef = useRef<string | null>(null)
+  const promptTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Render component when selection changes; debounce Claude prompt to avoid spam
   useEffect(() => {
     if (!previewComponent) return
+
+    const thisPath = previewComponent.path
+    activePathRef.current = thisPath
     setPreviewHtml(null)
     setPreviewError(null)
+
+    // Cancel any pending prompt from a previous selection
+    if (promptTimerRef.current) {
+      clearTimeout(promptTimerRef.current)
+      promptTimerRef.current = null
+    }
+
     window.electronAPI?.components
-      .render(previewComponent.path)
+      .render(thisPath)
       .then((result: ComponentRenderResult) => {
+        // Ignore if user already switched to another component
+        if (activePathRef.current !== thisPath) return
+
         if (result.ok) {
           setPreviewHtml(result.html)
         } else {
-          // esbuild failed — automatically ask Claude using the actual source code
           setPreviewError('generating')
-          const prompt = `Here is the source code for the ${previewComponent.name} component:\n\n\`\`\`tsx\n${result.source}\n\`\`\`\n\nCreate a self-contained HTML preview with realistic mock data that accurately represents how this component looks and functions. Use only vanilla HTML, CSS, and JS (no external dependencies). Output the complete HTML between these exact marker lines on their own lines: ===HTML_PREVIEW_START=== and ===HTML_PREVIEW_END===`
-          window.electronAPI?.terminal.sendInput(prompt + '\n')
+          // Debounce: only send to Claude if user stays on this component for 500ms
+          promptTimerRef.current = setTimeout(() => {
+            if (activePathRef.current !== thisPath) return
+            const prompt = `Here is the source code for the ${previewComponent.name} component:\n\n\`\`\`tsx\n${result.source}\n\`\`\`\n\nCreate a self-contained HTML preview with realistic mock data that accurately represents how this component looks and functions. Use only vanilla HTML, CSS, and JS (no external dependencies). Output the complete HTML between these exact marker lines on their own lines: ===HTML_PREVIEW_START=== and ===HTML_PREVIEW_END===`
+            window.electronAPI?.terminal.sendInput(prompt + '\n')
+          }, 500)
         }
       })
       .catch(() => {
+        if (activePathRef.current !== thisPath) return
         setPreviewError('failed')
       })
   }, [previewComponent])
