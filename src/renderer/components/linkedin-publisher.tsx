@@ -7,10 +7,57 @@ interface SlideFile {
   html: string
 }
 
+interface ImageFile {
+  name: string
+  dataUrl: string
+}
+
 interface LinkedInPublisherProps {
   isOpen: boolean
   onClose: () => void
   contentDir: string
+}
+
+// preview.html is a 555px-wide LinkedIn feed mockup
+const PREVIEW_W = 555
+const PREVIEW_THUMB_W = 200
+const PREVIEW_THUMB_H = 320 // show top portion of the card
+const PREVIEW_SCALE = PREVIEW_THUMB_W / PREVIEW_W
+
+function PreviewThumb({ html }: { html: string }) {
+  const iframeRef = useRef<HTMLIFrameElement>(null)
+
+  useEffect(() => {
+    const doc = iframeRef.current?.contentDocument
+    if (!doc) return
+    doc.open()
+    doc.write(html)
+    doc.close()
+  }, [html])
+
+  return (
+    <div
+      className="overflow-hidden rounded border border-zinc-700 bg-zinc-800"
+      style={{ width: PREVIEW_THUMB_W, height: PREVIEW_THUMB_H }}
+    >
+      <div
+        style={{
+          width: PREVIEW_W,
+          height: Math.round(PREVIEW_THUMB_H / PREVIEW_SCALE),
+          transform: `scale(${PREVIEW_SCALE})`,
+          transformOrigin: 'top left',
+          pointerEvents: 'none',
+        }}
+      >
+        <iframe
+          ref={iframeRef}
+          sandbox="allow-scripts allow-same-origin"
+          style={{ width: PREVIEW_W, height: Math.round(PREVIEW_THUMB_H / PREVIEW_SCALE), border: 0, background: 'white', display: 'block' }}
+          title="Post preview"
+        />
+      </div>
+    </div>
+  )
 }
 
 const SLIDE_W = 1080
@@ -61,7 +108,9 @@ export function LinkedInPublisher({
   contentDir,
 }: LinkedInPublisherProps) {
   const [postText, setPostText] = useState('')
-  const [slides, setSlides] = useState<SlideFile[]>([])
+  const [images, setImages] = useState<ImageFile[]>([])    // PNG/JPG files — actual upload-ready images
+  const [slides, setSlides] = useState<SlideFile[]>([])    // slide-*.html files
+  const [previewHtml, setPreviewHtml] = useState<string | null>(null) // preview.html (filled)
   const [loadingContent, setLoadingContent] = useState(false)
   const [copied, setCopied] = useState(false)
   const [scheduleDate, setScheduleDate] = useState('')
@@ -78,7 +127,9 @@ export function LinkedInPublisher({
     setDone(null)
     setScheduleDate('')
     setScheduleTime('09:00')
+    setImages([])
     setSlides([])
+    setPreviewHtml(null)
 
     const load = async () => {
       const api = window.electronAPI?.content
@@ -93,6 +144,22 @@ export function LinkedInPublisher({
 
       try {
         const entries: DirEntry[] = await api.listDir(contentDir)
+
+        // 1. PNG/JPG images — upload-ready, show these first
+        const imgEntries = entries
+          .filter((e) => !e.isDirectory && /\.(png|jpg|jpeg|webp)$/i.test(e.name))
+          .sort((a, b) => a.name.localeCompare(b.name))
+
+        const imgData: ImageFile[] = []
+        for (const entry of imgEntries) {
+          try {
+            const dataUrl = await api.readAsDataUrl(entry.path)
+            imgData.push({ name: entry.name, dataUrl })
+          } catch { /* skip */ }
+        }
+        setImages(imgData)
+
+        // 2. slide-*.html files (carousel)
         const slideEntries = entries
           .filter((e) => !e.isDirectory && /^slide-\d+.*\.html$/i.test(e.name))
           .sort((a, b) => a.name.localeCompare(b.name))
@@ -102,13 +169,17 @@ export function LinkedInPublisher({
           try {
             const html = await api.read(entry.path)
             slideData.push({ name: entry.name, html })
-          } catch {
-            // skip unreadable slides
-          }
+          } catch { /* skip */ }
         }
         setSlides(slideData)
+
+        // 3. preview.html — only if it's filled (no {{ placeholders })
+        try {
+          const html = await api.read(`${contentDir}/preview.html`)
+          if (!html.includes('{{')) setPreviewHtml(html)
+        } catch { /* no preview.html */ }
       } catch {
-        setSlides([])
+        // content dir unreadable
       }
 
       setLoadingContent(false)
@@ -253,19 +324,49 @@ export function LinkedInPublisher({
               )}
             </div>
 
-            {/* Slide thumbnails */}
+            {/* PNG/JPG images — upload-ready */}
+            {images.length > 0 && (
+              <div>
+                <div className="mb-1 flex items-center justify-between">
+                  <label className="text-xs font-medium text-zinc-400">
+                    Images ({images.length})
+                    <span className="ml-1 text-[10px] text-green-500 font-normal">ready to upload</span>
+                  </label>
+                  <button onClick={openInFinder} className="text-xs text-zinc-400 hover:text-zinc-200">
+                    Open folder ↗
+                  </button>
+                </div>
+                <div className="flex gap-2 overflow-x-auto pb-1">
+                  {images.map((img) => (
+                    <div key={img.name} className="shrink-0 text-center">
+                      <img
+                        src={img.dataUrl}
+                        alt={img.name}
+                        className="rounded border border-zinc-700 object-cover"
+                        style={{ width: 120, height: 150 }}
+                      />
+                      <p className="mt-1 text-[10px] text-zinc-500 truncate" style={{ maxWidth: 120 }}>
+                        {img.name}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* slide-*.html thumbnails */}
             {slides.length > 0 && (
               <div>
                 <div className="mb-1 flex items-center justify-between">
                   <label className="text-xs font-medium text-zinc-400">
-                    Images ({slides.length} slide{slides.length !== 1 ? 's' : ''})
+                    Slides ({slides.length})
+                    <span className="ml-1 text-[10px] text-amber-400 font-normal">capture to export</span>
                   </label>
-                  <button
-                    onClick={openInFinder}
-                    className="text-xs text-zinc-400 hover:text-zinc-200"
-                  >
-                    Open folder ↗
-                  </button>
+                  {images.length === 0 && (
+                    <button onClick={openInFinder} className="text-xs text-zinc-400 hover:text-zinc-200">
+                      Open folder ↗
+                    </button>
+                  )}
                 </div>
                 <div className="flex gap-2 overflow-x-auto pb-1">
                   {slides.map((slide) => (
@@ -278,8 +379,21 @@ export function LinkedInPublisher({
                   ))}
                 </div>
                 <p className="mt-1.5 text-[11px] text-zinc-500">
-                  Use the Capture toolbar to export as PNG → upload to LinkedIn.
+                  Use Capture toolbar to export as PNG, then upload to LinkedIn.
                 </p>
+              </div>
+            )}
+
+            {/* preview.html (only if filled) */}
+            {previewHtml && images.length === 0 && slides.length === 0 && (
+              <div>
+                <div className="mb-1 flex items-center justify-between">
+                  <label className="text-xs font-medium text-zinc-400">Post Preview</label>
+                  <button onClick={openInFinder} className="text-xs text-zinc-400 hover:text-zinc-200">
+                    Open folder ↗
+                  </button>
+                </div>
+                <PreviewThumb html={previewHtml} />
               </div>
             )}
 
