@@ -59,6 +59,8 @@ export function PreviewPane({
   const [publishOpen, setPublishOpen] = useState(false)
   const [newsletterSendOpen, setNewsletterSendOpen] = useState(false)
   const [blogPublishOpen, setBlogPublishOpen] = useState(false)
+  const [activePostText, setActivePostText] = useState('')
+  const activePostTextRef = useRef('')
 
   const {
     comments,
@@ -76,6 +78,24 @@ export function PreviewPane({
     clearAll()
     setSelectedCommentId(null)
   }, [activeContentDir, clearAll])
+
+  // Read post text for active LinkedIn content (context for component generation)
+  useEffect(() => {
+    if (activeContentType !== 'linkedin' || !activeContentDir) {
+      setActivePostText('')
+      return
+    }
+    window.electronAPI?.content
+      .read(`${activeContentDir}/post-text.md`)
+      .then((text) => {
+        setActivePostText(text.trim())
+        activePostTextRef.current = text.trim()
+      })
+      .catch(() => {
+        setActivePostText('')
+        activePostTextRef.current = ''
+      })
+  }, [activeContentDir, activeContentType])
 
   // Subscribe to Claude-generated HTML previews (fallback if esbuild fails)
   useEffect(() => {
@@ -119,7 +139,10 @@ export function PreviewPane({
           // Debounce: only send to Claude if user stays on this component for 500ms
           promptTimerRef.current = setTimeout(() => {
             if (activePathRef.current !== thisPath) return
-            const prompt = `Here is the source code for the ${previewComponent.name} component:\n\n\`\`\`tsx\n${result.source}\n\`\`\`\n\nCreate a self-contained HTML preview with realistic mock data that accurately represents how this component looks and functions. Use only vanilla HTML, CSS, and JS (no external dependencies). Output the complete HTML between these exact marker lines on their own lines: ===HTML_PREVIEW_START=== and ===HTML_PREVIEW_END===`
+            const contextPrefix = activePostTextRef.current
+              ? `Context: This component will be used as a LinkedIn carousel visual for a post with this text:\n\n${activePostTextRef.current}\n\n`
+              : ''
+            const prompt = `${contextPrefix}Here is the source code for the ${previewComponent.name} component:\n\n\`\`\`tsx\n${result.source}\n\`\`\`\n\nCreate a self-contained HTML preview with realistic mock data that accurately represents how this component looks and functions. Use only vanilla HTML, CSS, and JS (no external dependencies). Output the complete HTML between these exact marker lines on their own lines: ===HTML_PREVIEW_START=== and ===HTML_PREVIEW_END===`
             window.electronAPI?.terminal.sendInput(prompt + '\n')
           }, 500)
         }
@@ -259,6 +282,7 @@ export function PreviewPane({
                       content={fileContent}
                       renderMode={renderMode}
                       refreshCount={refreshCount}
+                      contentDir={activeContentDir}
                     />
                   </div>
                 </CommentOverlay>
@@ -309,6 +333,9 @@ export function PreviewPane({
                 htmlContent={previewHtml}
                 error={previewError}
                 onBack={handleBackFromPreview}
+                activeContentDir={activeContentDir}
+                activeContentType={activeContentType}
+                activePostText={activePostText}
               />
               {contentDir && (
                 <CaptureToolbar

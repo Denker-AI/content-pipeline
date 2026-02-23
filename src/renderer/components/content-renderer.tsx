@@ -4,10 +4,13 @@ import { marked } from 'marked'
 
 import type { RenderMode } from '@/shared/types'
 
+import { LinkedInCompositePreview } from './linkedin-composite-preview'
+
 interface ContentRendererProps {
   content: string
   renderMode: RenderMode
   refreshCount: number
+  contentDir?: string
 }
 
 // Renders HTML in an iframe.
@@ -172,7 +175,19 @@ export function ContentRenderer({
   content,
   renderMode,
   refreshCount,
+  contentDir,
 }: ContentRendererProps) {
+  // For LinkedIn content with a known contentDir, always show composite
+  if (contentDir && (renderMode === 'linkedin-text' || renderMode === 'carousel-slide')) {
+    return (
+      <LinkedInCompositePreview
+        contentDir={contentDir}
+        renderMode={renderMode}
+        textContent={renderMode === 'linkedin-text' ? content : undefined}
+      />
+    )
+  }
+
   if (!content) {
     return (
       <div className="flex h-full items-center justify-center text-zinc-400 dark:text-zinc-500">
@@ -181,6 +196,7 @@ export function ContentRenderer({
     )
   }
 
+  // Fallback: linkedin-text without contentDir
   if (renderMode === 'linkedin-text') {
     return <LinkedInTextPreview content={content} />
   }

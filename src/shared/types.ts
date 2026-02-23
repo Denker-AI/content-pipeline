@@ -37,6 +37,18 @@ export interface WorktreeInfo {
   contentDir: string    // content/ inside worktree
 }
 
+// Asset attached to a content piece (e.g. carousel image)
+export interface ContentAsset {
+  id: string                    // Date.now().toString(36)
+  filename: string              // e.g. "linkedin-carousel-2026-02-23T10-30-00.png"
+  sourceComponent?: string      // file path of source component
+  sourceComponentName?: string  // PascalCase name
+  width: number
+  height: number
+  createdAt: string             // ISO 8601
+  order: number                 // carousel position (0-based)
+}
+
 // Content pipeline stages
 export type ContentStage = 'idea' | 'draft' | 'review' | 'final' | 'scheduled' | 'published'
 
@@ -50,6 +62,7 @@ export interface ContentMetadata {
   worktreeBranch?: string
   worktreePath?: string
   scheduledAt?: string  // ISO 8601, set when stage is 'scheduled'
+  assets?: ContentAsset[]
 }
 
 // A content piece as displayed in the pipeline sidebar
