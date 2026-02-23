@@ -13,6 +13,7 @@ const DEFAULT_USER: UserSettings = {
   linkedinToken: '',
   resendApiKey: '',
   blogWebhookUrl: '',
+  braveApiKey: '',
   theme: 'dark',
 }
 
@@ -207,6 +208,27 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                 }
                 placeholder="https://example.com/webhook"
               />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs text-zinc-500 dark:text-zinc-400">
+                Brave Search API Key
+              </label>
+              <input
+                type="password"
+                className={inputClass}
+                value={userSettings.braveApiKey}
+                onChange={(e) =>
+                  setUserSettings({
+                    ...userSettings,
+                    braveApiKey: e.target.value,
+                  })
+                }
+                placeholder="Enter Brave Search API key"
+              />
+              <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
+                Free at search.brave.com/api (2,000 queries/mo)
+              </p>
             </div>
 
             <div>

@@ -141,6 +141,7 @@ export interface UserSettings {
   linkedinToken: string
   resendApiKey: string
   blogWebhookUrl: string
+  braveApiKey: string
   theme: 'light' | 'dark'
   projectRoot?: string
 }
@@ -248,6 +249,37 @@ export interface PublishAPI {
   blog: (contentDir: string) => Promise<BlogPublishResult>
 }
 
+// SEO analysis types
+export interface SEOCompetitor {
+  url: string
+  title: string
+  description: string
+  score: number
+  wordCount: number
+}
+
+export interface SEOAnalysisResult {
+  score: number
+  seoScore: number
+  readabilityScore: number
+  readabilityGrade: string
+  wordCount: number
+  keywordDensity: number
+  suggestions: SEOSuggestion[]
+  keyword: string
+  competitors: SEOCompetitor[]
+  competitorAvgScore: number
+}
+
+export interface SEOSuggestion {
+  type: 'warning' | 'good' | 'minor'
+  message: string
+}
+
+export interface SEOAPI {
+  analyze: (contentDir: string, keyword: string) => Promise<SEOAnalysisResult>
+}
+
 // Annotation comment for click-to-comment on preview
 export interface AnnotationComment {
   id: string
@@ -269,6 +301,7 @@ export interface ElectronAPI {
   pipeline: PipelineAPI
   capture: CaptureAPI
   publish: PublishAPI
+  seo: SEOAPI
 }
 
 declare global {

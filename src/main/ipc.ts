@@ -31,6 +31,7 @@ import {
 } from './pipeline'
 import { changePtyDirectory, createPty, destroyPty, resizePty, writePty } from './pty'
 import { listAudiences, sendNewsletter } from './resend'
+import { analyzeSEO } from './seo'
 import {
   loadProjectSettings,
   loadUserSettings,
@@ -351,6 +352,15 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     },
   )
 
+  // SEO IPC handler
+  ipcMain.handle(
+    'seo:analyze',
+    async (_event, contentDir: string, keyword: string) => {
+      const settings = await loadUserSettings()
+      return analyzeSEO(contentDir, keyword, settings.braveApiKey)
+    },
+  )
+
   // Watch for metadata.json changes and notify renderer
   const unsubscribePipeline = onFileChange((event) => {
     if (
@@ -392,5 +402,6 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     ipcMain.removeHandler('publish:resend:audiences')
     ipcMain.removeHandler('publish:resend:send')
     ipcMain.removeHandler('publish:blog')
+    ipcMain.removeHandler('seo:analyze')
   })
 }

@@ -25,6 +25,8 @@
     "playwright-core": "^1.58.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "seord": "^0.0.5-patch.5",
+    "text-readability": "^1.1.1",
     "xterm": "^5.3.0"
   },
   "devDependencies": {

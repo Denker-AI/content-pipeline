@@ -14,6 +14,7 @@ const DEFAULT_USER_SETTINGS: UserSettings = {
   linkedinToken: '',
   resendApiKey: '',
   blogWebhookUrl: '',
+  braveApiKey: '',
   theme: 'dark',
 }
 

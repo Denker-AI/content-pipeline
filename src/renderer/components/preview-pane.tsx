@@ -13,10 +13,10 @@ import { ComponentPreview } from './component-preview'
 import { ContentRenderer } from './content-renderer'
 import { LinkedInPublisher } from './linkedin-publisher'
 import { ResendSender } from './resend-sender'
+import { SeoPanel } from './seo-panel'
 import { VersionSelector } from './version-selector'
 
-const tabs = ['Content', 'Components'] as const
-type Tab = (typeof tabs)[number]
+type Tab = 'Content' | 'Components' | 'SEO'
 
 const DEFAULT_APP_URL = 'http://localhost:3000'
 
@@ -103,6 +103,10 @@ export function PreviewPane({
   }, [selectedItem, sendToTerminal])
 
   const hasComments = comments.length > 0
+  const tabs: Tab[] =
+    activeContentType === 'blog'
+      ? ['Content', 'Components', 'SEO']
+      : ['Content', 'Components']
 
   return (
     <div className="flex h-full flex-col bg-white dark:bg-zinc-900">
@@ -264,6 +268,13 @@ export function PreviewPane({
         ) : (
           <ComponentBrowser onPreview={handlePreview} />
         ))}
+
+      {activeTab === 'SEO' && (
+        <SeoPanel
+          contentDir={activeContentDir}
+          activeContentType={activeContentType}
+        />
+      )}
 
       {/* LinkedIn publish dialog */}
       {activeContentDir && (
