@@ -86,6 +86,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     blog: (contentDir) =>
       ipcRenderer.invoke('publish:blog', contentDir),
   },
+  seo: {
+    analyze: (contentDir, keyword) =>
+      ipcRenderer.invoke('seo:analyze', contentDir, keyword),
+  },
   pipeline: {
     listPipelineItems: () => ipcRenderer.invoke('pipeline:list'),
     createContent: (type) => ipcRenderer.invoke('pipeline:create', type),
