@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { marked } from 'marked'
 
@@ -36,13 +36,14 @@ function HtmlPreview({
   const wrapperRef = useRef<HTMLDivElement>(null)
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [scale, setScale] = useState(1)
+  const [navigatedAway, setNavigatedAway] = useState(false)
 
   const sandbox = allowScripts
     ? 'allow-scripts allow-same-origin'
     : 'allow-same-origin'
 
   // Write content into the iframe document
-  useEffect(() => {
+  const writeContent = useCallback(() => {
     const iframe = iframeRef.current
     if (!iframe) return
     const doc = iframe.contentDocument
@@ -51,6 +52,20 @@ function HtmlPreview({
     doc.open()
     doc.write(content)
     doc.close()
+    setNavigatedAway(false)
+
+    // Intercept link clicks to detect navigation
+    doc.addEventListener('click', (e) => {
+      const link = (e.target as HTMLElement).closest('a')
+      if (link?.href && !link.href.startsWith('javascript:')) {
+        e.preventDefault()
+        setNavigatedAway(true)
+      }
+    })
+  }, [content])
+
+  useEffect(() => {
+    writeContent()
 
     // Auto-height: grow iframe to match its content so the parent can scroll
     if (!naturalHeight && !fill) {
@@ -64,7 +79,7 @@ function HtmlPreview({
       const t = setTimeout(measure, 300)
       return () => clearTimeout(t)
     }
-  }, [content, refreshCount, naturalHeight, fill])
+  }, [writeContent, refreshCount, naturalHeight, fill])
 
   // Scale-to-fit: watch container width and compute scale factor
   useEffect(() => {
@@ -76,6 +91,18 @@ function HtmlPreview({
     return () => obs.disconnect()
   }, [naturalWidth])
 
+  const backButton = navigatedAway && (
+    <button
+      onClick={writeContent}
+      className="absolute left-3 top-3 z-10 flex items-center gap-1 rounded bg-zinc-800/80 px-2 py-1 text-xs text-white shadow hover:bg-zinc-700/90"
+    >
+      <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+      </svg>
+      Back to preview
+    </button>
+  )
+
   // Scaled preview (carousel slides): inner div is full natural size, scaled down
   if (naturalWidth && naturalHeight) {
     return (
@@ -84,6 +111,7 @@ function HtmlPreview({
         className="relative w-full overflow-hidden"
         style={{ height: naturalHeight * scale }}
       >
+        {backButton}
         <div
           style={{
             position: 'absolute',
@@ -115,25 +143,31 @@ function HtmlPreview({
   // Fill preview (asset/unknown): iframe takes the full container height
   if (fill) {
     return (
-      <iframe
-        ref={iframeRef}
-        className="h-full w-full border-0"
-        style={{ background: 'white' }}
-        sandbox={sandbox}
-        title="Content preview"
-      />
+      <div className="relative h-full w-full">
+        {backButton}
+        <iframe
+          ref={iframeRef}
+          className="h-full w-full border-0"
+          style={{ background: 'white' }}
+          sandbox={sandbox}
+          title="Content preview"
+        />
+      </div>
     )
   }
 
   // Auto-height preview (newsletter, linkedin): iframe grows to content, parent scrolls
   return (
-    <iframe
-      ref={iframeRef}
-      className="block w-full border-0"
-      style={{ background: 'white' }}
-      sandbox={sandbox}
-      title="Content preview"
-    />
+    <div className="relative">
+      {backButton}
+      <iframe
+        ref={iframeRef}
+        className="block w-full border-0"
+        style={{ background: 'white' }}
+        sandbox={sandbox}
+        title="Content preview"
+      />
+    </div>
   )
 }
 

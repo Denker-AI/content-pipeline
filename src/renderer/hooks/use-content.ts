@@ -65,7 +65,22 @@ async function inlineImages(html: string, htmlFilePath: string): Promise<string>
       const dataUrl = await api.readAsDataUrl(absolutePath)
       result = result.replaceAll(src, dataUrl)
     } catch {
-      // Image not found — leave as-is
+      // PNG not found — try matching .html source and render inline
+      const htmlPath = absolutePath.replace(/\.\w+$/, '.html')
+      try {
+        const htmlSource = await api.read(htmlPath)
+        if (htmlSource) {
+          // Encode HTML as a srcdoc-compatible data URL for the img's parent context
+          const encoded = btoa(unescape(encodeURIComponent(htmlSource)))
+          const htmlDataUrl = `data:text/html;base64,${encoded}`
+          // Replace <img> tag with an inline iframe showing the component
+          const imgTag = match[0]
+          const iframe = `<iframe src="${htmlDataUrl}" style="width:100%;height:400px;border:0;" sandbox="allow-scripts"></iframe>`
+          result = result.replaceAll(imgTag, iframe)
+        }
+      } catch {
+        // Neither image nor HTML source found — leave as-is
+      }
     }
   }
 
