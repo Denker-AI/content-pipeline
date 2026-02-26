@@ -280,6 +280,29 @@ export function App() {
     return cleanup
   }, [openSettings])
 
+  // Keep tab pipelineItems and activeItem synced with fresh pipeline data
+  // (e.g. when worktreeBranch is written to metadata after tab creation)
+  useEffect(() => {
+    const cleanup = window.electronAPI?.pipeline.onPipelineChanged(async () => {
+      const items = await window.electronAPI?.pipeline.listPipelineItems()
+      if (!items?.length) return
+
+      setTabs((prev) =>
+        prev.map((tab) => {
+          const fresh = items.find((i) => i.id === tab.id)
+          return fresh ? { ...tab, pipelineItem: fresh } : tab
+        }),
+      )
+
+      setActiveItem((prev) => {
+        if (!prev) return prev
+        const fresh = items.find((i) => i.id === prev.id)
+        return fresh ?? prev
+      })
+    })
+    return cleanup
+  }, [])
+
   // Keyboard shortcut: Cmd+, (Mac) or Ctrl+, (others)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

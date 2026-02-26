@@ -120,7 +120,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   git: {
     listWorktrees: () => ipcRenderer.invoke('git:listWorktrees'),
     listWorktreesForRepo: (repoPath) => ipcRenderer.invoke('git:listWorktreesForRepo', repoPath),
-    removeWorktree: (worktreePath) => ipcRenderer.invoke('git:removeWorktree', worktreePath),
+    removeWorktree: (worktreePath, deleteRemoteBranch) => ipcRenderer.invoke('git:removeWorktree', worktreePath, deleteRemoteBranch),
     status: (cwd) => ipcRenderer.invoke('git:status', cwd),
     recentFiles: (cwd, limit) => ipcRenderer.invoke('git:recentFiles', cwd, limit),
   },

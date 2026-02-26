@@ -56,13 +56,30 @@ async function resolveUniqueBranch(
 }
 
 /**
+ * Pull latest from origin (best-effort, silently ignored if no remote).
+ */
+async function pullLatest(projectRoot: string): Promise<void> {
+  try {
+    await execFileAsync('git', ['pull', '--ff-only'], { cwd: projectRoot })
+  } catch {
+    // No remote, no tracking branch, or conflicts — skip silently
+  }
+}
+
+/**
  * Create a new git worktree with a dedicated branch.
+ * Optionally pulls from origin first so the worktree starts from latest code.
  */
 export async function createWorktree(
   projectRoot: string,
   branch: string,
   worktreePath: string,
+  options?: { pullBeforeCreate?: boolean },
 ): Promise<WorktreeInfo> {
+  if (options?.pullBeforeCreate) {
+    await pullLatest(projectRoot)
+  }
+
   const uniqueBranch = await resolveUniqueBranch(projectRoot, branch)
 
   await execFileAsync(
@@ -116,13 +133,55 @@ export async function listWorktrees(
 }
 
 /**
- * Remove a git worktree.
+ * Get the branch name for a worktree path.
+ */
+async function getWorktreeBranch(
+  projectRoot: string,
+  worktreePath: string,
+): Promise<string | null> {
+  try {
+    const { stdout } = await execFileAsync(
+      'git',
+      ['rev-parse', '--abbrev-ref', 'HEAD'],
+      { cwd: worktreePath },
+    )
+    return stdout.trim() || null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Remove a git worktree and optionally its local + remote branch.
  */
 export async function removeWorktree(
   projectRoot: string,
   worktreePath: string,
+  options?: { deleteRemoteBranch?: boolean },
 ): Promise<void> {
-  await execFileAsync('git', ['worktree', 'remove', worktreePath], {
+  const branch = await getWorktreeBranch(projectRoot, worktreePath)
+
+  await execFileAsync('git', ['worktree', 'remove', worktreePath, '--force'], {
     cwd: projectRoot,
   })
+
+  // Delete the local branch after worktree is removed
+  if (branch && branch !== 'main' && branch !== 'master') {
+    try {
+      await execFileAsync('git', ['branch', '-D', branch], { cwd: projectRoot })
+    } catch {
+      // Branch may already be deleted
+    }
+
+    // Delete remote branch if requested
+    if (options?.deleteRemoteBranch) {
+      try {
+        await execFileAsync('git', ['push', 'origin', '--delete', branch], {
+          cwd: projectRoot,
+        })
+      } catch {
+        // Remote branch may not exist or no remote configured
+      }
+    }
+  }
 }

@@ -172,6 +172,7 @@ export interface UserSettings {
   projectRoot?: string
   repos: string[]
   repoLabels: Record<string, string>  // path → custom display name
+  pullBeforeWorktree?: boolean        // pull latest from origin before creating worktree (default: true)
   lastSession?: {
     openTabIds: string[]       // content item IDs that were open
     activeTabId: string | null // which tab was focused
@@ -350,7 +351,7 @@ export interface GitCommitFile {
 export interface GitAPI {
   listWorktrees: () => Promise<WorktreeInfo[]>
   listWorktreesForRepo: (repoPath: string) => Promise<WorktreeInfo[]>
-  removeWorktree: (worktreePath: string) => Promise<void>
+  removeWorktree: (worktreePath: string, deleteRemoteBranch?: boolean) => Promise<void>
   status: (cwd: string) => Promise<GitFileEntry[]>
   recentFiles: (cwd: string, limit: number) => Promise<GitCommitFile[]>
 }

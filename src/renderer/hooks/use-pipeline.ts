@@ -102,11 +102,16 @@ export function usePipeline() {
     setActiveItemId(item.id)
   }, [])
 
-  // Update stage
+  // Update stage — optimistic update so the item stays visible immediately
   const updateStage = useCallback(
     async (item: PipelineItem, stage: ContentStage) => {
       const api = window.electronAPI?.pipeline
       if (!api) return
+
+      // Optimistic: update local state immediately
+      setItems((prev) =>
+        prev.map((i) => (i.id === item.id ? { ...i, stage } : i)),
+      )
 
       await api.updateStage(item.metadataPath, stage)
     },

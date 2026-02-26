@@ -222,16 +222,23 @@ export function useContent(activeContentDir?: string) {
     if (!api) return
 
     const cleanup = api.onFileChange((event: FileEvent) => {
-      // Refresh currently selected file on modification
-      if (selectedItem && selectedItem.relativePath === event.path) {
+      if (!selectedItem) return
+
+      const isSelectedFile = selectedItem.relativePath === event.path
+      const mode = detectRenderMode(selectedItem.relativePath)
+      // HTML previews reference assets (images, etc.) — refresh when any file changes
+      const isHtmlPreview = mode === 'newsletter' || mode === 'linkedin-preview' || mode === 'asset'
+      const isAssetChange = /\.(png|jpg|jpeg|webp|gif|svg|css|js)$/i.test(event.path)
+
+      // Refresh if the selected file changed, or an asset changed while viewing HTML
+      if (isSelectedFile || (isHtmlPreview && isAssetChange)) {
         refreshCountRef.current += 1
         const contentApi = window.electronAPI?.content
         if (contentApi) {
-          const mode = detectRenderMode(selectedItem.relativePath)
           contentApi
             .read(selectedItem.path)
             .then(async (html) => {
-              if (mode === 'newsletter' || mode === 'linkedin-preview' || mode === 'asset') {
+              if (isHtmlPreview) {
                 return inlineImages(html, selectedItem.path)
               }
               return html

@@ -256,6 +256,25 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
               </div>
             </div>
 
+            <div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={userSettings.pullBeforeWorktree ?? true}
+                  onChange={(e) =>
+                    setUserSettings({ ...userSettings, pullBeforeWorktree: e.target.checked })
+                  }
+                  className="h-4 w-4 rounded border-zinc-300 dark:border-zinc-600 accent-blue-600"
+                />
+                <span className="text-sm text-zinc-700 dark:text-zinc-200">
+                  Pull latest from origin before creating worktree
+                </span>
+              </label>
+              <p className="mt-1 ml-6 text-xs text-zinc-400 dark:text-zinc-500">
+                Ensures new content branches start from the latest remote code
+              </p>
+            </div>
+
             <div className="flex items-center gap-3">
               <button
                 onClick={handleSaveUser}

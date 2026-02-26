@@ -326,17 +326,26 @@ function RepoSection({
   isMultiRepo,
 }: RepoSectionProps) {
   const [confirmDeleteBranch, setConfirmDeleteBranch] = useState<string | null>(null)
+  const [deleteRemoteConfirm, setDeleteRemoteConfirm] = useState<string | null>(null)
   const [editing, setEditing] = useState(false)
   const [editName, setEditName] = useState(repo.name)
 
-  const handleDeleteBranch = async (wt: WorktreeInfo) => {
+  const handleDeleteBranch = async (wt: WorktreeInfo, deleteRemote?: boolean) => {
+    // First click: show "Confirm?" / second click with choice
     if (confirmDeleteBranch !== wt.path) {
       setConfirmDeleteBranch(wt.path)
+      setDeleteRemoteConfirm(null)
+      return
+    }
+    // If no explicit choice yet, show remote options
+    if (deleteRemote === undefined) {
+      setDeleteRemoteConfirm(wt.path)
       return
     }
     try {
-      await window.electronAPI?.git.removeWorktree(wt.path)
+      await window.electronAPI?.git.removeWorktree(wt.path, deleteRemote)
       setConfirmDeleteBranch(null)
+      setDeleteRemoteConfirm(null)
     } catch (err) {
       console.error('Failed to remove worktree:', err)
     }
@@ -466,20 +475,39 @@ function RepoSection({
                       {wt.path.split('/').slice(-2).join('/')}
                     </p>
                   </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleDeleteBranch(wt)
-                    }}
-                    className={`shrink-0 rounded px-1.5 py-0.5 text-xs transition-opacity ${
-                      confirmDeleteBranch === wt.path
-                        ? 'bg-red-500/20 text-red-400'
-                        : 'text-zinc-400 opacity-0 group-hover:opacity-100 hover:bg-zinc-200 dark:hover:bg-zinc-700'
-                    }`}
-                    title={confirmDeleteBranch === wt.path ? 'Click again to confirm' : 'Delete worktree'}
-                  >
-                    {confirmDeleteBranch === wt.path ? 'Confirm?' : <XIcon className="h-3 w-3" />}
-                  </button>
+                  {deleteRemoteConfirm === wt.path ? (
+                    <div className="flex shrink-0 gap-1" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        onClick={() => handleDeleteBranch(wt, false)}
+                        className="rounded bg-red-500/20 px-1.5 py-0.5 text-[10px] text-red-400 hover:bg-red-500/30"
+                        title="Delete local only"
+                      >
+                        Local
+                      </button>
+                      <button
+                        onClick={() => handleDeleteBranch(wt, true)}
+                        className="rounded bg-red-500/20 px-1.5 py-0.5 text-[10px] text-red-400 hover:bg-red-500/30"
+                        title="Delete local + remote branch"
+                      >
+                        + Remote
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleDeleteBranch(wt)
+                      }}
+                      className={`shrink-0 rounded px-1.5 py-0.5 text-xs transition-opacity ${
+                        confirmDeleteBranch === wt.path
+                          ? 'bg-red-500/20 text-red-400'
+                          : 'text-zinc-400 opacity-0 group-hover:opacity-100 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+                      }`}
+                      title={confirmDeleteBranch === wt.path ? 'Click to choose local/remote' : 'Delete worktree'}
+                    >
+                      {confirmDeleteBranch === wt.path ? 'Delete?' : <XIcon className="h-3 w-3" />}
+                    </button>
+                  )}
                 </div>
             ))
           )}

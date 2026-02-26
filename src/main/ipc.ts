@@ -342,9 +342,12 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
 
       // If project is a git repo, create a worktree
       if (await isGitRepo(projectRoot)) {
+        const settings = await loadUserSettings()
         const branch = `content/${item.id}`
         const worktreePath = path.join(projectRoot, '.worktrees', item.id)
-        const worktree = await createWorktree(projectRoot, branch, worktreePath)
+        const worktree = await createWorktree(projectRoot, branch, worktreePath, {
+          pullBeforeCreate: settings.pullBeforeWorktree ?? true,
+        })
         await writeMetadata(item.metadataPath, {
           worktreeBranch: worktree.branch,
           worktreePath: worktree.path,
@@ -394,9 +397,11 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     async (_event, item: PipelineItem) => {
       setActiveContent(item)
 
-      // Restart file watcher on active content's directory
+      // Restart file watcher on active content's specific directory
+      // For worktree items, watch the item subdirectory (not the whole content root)
+      // so that relative paths match what the renderer expects.
       const watchDir = item.worktreePath
-        ? path.join(item.worktreePath, 'content')
+        ? path.join(item.worktreePath, 'content', item.id)
         : item.contentDir
       stopWatcher()
       startWatcher(watchDir)
@@ -490,19 +495,8 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     }
   })
 
-  ipcMain.handle('git:removeWorktree', async (_event, worktreePath: string) => {
-    await removeWorktree(projectRoot, worktreePath)
-    // Also delete the branch (best-effort)
-    try {
-      const branchName = path.basename(path.dirname(worktreePath)) === '.worktrees'
-        ? `content/${path.basename(worktreePath)}`
-        : undefined
-      if (branchName) {
-        await execFileAsync('git', ['branch', '-D', branchName], { cwd: projectRoot })
-      }
-    } catch {
-      // Branch deletion is best-effort
-    }
+  ipcMain.handle('git:removeWorktree', async (_event, worktreePath: string, deleteRemoteBranch?: boolean) => {
+    await removeWorktree(projectRoot, worktreePath, { deleteRemoteBranch })
     if (!mainWindow.isDestroyed()) {
       mainWindow.webContents.send('pipeline:contentChanged')
     }
