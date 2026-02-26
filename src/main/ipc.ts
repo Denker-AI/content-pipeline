@@ -200,7 +200,14 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     if (!isAllowedContentPath(resolved)) {
       throw new Error('Access denied: file outside content directory')
     }
-    return fs.readFile(resolved, 'utf-8')
+    try {
+      return await fs.readFile(resolved, 'utf-8')
+    } catch (err: unknown) {
+      if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
+        return ''
+      }
+      throw err
+    }
   })
 
   ipcMain.handle('content:readAsDataUrl', async (_event, filePath: string) => {

@@ -193,9 +193,16 @@ export function App() {
       // Find the matching pipeline item for this worktree
       const items = await window.electronAPI?.pipeline.listPipelineItems()
       const item = items?.find(
-        (i) => i.worktreeBranch === worktree.branch || i.worktreePath === worktree.path,
+        (i) =>
+          i.worktreeBranch === worktree.branch ||
+          i.worktreePath === worktree.path ||
+          // Fallback: derive branch from item ID (content/<type>/<date>)
+          `content/${i.id}` === worktree.branch,
       )
       if (item) {
+        // Ensure worktree fields are set even if metadata was missing them
+        if (!item.worktreePath) item.worktreePath = worktree.path
+        if (!item.worktreeBranch) item.worktreeBranch = worktree.branch
         openTab(item, false)
       }
     },
