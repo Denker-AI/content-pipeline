@@ -10,7 +10,7 @@ const STAGE_COLORS: Record<ContentStage, string> = {
   review: 'bg-orange-600/20 text-orange-400',
   final: 'bg-blue-600/20 text-blue-400',
   scheduled: 'bg-purple-600/20 text-purple-400',
-  published: 'bg-green-600/20 text-green-400',
+  published: 'bg-green-600/20 text-green-400'
 }
 
 const ALL_STAGES: ContentStage[] = [
@@ -19,7 +19,7 @@ const ALL_STAGES: ContentStage[] = [
   'review',
   'final',
   'scheduled',
-  'published',
+  'published'
 ]
 
 interface StageBadgeProps {
@@ -45,9 +45,9 @@ export function StageBadge({ stage, onChange }: StageBadgeProps) {
   return (
     <div ref={ref} className="relative">
       <button
-        onClick={(e) => {
+        onClick={e => {
           e.stopPropagation()
-          setOpen((prev) => !prev)
+          setOpen(prev => !prev)
         }}
         className={`rounded-full px-2 py-0.5 text-[10px] font-medium capitalize ${STAGE_COLORS[stage]}`}
       >
@@ -56,16 +56,18 @@ export function StageBadge({ stage, onChange }: StageBadgeProps) {
 
       {open && (
         <div className="absolute right-0 top-full z-50 mt-1 w-28 rounded border border-zinc-200 dark:border-zinc-600 bg-white dark:bg-zinc-800 py-1 shadow-lg">
-          {ALL_STAGES.map((s) => (
+          {ALL_STAGES.map(s => (
             <button
               key={s}
-              onClick={(e) => {
+              onClick={e => {
                 e.stopPropagation()
                 onChange(s)
                 setOpen(false)
               }}
               className={`flex w-full items-center gap-2 px-3 py-1 text-left text-xs capitalize hover:bg-zinc-100 dark:hover:bg-zinc-700 ${
-                s === stage ? 'text-zinc-900 dark:text-white' : 'text-zinc-500 dark:text-zinc-400'
+                s === stage
+                  ? 'text-zinc-900 dark:text-white'
+                  : 'text-zinc-500 dark:text-zinc-400'
               }`}
             >
               {s === stage && <CheckIcon className="h-3 w-3 text-blue-400" />}

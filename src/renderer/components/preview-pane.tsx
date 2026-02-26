@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import type { ComponentRenderResult, ContentType, ContentVersion, DetectedComponent, RenderMode } from '@/shared/types'
+import type {
+  ComponentRenderResult,
+  ContentType,
+  ContentVersion,
+  DetectedComponent,
+  RenderMode
+} from '@/shared/types'
 
 import { useComments } from '../hooks/use-comments'
 import { useGitStatus } from '../hooks/use-git-status'
@@ -40,7 +46,11 @@ interface PreviewPaneProps {
   refreshCount: number
   worktreePath?: string
   selectVersion: (version: ContentVersion) => void
-  selectFile: (path: string, relativePath: string, contentType: ContentType) => void
+  selectFile: (
+    path: string,
+    relativePath: string,
+    contentType: ContentType
+  ) => void
   openProject: () => void
 }
 
@@ -58,13 +68,16 @@ export function PreviewPane({
   worktreePath,
   selectVersion,
   selectFile,
-  openProject,
+  openProject
 }: PreviewPaneProps) {
   const [activeTab, setActiveTab] = useState<Tab>('Content')
-  const [previewComponent, setPreviewComponent] = useState<DetectedComponent | null>(null)
+  const [previewComponent, setPreviewComponent] =
+    useState<DetectedComponent | null>(null)
   const [previewHtml, setPreviewHtml] = useState<string | null>(null)
   const [previewError, setPreviewError] = useState<string | null>(null)
-  const [selectedCommentId, setSelectedCommentId] = useState<string | null>(null)
+  const [selectedCommentId, setSelectedCommentId] = useState<string | null>(
+    null
+  )
   const [publishOpen, setPublishOpen] = useState(false)
   const [newsletterSendOpen, setNewsletterSendOpen] = useState(false)
   const [blogPublishOpen, setBlogPublishOpen] = useState(false)
@@ -76,7 +89,7 @@ export function PreviewPane({
     unstaged,
     committed,
     loading: gitLoading,
-    refresh: refreshGit,
+    refresh: refreshGit
   } = useGitStatus(worktreePath)
 
   const {
@@ -87,7 +100,7 @@ export function PreviewPane({
     resolveComment,
     deleteComment,
     clearAll,
-    sendToTerminal,
+    sendToTerminal
   } = useComments()
 
   // Clear comments when switching content
@@ -104,7 +117,7 @@ export function PreviewPane({
     }
     window.electronAPI?.content
       .read(`${activeContentDir}/post-text.md`)
-      .then((text) => {
+      .then(text => {
         setActivePostText(text.trim())
         activePostTextRef.current = text.trim()
       })
@@ -118,7 +131,7 @@ export function PreviewPane({
   useEffect(() => {
     const api = window.electronAPI?.components
     if (!api) return
-    return api.onPreviewHtml((html) => {
+    return api.onPreviewHtml(html => {
       setPreviewHtml(html)
       setPreviewError(null)
     })
@@ -188,7 +201,7 @@ export function PreviewPane({
         selectedItem.relativePath,
         activeTabId,
         fileContent || undefined,
-        activeContentDir,
+        activeContentDir
       )
     }
   }, [selectedItem, sendToTerminal, activeTabId, fileContent, activeContentDir])
@@ -212,13 +225,17 @@ export function PreviewPane({
             }
           }}
           className="no-drag flex h-6 w-6 items-center justify-center rounded text-zinc-400 hover:bg-zinc-200 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors"
-          title={activeContentDir ? `Open: ${activeContentDir}` : 'Open project folder'}
+          title={
+            activeContentDir
+              ? `Open: ${activeContentDir}`
+              : 'Open project folder'
+          }
         >
           <FolderOpenIcon className="h-3.5 w-3.5" />
         </button>
         {worktreePath && (
           <button
-            onClick={() => setFileSidebarOpen((v) => !v)}
+            onClick={() => setFileSidebarOpen(v => !v)}
             className={`no-drag ml-1 flex h-6 w-6 items-center justify-center rounded transition-colors ${
               fileSidebarOpen
                 ? 'bg-blue-500/20 text-blue-400 ring-1 ring-blue-500/40'
@@ -233,7 +250,7 @@ export function PreviewPane({
 
       {/* Tab bar — Content / Components / SEO */}
       <div className="flex shrink-0 border-b border-zinc-200 dark:border-zinc-700">
-        {tabs.map((tab) => (
+        {tabs.map(tab => (
           <button
             key={tab}
             onClick={() => {
@@ -301,7 +318,9 @@ export function PreviewPane({
                       ? 'bg-red-500/20 text-red-400 ring-1 ring-red-500/40'
                       : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-700 hover:text-zinc-700 dark:hover:text-zinc-200'
                   }`}
-                  title={annotating ? 'Exit annotation mode' : 'Click to annotate'}
+                  title={
+                    annotating ? 'Exit annotation mode' : 'Click to annotate'
+                  }
                 >
                   {annotating ? 'Annotating' : 'Annotate'}
                 </button>
@@ -381,7 +400,11 @@ export function PreviewPane({
       {activeTab === 'Components' && (
         <>
           {/* Always mounted so the list persists — hidden when preview is active */}
-          <div className={previewComponent ? 'hidden' : 'flex min-h-0 flex-1 flex-col'}>
+          <div
+            className={
+              previewComponent ? 'hidden' : 'flex min-h-0 flex-1 flex-col'
+            }
+          >
             <ComponentBrowser onPreview={handlePreview} />
           </div>
 

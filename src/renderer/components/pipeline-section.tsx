@@ -1,6 +1,14 @@
 import type { ContentStage, ContentType, PipelineItem } from '@/shared/types'
 
-import { BlogIcon, ChevronDownIcon, ChevronRightIcon, FileIcon, LinkedInIcon, NewsletterIcon, PlusIcon } from './icons'
+import {
+  BlogIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
+  FileIcon,
+  LinkedInIcon,
+  NewsletterIcon,
+  PlusIcon
+} from './icons'
 import { PipelineCard } from './pipeline-card'
 
 const TYPE_LABELS: Record<ContentType, string> = {
@@ -8,15 +16,18 @@ const TYPE_LABELS: Record<ContentType, string> = {
   blog: 'Blog',
   newsletter: 'Newsletter',
   asset: 'Assets',
-  unknown: 'Other',
+  unknown: 'Other'
 }
 
-const TYPE_ICON_COMPONENTS: Record<ContentType, React.FC<{ className?: string }>> = {
+const TYPE_ICON_COMPONENTS: Record<
+  ContentType,
+  React.FC<{ className?: string }>
+> = {
   linkedin: LinkedInIcon,
   blog: BlogIcon,
   newsletter: NewsletterIcon,
   asset: FileIcon,
-  unknown: FileIcon,
+  unknown: FileIcon
 }
 
 interface PipelineSectionProps {
@@ -38,7 +49,7 @@ export function PipelineSection({
   onItemSelect,
   onCreateNew,
   activeItemId,
-  onStageChange,
+  onStageChange
 }: PipelineSectionProps) {
   return (
     <div>
@@ -54,15 +65,22 @@ export function PipelineSection({
             <ChevronRightIcon className="h-3 w-3 text-zinc-400 dark:text-zinc-500" />
           )}
           <span className="flex h-4 w-4 items-center justify-center rounded bg-zinc-200 dark:bg-zinc-700">
-            {(() => { const Icon = TYPE_ICON_COMPONENTS[type]; return <Icon className="h-3 w-3 text-zinc-500 dark:text-zinc-400" /> })()}
+            {(() => {
+              const Icon = TYPE_ICON_COMPONENTS[type]
+              return (
+                <Icon className="h-3 w-3 text-zinc-500 dark:text-zinc-400" />
+              )
+            })()}
           </span>
           <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300">
             {TYPE_LABELS[type]}
           </span>
-          <span className="text-[10px] text-zinc-400 dark:text-zinc-500">{items.length}</span>
+          <span className="text-[10px] text-zinc-400 dark:text-zinc-500">
+            {items.length}
+          </span>
         </button>
         <button
-          onClick={(e) => {
+          onClick={e => {
             e.stopPropagation()
             onCreateNew(type)
           }}
@@ -77,7 +95,7 @@ export function PipelineSection({
       {isExpanded && (
         <div>
           {items.length > 0 ? (
-            items.map((item) => (
+            items.map(item => (
               <PipelineCard
                 key={item.id}
                 item={item}

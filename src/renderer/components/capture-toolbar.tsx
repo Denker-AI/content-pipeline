@@ -26,7 +26,7 @@ export function CaptureToolbar({
   contentUrl,
   htmlContent,
   contentDir,
-  contentType,
+  contentType
 }: CaptureToolbarProps) {
   const [selectedPreset, setSelectedPreset] = useState(0)
   const [customWidth, setCustomWidth] = useState(1080)
@@ -59,19 +59,19 @@ export function CaptureToolbar({
         height,
         presetName: name,
         contentDir: contentDir!,
-        contentType,
+        contentType
       })
 
       if (result) {
         setStatus({
           type: 'success',
-          message: `Saved: ${result.path} (${formatSize(result.size)})`,
+          message: `Saved: ${result.path} (${formatSize(result.size)})`
         })
       }
     } catch (err) {
       setStatus({
         type: 'error',
-        message: `Failed: ${err instanceof Error ? err.message : 'Unknown error'}`,
+        message: `Failed: ${err instanceof Error ? err.message : 'Unknown error'}`
       })
     }
   }, [canCapture, getSize, contentUrl, htmlContent, contentDir, contentType])
@@ -82,7 +82,7 @@ export function CaptureToolbar({
 
     setStatus({
       type: 'capturing',
-      message: `Recording ${videoDuration}s video...`,
+      message: `Recording ${videoDuration}s video...`
     })
 
     try {
@@ -92,19 +92,19 @@ export function CaptureToolbar({
         width,
         height,
         duration: videoDuration,
-        contentDir: contentDir!,
+        contentDir: contentDir!
       })
 
       if (result) {
         setStatus({
           type: 'success',
-          message: `Saved: ${result.path} (${formatSize(result.size)})`,
+          message: `Saved: ${result.path} (${formatSize(result.size)})`
         })
       }
     } catch (err) {
       setStatus({
         type: 'error',
-        message: `Failed: ${err instanceof Error ? err.message : 'Unknown error'}`,
+        message: `Failed: ${err instanceof Error ? err.message : 'Unknown error'}`
       })
     }
   }, [canCapture, getSize, videoDuration, contentUrl, htmlContent, contentDir])
@@ -116,7 +116,7 @@ export function CaptureToolbar({
         {/* Size preset dropdown */}
         <select
           value={showCustom ? 'custom' : selectedPreset}
-          onChange={(e) => {
+          onChange={e => {
             if (e.target.value === 'custom') {
               setShowCustom(true)
             } else {
@@ -140,7 +140,7 @@ export function CaptureToolbar({
             <input
               type="number"
               value={customWidth}
-              onChange={(e) => setCustomWidth(Number(e.target.value))}
+              onChange={e => setCustomWidth(Number(e.target.value))}
               className="w-16 rounded bg-zinc-200 dark:bg-zinc-700 px-1 py-1 text-xs text-zinc-700 dark:text-zinc-200"
               min={100}
               max={3840}
@@ -149,7 +149,7 @@ export function CaptureToolbar({
             <input
               type="number"
               value={customHeight}
-              onChange={(e) => setCustomHeight(Number(e.target.value))}
+              onChange={e => setCustomHeight(Number(e.target.value))}
               className="w-16 rounded bg-zinc-200 dark:bg-zinc-700 px-1 py-1 text-xs text-zinc-700 dark:text-zinc-200"
               min={100}
               max={3840}
@@ -172,7 +172,7 @@ export function CaptureToolbar({
           <input
             type="number"
             value={videoDuration}
-            onChange={(e) => setVideoDuration(Number(e.target.value))}
+            onChange={e => setVideoDuration(Number(e.target.value))}
             className="w-12 rounded bg-zinc-200 dark:bg-zinc-700 px-1 py-1 text-xs text-zinc-700 dark:text-zinc-200"
             min={1}
             max={60}

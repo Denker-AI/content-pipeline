@@ -1,7 +1,11 @@
 import { Marked } from 'marked'
 import { SeoCheck } from 'seord'
 
-import type { SEOAnalysisResult, SEOCompetitor, SEOSuggestion } from '@/shared/types'
+import type {
+  SEOAnalysisResult,
+  SEOCompetitor,
+  SEOSuggestion
+} from '@/shared/types'
 
 import { findBlogMarkdown, parseFrontmatter } from './webhook'
 
@@ -21,14 +25,17 @@ async function getReadability() {
 }
 
 function stripHtmlTags(html: string): string {
-  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+  return html
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 
 async function scoreContent(
   html: string,
   keyword: string,
   title: string,
-  description: string,
+  description: string
 ): Promise<{
   seoScore: number
   readabilityScore: number
@@ -45,10 +52,10 @@ async function scoreContent(
       htmlText: html,
       metaDescription: description,
       languageCode: 'en',
-      countryCode: 'us',
+      countryCode: 'us'
     },
     null,
-    false,
+    false
   )
 
   const seoResult = await seoCheck.analyzeSeo()
@@ -87,7 +94,7 @@ async function scoreContent(
     readabilityGrade,
     wordCount: seoResult.wordCount,
     keywordDensity: Math.round(seoResult.keywordDensity * 100) / 100,
-    suggestions,
+    suggestions
   }
 }
 
@@ -105,7 +112,7 @@ interface BraveSearchResponse {
 
 async function fetchCompetitors(
   keyword: string,
-  braveApiKey: string,
+  braveApiKey: string
 ): Promise<SEOCompetitor[]> {
   const url = `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(keyword)}&count=5`
 
@@ -113,8 +120,8 @@ async function fetchCompetitors(
     headers: {
       Accept: 'application/json',
       'Accept-Encoding': 'gzip',
-      'X-Subscription-Token': braveApiKey,
-    },
+      'X-Subscription-Token': braveApiKey
+    }
   })
 
   if (!res.ok) {
@@ -135,8 +142,8 @@ async function fetchCompetitors(
         signal: controller.signal,
         headers: {
           'User-Agent':
-            'Mozilla/5.0 (compatible; ContentPipeline/1.0; SEO analysis)',
-        },
+            'Mozilla/5.0 (compatible; ContentPipeline/1.0; SEO analysis)'
+        }
       })
       clearTimeout(timeout)
 
@@ -146,7 +153,7 @@ async function fetchCompetitors(
           title: result.title,
           description: result.description,
           score: 0,
-          wordCount: 0,
+          wordCount: 0
         })
         continue
       }
@@ -159,7 +166,7 @@ async function fetchCompetitors(
 
       // Extract meta description
       const descMatch = pageHtml.match(
-        /<meta[^>]*name=["']description["'][^>]*content=["']([^"']*)["']/i,
+        /<meta[^>]*name=["']description["'][^>]*content=["']([^"']*)["']/i
       )
       const pageDesc = descMatch ? descMatch[1].trim() : result.description
 
@@ -171,10 +178,10 @@ async function fetchCompetitors(
           htmlText: pageHtml,
           metaDescription: pageDesc,
           languageCode: 'en',
-          countryCode: 'us',
+          countryCode: 'us'
         },
         null,
-        false,
+        false
       )
 
       const seoResult = await seoCheck.analyzeSeo()
@@ -184,7 +191,7 @@ async function fetchCompetitors(
         title: result.title,
         description: result.description,
         score: seoResult.seoScore,
-        wordCount: seoResult.wordCount,
+        wordCount: seoResult.wordCount
       })
     } catch {
       competitors.push({
@@ -192,7 +199,7 @@ async function fetchCompetitors(
         title: result.title,
         description: result.description,
         score: 0,
-        wordCount: 0,
+        wordCount: 0
       })
     }
   }
@@ -203,7 +210,7 @@ async function fetchCompetitors(
 export async function analyzeSEO(
   contentDir: string,
   keyword: string,
-  braveApiKey?: string,
+  braveApiKey?: string
 ): Promise<SEOAnalysisResult> {
   // Read and parse the blog markdown
   const { raw } = await findBlogMarkdown(contentDir)
@@ -218,11 +225,13 @@ export async function analyzeSEO(
     html,
     keyword,
     frontmatter.title,
-    frontmatter.description ?? '',
+    frontmatter.description ?? ''
   )
 
   // Composite score: weighted average of SEO + readability
-  const compositeScore = Math.round(local.seoScore * 0.7 + local.readabilityScore * 0.3)
+  const compositeScore = Math.round(
+    local.seoScore * 0.7 + local.readabilityScore * 0.3
+  )
 
   // Competitor analysis
   let competitors: SEOCompetitor[] = []
@@ -230,10 +239,10 @@ export async function analyzeSEO(
 
   if (braveApiKey) {
     competitors = await fetchCompetitors(keyword, braveApiKey)
-    const scored = competitors.filter((c) => c.score > 0)
+    const scored = competitors.filter(c => c.score > 0)
     if (scored.length > 0) {
       competitorAvgScore = Math.round(
-        scored.reduce((sum, c) => sum + c.score, 0) / scored.length,
+        scored.reduce((sum, c) => sum + c.score, 0) / scored.length
       )
     }
   }
@@ -248,6 +257,6 @@ export async function analyzeSEO(
     suggestions: local.suggestions,
     keyword,
     competitors,
-    competitorAvgScore,
+    competitorAvgScore
   }
 }

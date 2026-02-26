@@ -1,19 +1,28 @@
 import type { ContentType, PipelineItem } from '@/shared/types'
 
-import { BlogIcon, FileIcon, LinkedInIcon, NewsletterIcon, XIcon } from './icons'
+import {
+  BlogIcon,
+  FileIcon,
+  LinkedInIcon,
+  NewsletterIcon,
+  XIcon
+} from './icons'
 
 const TYPE_COLORS: Record<string, string> = {
   linkedin: 'text-blue-500 dark:text-blue-400',
   blog: 'text-green-600 dark:text-green-400',
-  newsletter: 'text-purple-600 dark:text-purple-400',
+  newsletter: 'text-purple-600 dark:text-purple-400'
 }
 
-const TYPE_ICON_COMPONENTS: Record<ContentType, React.FC<{ className?: string }>> = {
+const TYPE_ICON_COMPONENTS: Record<
+  ContentType,
+  React.FC<{ className?: string }>
+> = {
   linkedin: LinkedInIcon,
   blog: BlogIcon,
   newsletter: NewsletterIcon,
   asset: FileIcon,
-  unknown: FileIcon,
+  unknown: FileIcon
 }
 
 export interface Tab {
@@ -33,7 +42,7 @@ export function TabBar({ tabs, activeTabId, onSelect, onClose }: TabBarProps) {
 
   return (
     <div className="flex shrink-0 items-center gap-0 overflow-x-auto border-b border-zinc-200 dark:border-zinc-700">
-      {tabs.map((tab) => {
+      {tabs.map(tab => {
         const isActive = tab.id === activeTabId
         const type = tab.pipelineItem.type
         return (
@@ -46,12 +55,19 @@ export function TabBar({ tabs, activeTabId, onSelect, onClose }: TabBarProps) {
             }`}
             onClick={() => onSelect(tab.id)}
           >
-            {(() => { const Icon = TYPE_ICON_COMPONENTS[type]; return <Icon className={`h-3.5 w-3.5 ${TYPE_COLORS[type] ?? 'text-zinc-500'}`} /> })()}
+            {(() => {
+              const Icon = TYPE_ICON_COMPONENTS[type]
+              return (
+                <Icon
+                  className={`h-3.5 w-3.5 ${TYPE_COLORS[type] ?? 'text-zinc-500'}`}
+                />
+              )
+            })()}
             <span className="max-w-[120px] truncate">
               {tab.pipelineItem.title}
             </span>
             <button
-              onClick={(e) => {
+              onClick={e => {
                 e.stopPropagation()
                 onClose(tab.id)
               }}

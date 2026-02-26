@@ -1,13 +1,21 @@
 // Strip ANSI escape sequences for pattern matching
-// eslint-disable-next-line no-control-regex
-const ANSI_REGEX = /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g
+/* eslint-disable no-control-regex */
+const ANSI_REGEX =
+  /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g
+/* eslint-enable no-control-regex */
 
 function stripAnsi(str: string): string {
   return str.replace(ANSI_REGEX, '')
 }
 
 export interface ParsedEvent {
-  type: 'file-changed' | 'session-id' | 'token-cost' | 'component-found' | 'cwd-changed' | 'component-preview-html'
+  type:
+    | 'file-changed'
+    | 'session-id'
+    | 'token-cost'
+    | 'component-found'
+    | 'cwd-changed'
+    | 'component-preview-html'
   data: Record<string, string | number>
 }
 
@@ -89,7 +97,7 @@ export class TerminalParser {
     if (writeMatch) {
       this.emit({
         type: 'file-changed',
-        data: { path: writeMatch[1] },
+        data: { path: writeMatch[1] }
       })
       return
     }
@@ -99,7 +107,7 @@ export class TerminalParser {
     if (contentMatch) {
       this.emit({
         type: 'file-changed',
-        data: { path: contentMatch[0] },
+        data: { path: contentMatch[0] }
       })
     }
   }
@@ -109,7 +117,7 @@ export class TerminalParser {
     if (match) {
       this.emit({
         type: 'session-id',
-        data: { sessionId: match[1] },
+        data: { sessionId: match[1] }
       })
     }
   }
@@ -123,7 +131,7 @@ export class TerminalParser {
     if (tokenMatch || costMatch) {
       const event: ParsedEvent = {
         type: 'token-cost',
-        data: {},
+        data: {}
       }
       if (tokenMatch) {
         event.data.tokens = parseInt(tokenMatch[1].replace(/,/g, ''), 10)
@@ -137,32 +145,35 @@ export class TerminalParser {
 
   private parseComponentPath(line: string) {
     // Match file paths ending in .tsx or .jsx (e.g. src/components/Button.tsx)
-    const match = line.match(
-      /(?:^|\s|['"`])([./\w-]+\/[\w-]+\.(?:tsx|jsx))\b/,
-    )
+    const match = line.match(/(?:^|\s|['"`])([./\w-]+\/[\w-]+\.(?:tsx|jsx))\b/)
     if (!match) return
 
     const filePath = match[1]
     // Extract filename without extension
-    const filename = filePath.split('/').pop()?.replace(/\.(tsx|jsx)$/, '')
+    const filename = filePath
+      .split('/')
+      .pop()
+      ?.replace(/\.(tsx|jsx)$/, '')
     if (!filename) return
 
     // Convert filename to PascalCase component name
     // Handle kebab-case (my-component), snake_case (my_component), or already PascalCase
     const name = filename
       .split(/[-_]/)
-      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1))
       .join('')
 
     this.emit({
       type: 'component-found',
-      data: { path: filePath, name },
+      data: { path: filePath, name }
     })
   }
 
   private parseCwdChange(line: string) {
     // Worktree script announcements: "Worktree already exists: /path" or "Worktree created: /path"
-    const worktreeMatch = line.match(/Worktree (?:already exists|created)[:\s]+(.+)/)
+    const worktreeMatch = line.match(
+      /Worktree (?:already exists|created)[:\s]+(.+)/
+    )
     if (worktreeMatch) {
       this.emit({ type: 'cwd-changed', data: { dir: worktreeMatch[1].trim() } })
       return
@@ -170,7 +181,9 @@ export class TerminalParser {
 
     // Bare absolute path on its own line (e.g. Claude Code welcome banner shows cwd)
     // Only match lines that look like a project dir (not a file path with an extension)
-    const barePathMatch = line.match(/^\s*(\/(?:Users|home|workspace|root|srv|opt)[^\s│╰╮╭├╤]+?)\s*[│]?\s*$/)
+    const barePathMatch = line.match(
+      /^\s*(\/(?:Users|home|workspace|root|srv|opt)[^\s│╰╮╭├╤]+?)\s*[│]?\s*$/
+    )
     if (barePathMatch) {
       const dir = barePathMatch[1].trim().replace(/\/$/, '')
       // Ignore paths that look like files (have an extension)

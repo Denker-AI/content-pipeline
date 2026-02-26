@@ -18,7 +18,7 @@ export function LinkedInCompositePreview({
   contentDir,
   renderMode,
   textContent,
-  activeTabId,
+  activeTabId
 }: LinkedInCompositePreviewProps) {
   const [postText, setPostText] = useState('')
   const [images, setImages] = useState<ImageSlide[]>([])
@@ -50,14 +50,12 @@ export function LinkedInCompositePreview({
       // Check carousel-images/ subdirectory
       const entries = await api.listDir(contentDir)
       const carouselDir = entries.find(
-        (e) => e.isDirectory && e.name === 'carousel-images',
+        e => e.isDirectory && e.name === 'carousel-images'
       )
       if (carouselDir) {
         const carouselEntries = await api.listDir(carouselDir.path)
         const imgEntries = carouselEntries
-          .filter(
-            (e) => !e.isDirectory && /\.(png|jpg|jpeg|webp)$/i.test(e.name),
-          )
+          .filter(e => !e.isDirectory && /\.(png|jpg|jpeg|webp)$/i.test(e.name))
           .sort((a, b) => a.name.localeCompare(b.name))
         for (const entry of imgEntries) {
           try {
@@ -72,10 +70,10 @@ export function LinkedInCompositePreview({
       // Also check root-level images (not in subdirectories)
       const rootImages = entries
         .filter(
-          (e) =>
+          e =>
             !e.isDirectory &&
             /\.(png|jpg|jpeg|webp)$/i.test(e.name) &&
-            !e.name.startsWith('.'),
+            !e.name.startsWith('.')
         )
         .sort((a, b) => a.name.localeCompare(b.name))
       for (const entry of rootImages) {
@@ -110,11 +108,11 @@ export function LinkedInCompositePreview({
   }, [loadContent])
 
   const handlePrev = useCallback(() => {
-    setCurrentSlide((s) => Math.max(0, s - 1))
+    setCurrentSlide(s => Math.max(0, s - 1))
   }, [])
 
   const handleNext = useCallback(() => {
-    setCurrentSlide((s) => Math.min(images.length - 1, s + 1))
+    setCurrentSlide(s => Math.min(images.length - 1, s + 1))
   }, [images.length])
 
   const handleGenerateVisual = useCallback(() => {
@@ -168,7 +166,9 @@ export function LinkedInCompositePreview({
         {hasText ? (
           <div className="px-4 pb-2">
             <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-800 dark:text-zinc-200">
-              {shouldTruncate ? postText.slice(0, truncateAt) + '...' : postText}
+              {shouldTruncate
+                ? postText.slice(0, truncateAt) + '...'
+                : postText}
             </p>
             {postText.length > truncateAt && (
               <button
@@ -301,7 +301,7 @@ export function LinkedInCompositePreview({
 
         {/* Action bar */}
         <div className="flex border-t border-zinc-200 dark:border-zinc-700">
-          {['Like', 'Comment', 'Repost', 'Send'].map((action) => (
+          {['Like', 'Comment', 'Repost', 'Send'].map(action => (
             <div
               key={action}
               className="flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-medium text-zinc-500 dark:text-zinc-400"
@@ -336,26 +336,66 @@ function ActionIcon({ name }: { name: string }) {
   switch (name) {
     case 'Like':
       return (
-        <svg className={iconClass} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+        <svg
+          className={iconClass}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"
+          />
         </svg>
       )
     case 'Comment':
       return (
-        <svg className={iconClass} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+        <svg
+          className={iconClass}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+          />
         </svg>
       )
     case 'Repost':
       return (
-        <svg className={iconClass} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        <svg
+          className={iconClass}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+          />
         </svg>
       )
     case 'Send':
       return (
-        <svg className={iconClass} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+        <svg
+          className={iconClass}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+          />
         </svg>
       )
     default:

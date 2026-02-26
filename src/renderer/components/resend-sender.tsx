@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import type { ResendAudience, ResendSendResult, ResendTestResult } from '@/shared/types'
+import type {
+  ResendAudience,
+  ResendSendResult,
+  ResendTestResult
+} from '@/shared/types'
 
 import { PublishDialog } from './publish-dialog'
 
@@ -13,7 +17,7 @@ interface ResendSenderProps {
 export function ResendSender({
   isOpen,
   onClose,
-  contentDir,
+  contentDir
 }: ResendSenderProps) {
   const [audiences, setAudiences] = useState<ResendAudience[]>([])
   const [selectedAudienceId, setSelectedAudienceId] = useState('')
@@ -37,8 +41,7 @@ export function ResendSender({
 
     const load = async () => {
       try {
-        const list =
-          await window.electronAPI?.publish.resendListAudiences()
+        const list = await window.electronAPI?.publish.resendListAudiences()
         if (list) {
           setAudiences(list)
           if (list.length > 0 && !selectedAudienceId) {
@@ -69,7 +72,7 @@ export function ResendSender({
         contentDir,
         to: testEmail,
         subject,
-        previewText,
+        previewText
       })
       if (sendResult) {
         setTestResult(sendResult)
@@ -94,7 +97,7 @@ export function ResendSender({
         contentDir,
         audienceId: selectedAudienceId,
         subject,
-        previewText,
+        previewText
       })
       if (sendResult) {
         setResult(sendResult)
@@ -145,7 +148,7 @@ export function ResendSender({
             <input
               type="text"
               value={subject}
-              onChange={(e) => setSubject(e.target.value)}
+              onChange={e => setSubject(e.target.value)}
               placeholder="Newsletter subject line"
               className="w-full rounded border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-200 placeholder-zinc-500 outline-none focus:border-blue-500"
             />
@@ -159,7 +162,7 @@ export function ResendSender({
             <input
               type="text"
               value={previewText}
-              onChange={(e) => setPreviewText(e.target.value)}
+              onChange={e => setPreviewText(e.target.value)}
               placeholder="Text shown in inbox before opening (optional)"
               className="w-full rounded border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-200 placeholder-zinc-500 outline-none focus:border-blue-500"
             />
@@ -184,7 +187,7 @@ export function ResendSender({
               <input
                 type="email"
                 value={testEmail}
-                onChange={(e) => {
+                onChange={e => {
                   setTestEmail(e.target.value)
                   setTestResult(null)
                 }}
@@ -201,7 +204,8 @@ export function ResendSender({
             </div>
             {testResult && (
               <div className="mt-2 rounded bg-green-900/30 p-2 text-xs text-green-300">
-                Test sent! Check your inbox. Subject will be prefixed with [TEST].
+                Test sent! Check your inbox. Subject will be prefixed with
+                [TEST].
               </div>
             )}
           </div>
@@ -219,10 +223,10 @@ export function ResendSender({
               {audiences.length > 0 ? (
                 <select
                   value={selectedAudienceId}
-                  onChange={(e) => setSelectedAudienceId(e.target.value)}
+                  onChange={e => setSelectedAudienceId(e.target.value)}
                   className="w-full rounded border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-200 outline-none focus:border-blue-500"
                 >
-                  {audiences.map((a) => (
+                  {audiences.map(a => (
                     <option key={a.id} value={a.id}>
                       {a.name}
                     </option>

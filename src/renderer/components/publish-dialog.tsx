@@ -19,7 +19,7 @@ export function PublishDialog({
   children,
   confirmLabel = 'Publish',
   confirmDisabled = false,
-  loading = false,
+  loading = false
 }: PublishDialogProps) {
   // Close on Escape
   useEffect(() => {

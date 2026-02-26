@@ -23,9 +23,11 @@ export function ComponentPreview({
   activeContentDir,
   activeContentType,
   activePostText,
-  activeTabId,
+  activeTabId
 }: ComponentPreviewProps) {
-  const [attachState, setAttachState] = useState<'idle' | 'attaching' | 'done'>('idle')
+  const [attachState, setAttachState] = useState<'idle' | 'attaching' | 'done'>(
+    'idle'
+  )
 
   const handleGenerateWithClaude = () => {
     const contextPrefix = activePostText
@@ -48,12 +50,13 @@ export function ComponentPreview({
         height: 1350,
         presetName: 'LinkedIn Carousel',
         contentDir: activeContentDir,
-        contentType: 'linkedin',
+        contentType: 'linkedin'
       })
 
       if (result) {
         const metadataPath = `${activeContentDir}/metadata.json`
-        const existing = await window.electronAPI?.pipeline.readMetadata(metadataPath)
+        const existing =
+          await window.electronAPI?.pipeline.readMetadata(metadataPath)
         const newAsset = {
           id: Date.now().toString(36),
           filename: result.path.split('/').pop() ?? '',
@@ -62,10 +65,10 @@ export function ComponentPreview({
           width: result.width,
           height: result.height,
           createdAt: new Date().toISOString(),
-          order: existing?.assets?.length ?? 0,
+          order: existing?.assets?.length ?? 0
         }
         await window.electronAPI?.pipeline.updateMetadata(metadataPath, {
-          assets: [...(existing?.assets ?? []), newAsset],
+          assets: [...(existing?.assets ?? []), newAsset]
         })
       }
 
@@ -91,13 +94,19 @@ export function ComponentPreview({
         >
           Back
         </button>
-        <span className="text-xs font-medium text-zinc-900 dark:text-white">{componentName}</span>
+        <span className="text-xs font-medium text-zinc-900 dark:text-white">
+          {componentName}
+        </span>
         <span className="flex-1" />
         {isGenerating && !htmlContent && (
-          <span className="text-xs text-zinc-400 dark:text-zinc-500">Generating with Claude...</span>
+          <span className="text-xs text-zinc-400 dark:text-zinc-500">
+            Generating with Claude...
+          </span>
         )}
         {!htmlContent && !error && (
-          <span className="text-xs text-zinc-400 dark:text-zinc-500">Rendering...</span>
+          <span className="text-xs text-zinc-400 dark:text-zinc-500">
+            Rendering...
+          </span>
         )}
         {showAttach && (
           <button

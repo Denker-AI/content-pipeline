@@ -5,7 +5,7 @@ import type {
   ContentMetadata,
   ContentStage,
   ContentType,
-  PipelineItem,
+  PipelineItem
 } from '@/shared/types'
 
 const METADATA_FILE = 'metadata.json'
@@ -15,7 +15,7 @@ const TYPE_DIR_MAP: Record<string, ContentType> = {
   newsletters: 'newsletter',
   linkedin: 'linkedin',
   blog: 'blog',
-  assets: 'asset',
+  assets: 'asset'
 }
 
 function detectTypeFromDir(dirName: string): ContentType {
@@ -28,7 +28,7 @@ function formatTypeLabel(type: ContentType): string {
     linkedin: 'LinkedIn Post',
     blog: 'Blog Post',
     asset: 'Asset',
-    unknown: 'Content',
+    unknown: 'Content'
   }
   return labels[type]
 }
@@ -55,7 +55,7 @@ function typeToDirName(type: ContentType): string {
     linkedin: 'linkedin',
     blog: 'blog',
     asset: 'assets',
-    unknown: 'other',
+    unknown: 'other'
   }
   return map[type]
 }
@@ -79,16 +79,18 @@ const DEFAULT_METADATA: ContentMetadata = {
   stage: 'idea',
   title: '',
   createdAt: '',
-  updatedAt: '',
+  updatedAt: ''
 }
 
-export async function readMetadata(metadataPath: string): Promise<ContentMetadata> {
+export async function readMetadata(
+  metadataPath: string
+): Promise<ContentMetadata> {
   return readJsonFile(metadataPath, DEFAULT_METADATA)
 }
 
 export async function writeMetadata(
   metadataPath: string,
-  updates: Partial<ContentMetadata>,
+  updates: Partial<ContentMetadata>
 ): Promise<ContentMetadata> {
   const existing = await readMetadata(metadataPath)
 
@@ -109,7 +111,7 @@ export async function writeMetadata(
   const merged: ContentMetadata = {
     ...existing,
     ...updates,
-    updatedAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
   }
   await writeJsonFile(metadataPath, merged)
   return merged
@@ -117,7 +119,7 @@ export async function writeMetadata(
 
 export async function updateStage(
   metadataPath: string,
-  stage: ContentStage,
+  stage: ContentStage
 ): Promise<void> {
   await writeMetadata(metadataPath, { stage })
 }
@@ -130,7 +132,7 @@ function extractDate(dirName: string): string {
 function buildPipelineItem(
   contentDir: string,
   itemDir: string,
-  metadata: ContentMetadata,
+  metadata: ContentMetadata
 ): PipelineItem {
   const relativePath = path.relative(contentDir, itemDir)
   const parts = relativePath.split(path.sep)
@@ -147,18 +149,20 @@ function buildPipelineItem(
     metadataPath: path.join(itemDir, METADATA_FILE),
     contentDir: itemDir,
     worktreeBranch: metadata.worktreeBranch,
-    worktreePath: metadata.worktreePath,
+    worktreePath: metadata.worktreePath
   }
 }
 
 export async function listPipelineItems(
-  contentDir: string,
+  contentDir: string
 ): Promise<PipelineItem[]> {
   const items: PipelineItem[] = []
 
   let typeDirs: import('fs').Dirent[]
   try {
-    typeDirs = await fs.readdir(contentDir, { withFileTypes: true }) as import('fs').Dirent[]
+    typeDirs = (await fs.readdir(contentDir, {
+      withFileTypes: true
+    })) as import('fs').Dirent[]
   } catch {
     return items
   }
@@ -172,7 +176,9 @@ export async function listPipelineItems(
 
     let subDirs: import('fs').Dirent[]
     try {
-      subDirs = await fs.readdir(typePath, { withFileTypes: true }) as import('fs').Dirent[]
+      subDirs = (await fs.readdir(typePath, {
+        withFileTypes: true
+      })) as import('fs').Dirent[]
     } catch {
       continue
     }
@@ -198,11 +204,12 @@ export async function listPipelineItems(
       } else {
         // Legacy content: create a PipelineItem with stage 'idea'
         const date = extractDate(subName)
-        const title = subName
-          .replace(/^\d{4}-\d{2}(-\d{2})?-?/, '')
-          .replace(/[-_]/g, ' ')
-          .replace(/\b\w/g, (c) => c.toUpperCase())
-          .trim() || `${formatTypeLabel(contentType)} - ${date}`
+        const title =
+          subName
+            .replace(/^\d{4}-\d{2}(-\d{2})?-?/, '')
+            .replace(/[-_]/g, ' ')
+            .replace(/\b\w/g, c => c.toUpperCase())
+            .trim() || `${formatTypeLabel(contentType)} - ${date}`
 
         items.push({
           id: `${typeName}/${subName}`,
@@ -211,7 +218,7 @@ export async function listPipelineItems(
           title,
           date,
           metadataPath,
-          contentDir: itemDir,
+          contentDir: itemDir
         })
       }
     }
@@ -225,7 +232,7 @@ export async function listPipelineItems(
 
 export async function createContentPiece(
   contentDir: string,
-  type: ContentType,
+  type: ContentType
 ): Promise<PipelineItem> {
   const dateSlug = generateDateSlug()
   const title = generateAutoTitle(type)
@@ -238,7 +245,7 @@ export async function createContentPiece(
     stage: 'idea',
     title,
     createdAt: now,
-    updatedAt: now,
+    updatedAt: now
   }
 
   const metadataPath = path.join(itemDir, METADATA_FILE)

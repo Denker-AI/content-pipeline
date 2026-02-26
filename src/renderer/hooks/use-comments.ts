@@ -10,32 +10,32 @@ export function useComments() {
   const sendingRef = useRef(false)
 
   const toggleAnnotating = useCallback(() => {
-    setAnnotating((prev) => !prev)
+    setAnnotating(prev => !prev)
   }, [])
 
   const addComment = useCallback(
     (x: number, y: number, text: string, nearText: string) => {
       const id = `comment-${nextId++}`
-      setComments((prev) => {
-        const pinNumber = prev.filter((c) => !c.resolved).length + 1
+      setComments(prev => {
+        const pinNumber = prev.filter(c => !c.resolved).length + 1
         return [
           ...prev,
-          { id, pinNumber, x, y, text, nearText, resolved: false },
+          { id, pinNumber, x, y, text, nearText, resolved: false }
         ]
       })
       return id
     },
-    [],
+    []
   )
 
   const resolveComment = useCallback((id: string) => {
-    setComments((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, resolved: true } : c)),
+    setComments(prev =>
+      prev.map(c => (c.id === id ? { ...c, resolved: true } : c))
     )
   }, [])
 
   const deleteComment = useCallback((id: string) => {
-    setComments((prev) => prev.filter((c) => c.id !== id))
+    setComments(prev => prev.filter(c => c.id !== id))
   }, [])
 
   const clearAll = useCallback(() => {
@@ -45,7 +45,7 @@ export function useComments() {
 
   const buildPrompt = useCallback(
     (filePath: string) => {
-      const active = comments.filter((c) => !c.resolved)
+      const active = comments.filter(c => !c.resolved)
       if (active.length === 0) return ''
 
       const lines = [`Revise ${filePath}:`]
@@ -58,7 +58,7 @@ export function useComments() {
       lines.push('Apply changes following brand guidelines.')
       return lines.join('\n')
     },
-    [comments],
+    [comments]
   )
 
   const sendToTerminal = useCallback(
@@ -66,7 +66,7 @@ export function useComments() {
       filePath: string,
       tabId?: string | null,
       htmlContent?: string,
-      contentDir?: string,
+      contentDir?: string
     ) => {
       const prompt = buildPrompt(filePath)
       if (!prompt || !tabId || sendingRef.current) return
@@ -81,7 +81,7 @@ export function useComments() {
             width: 800,
             height: 600,
             presetName: 'annotation-preview',
-            contentDir,
+            contentDir
           })
           if (result?.path) {
             screenshotPath = result.path
@@ -102,12 +102,14 @@ export function useComments() {
       const PASTE_END = '\x1b[201~'
       window.electronAPI?.terminal.sendInput(
         tabId,
-        PASTE_START + fullPrompt + PASTE_END,
+        PASTE_START + fullPrompt + PASTE_END
       )
       // Reset after a short delay to prevent rapid double-clicks
-      setTimeout(() => { sendingRef.current = false }, 1000)
+      setTimeout(() => {
+        sendingRef.current = false
+      }, 1000)
     },
-    [buildPrompt],
+    [buildPrompt]
   )
 
   return {
@@ -119,6 +121,6 @@ export function useComments() {
     deleteComment,
     clearAll,
     buildPrompt,
-    sendToTerminal,
+    sendToTerminal
   }
 }

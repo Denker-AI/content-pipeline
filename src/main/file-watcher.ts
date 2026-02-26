@@ -27,7 +27,7 @@ function emitDebounced(type: FileEventType, filePath: string, root: string) {
       for (const cb of listeners) {
         cb(event)
       }
-    }, DEBOUNCE_MS),
+    }, DEBOUNCE_MS)
   )
 }
 
@@ -42,21 +42,21 @@ export function startWatcher(contentDir: string): void {
     ignored: /(^|[/\\])\../, // ignore dotfiles
     awaitWriteFinish: {
       stabilityThreshold: 300,
-      pollInterval: 100,
-    },
+      pollInterval: 100
+    }
   })
 
   watcher.on('add', (filePath: string) =>
-    emitDebounced('created', filePath, contentDir),
+    emitDebounced('created', filePath, contentDir)
   )
   watcher.on('change', (filePath: string) =>
-    emitDebounced('modified', filePath, contentDir),
+    emitDebounced('modified', filePath, contentDir)
   )
   watcher.on('unlink', (filePath: string) =>
-    emitDebounced('deleted', filePath, contentDir),
+    emitDebounced('deleted', filePath, contentDir)
   )
   watcher.on('error', (err: unknown) =>
-    console.error('File watcher error:', err),
+    console.error('File watcher error:', err)
   )
 }
 

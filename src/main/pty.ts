@@ -17,7 +17,7 @@ function makeEnv(): Record<string, string> {
 export function createPtyForTab(
   tabId: string,
   cwd: string,
-  onData: (data: string) => void,
+  onData: (data: string) => void
 ): IPty {
   // Kill existing PTY for this tab if any
   destroyPtyForTab(tabId)
@@ -31,7 +31,7 @@ export function createPtyForTab(
     cols: 80,
     rows: 24,
     cwd,
-    env: makeEnv(),
+    env: makeEnv()
   })
 
   proc.onData(onData)

@@ -7,13 +7,19 @@ interface FileSidebarProps {
   committed: GitCommitFile[]
   loading: boolean
   onRefresh: () => void
-  onFileSelect: (absolutePath: string, relativePath: string, contentType: ContentType) => void
+  onFileSelect: (
+    absolutePath: string,
+    relativePath: string,
+    contentType: ContentType
+  ) => void
   worktreePath?: string
 }
 
 function detectContentTypeFromPath(filePath: string): ContentType {
-  if (filePath.includes('linkedin/') || filePath.includes('linkedin\\')) return 'linkedin'
-  if (filePath.includes('newsletter') || filePath.includes('newsletters/')) return 'newsletter'
+  if (filePath.includes('linkedin/') || filePath.includes('linkedin\\'))
+    return 'linkedin'
+  if (filePath.includes('newsletter') || filePath.includes('newsletters/'))
+    return 'newsletter'
   if (filePath.includes('blog/')) return 'blog'
   if (filePath.includes('assets/')) return 'asset'
   return 'unknown'
@@ -21,10 +27,14 @@ function detectContentTypeFromPath(filePath: string): ContentType {
 
 function getStatusColor(status: string): string {
   switch (status) {
-    case 'new': return 'bg-green-400'
-    case 'modified': return 'bg-yellow-400'
-    case 'deleted': return 'bg-red-400'
-    default: return 'bg-zinc-400'
+    case 'new':
+      return 'bg-green-400'
+    case 'modified':
+      return 'bg-yellow-400'
+    case 'deleted':
+      return 'bg-red-400'
+    default:
+      return 'bg-zinc-400'
   }
 }
 
@@ -42,7 +52,7 @@ export function FileSidebar({
   loading,
   onRefresh,
   onFileSelect,
-  worktreePath,
+  worktreePath
 }: FileSidebarProps) {
   const [unstagedOpen, setUnstagedOpen] = useState(true)
   const [committedOpen, setCommittedOpen] = useState(true)
@@ -87,7 +97,7 @@ export function FileSidebar({
           </button>
           {unstagedOpen && unstaged.length > 0 && (
             <div>
-              {unstaged.map((file) => {
+              {unstaged.map(file => {
                 const fileName = file.path.split('/').pop() ?? file.path
                 return (
                   <button
@@ -96,7 +106,9 @@ export function FileSidebar({
                     className="flex w-full items-center gap-2 px-4 py-1 text-left hover:bg-zinc-100 dark:hover:bg-zinc-800"
                     title={file.path}
                   >
-                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${getStatusColor(file.status)}`} />
+                    <span
+                      className={`h-1.5 w-1.5 shrink-0 rounded-full ${getStatusColor(file.status)}`}
+                    />
                     <span className="min-w-0 flex-1 truncate text-xs text-zinc-600 dark:text-zinc-300">
                       {fileName}
                     </span>

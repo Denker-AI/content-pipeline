@@ -18,7 +18,7 @@ const DEFAULT_USER_SETTINGS: UserSettings = {
   braveApiKey: '',
   theme: 'dark',
   repos: [],
-  repoLabels: {},
+  repoLabels: {}
 }
 
 const DEFAULT_PROJECT_SETTINGS: ProjectSettings = {
@@ -26,8 +26,8 @@ const DEFAULT_PROJECT_SETTINGS: ProjectSettings = {
     company: '',
     product: '',
     tone: '',
-    audience: '',
-  },
+    audience: ''
+  }
 }
 
 async function ensureDir(dirPath: string): Promise<void> {
@@ -52,14 +52,12 @@ export async function loadUserSettings(): Promise<UserSettings> {
   return readJsonFile(USER_SETTINGS_FILE, DEFAULT_USER_SETTINGS)
 }
 
-export async function saveUserSettings(
-  settings: UserSettings,
-): Promise<void> {
+export async function saveUserSettings(settings: UserSettings): Promise<void> {
   await writeJsonFile(USER_SETTINGS_FILE, settings)
 }
 
 export async function loadProjectSettings(
-  projectRoot: string,
+  projectRoot: string
 ): Promise<ProjectSettings> {
   const filePath = path.join(projectRoot, PROJECT_SETTINGS_FILE)
   return readJsonFile(filePath, DEFAULT_PROJECT_SETTINGS)
@@ -67,7 +65,7 @@ export async function loadProjectSettings(
 
 export async function saveProjectSettings(
   projectRoot: string,
-  settings: ProjectSettings,
+  settings: ProjectSettings
 ): Promise<void> {
   const filePath = path.join(projectRoot, PROJECT_SETTINGS_FILE)
   await writeJsonFile(filePath, settings)

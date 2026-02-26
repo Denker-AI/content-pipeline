@@ -1,6 +1,11 @@
 import { useRef, useState } from 'react'
 
-import type { ContentType, PipelineItem, RepoSidebarData, WorktreeInfo } from '@/shared/types'
+import type {
+  ContentType,
+  PipelineItem,
+  RepoSidebarData,
+  WorktreeInfo
+} from '@/shared/types'
 
 import { usePipeline } from '../hooks/use-pipeline'
 import { useRepos } from '../hooks/use-repos'
@@ -14,7 +19,7 @@ import {
   PlusIcon,
   SearchIcon,
   SparkleIcon,
-  XIcon,
+  XIcon
 } from './icons'
 import { PipelineSection } from './pipeline-section'
 
@@ -39,16 +44,26 @@ export function PipelineSidebar({
   onOpenProject,
   onOpenSettings,
   onOpenWizard,
-  hasProject,
+  hasProject
 }: PipelineSidebarProps) {
   const [activeTab, setActiveTab] = useState<SidebarTab>('content')
   const [searchQuery, setSearchQuery] = useState('')
   const [branchFilter, setBranchFilter] = useState('content')
-  const [expandedRepos, setExpandedRepos] = useState<Set<string>>(() => new Set())
-  const [confirmRemoveRepo, setConfirmRemoveRepo] = useState<string | null>(null)
+  const [expandedRepos, setExpandedRepos] = useState<Set<string>>(
+    () => new Set()
+  )
+  const [confirmRemoveRepo, setConfirmRemoveRepo] = useState<string | null>(
+    null
+  )
   const didInitialExpand = useRef(false)
 
-  const { repos, loading: reposLoading, addRepo, removeRepo, renameRepo } = useRepos()
+  const {
+    repos,
+    loading: reposLoading,
+    addRepo,
+    removeRepo,
+    renameRepo
+  } = useRepos()
 
   const {
     groupedItems,
@@ -58,20 +73,20 @@ export function PipelineSidebar({
     createContent,
     activateItem,
     updateStage,
-    toggleSection,
+    toggleSection
   } = usePipeline()
 
   // Auto-expand repos on first load only
   if (repos.length > 0 && !didInitialExpand.current) {
     didInitialExpand.current = true
-    const initial = new Set(repos.map((r) => r.path))
+    const initial = new Set(repos.map(r => r.path))
     if (initial.size > 0) setExpandedRepos(initial)
   }
 
   const isMultiRepo = repos.length > 1
 
   const toggleRepo = (path: string) => {
-    setExpandedRepos((prev) => {
+    setExpandedRepos(prev => {
       const next = new Set(prev)
       if (next.has(path)) next.delete(path)
       else next.add(path)
@@ -109,9 +124,9 @@ export function PipelineSidebar({
     const q = searchQuery.toLowerCase().trim()
     if (!q) return items
     return items.filter(
-      (item) =>
+      item =>
         item.title.toLowerCase().includes(q) ||
-        item.type.toLowerCase().includes(q),
+        item.type.toLowerCase().includes(q)
     )
   }
 
@@ -122,7 +137,7 @@ export function PipelineSidebar({
       blog: [],
       newsletter: [],
       asset: [],
-      unknown: [],
+      unknown: []
     }
     for (const item of items) {
       const bucket = groups[item.type]
@@ -150,9 +165,23 @@ export function PipelineSidebar({
           className="flex h-6 w-6 items-center justify-center rounded text-zinc-400 hover:bg-zinc-200 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors"
           title="Settings"
         >
-          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 010 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 010-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28z" />
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <svg
+            className="h-3.5 w-3.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 010 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 010-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28z"
+            />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+            />
           </svg>
         </button>
       </div>
@@ -167,7 +196,9 @@ export function PipelineSidebar({
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-800">
             <FolderIcon className="h-6 w-6 text-zinc-400 dark:text-zinc-600" />
           </div>
-          <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">No project open</p>
+          <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+            No project open
+          </p>
           <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-600">
             Open a folder to get started
           </p>
@@ -226,7 +257,7 @@ export function PipelineSidebar({
                 <input
                   type="text"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={e => setSearchQuery(e.target.value)}
                   placeholder="Search content..."
                   className="w-full rounded bg-zinc-100 dark:bg-zinc-800 pl-7 pr-2 py-1 text-xs text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-500 outline-none focus:ring-1 focus:ring-blue-500"
                 />
@@ -234,7 +265,7 @@ export function PipelineSidebar({
                 <input
                   type="text"
                   value={branchFilter}
-                  onChange={(e) => setBranchFilter(e.target.value)}
+                  onChange={e => setBranchFilter(e.target.value)}
                   placeholder="Filter branches..."
                   className="w-full rounded bg-zinc-100 dark:bg-zinc-800 pl-7 pr-2 py-1 text-xs text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-500 outline-none focus:ring-1 focus:ring-blue-500"
                 />
@@ -244,7 +275,7 @@ export function PipelineSidebar({
 
           {/* Repo sections — shared by both tabs */}
           <div className="min-h-0 flex-1 overflow-y-auto thin-scrollbar">
-            {repos.map((repo) => (
+            {repos.map(repo => (
               <RepoSection
                 key={repo.path}
                 repo={repo}
@@ -253,7 +284,11 @@ export function PipelineSidebar({
                 onToggle={() => toggleRepo(repo.path)}
                 onRemove={() => handleRemoveRepo(repo.path)}
                 confirmRemove={confirmRemoveRepo === repo.path}
-                groupedItems={isMultiRepo ? groupItems(filterItems(repo.items)) : groupedItems}
+                groupedItems={
+                  isMultiRepo
+                    ? groupItems(filterItems(repo.items))
+                    : groupedItems
+                }
                 expandedSections={expandedSections}
                 activeItemId={activeItemId}
                 onToggleSection={toggleSection}
@@ -261,7 +296,7 @@ export function PipelineSidebar({
                 onCreateNew={handleCreate}
                 onStageChange={updateStage}
                 onBranchSelect={handleBranchClick}
-                onRename={(name) => renameRepo(repo.path, name)}
+                onRename={name => renameRepo(repo.path, name)}
                 branchFilter={branchFilter}
                 isMultiRepo={isMultiRepo}
               />
@@ -299,7 +334,10 @@ interface RepoSectionProps {
   onToggleSection: (type: ContentType) => void
   onItemSelect: (item: PipelineItem) => void
   onCreateNew: (type: ContentType) => Promise<void>
-  onStageChange: (item: PipelineItem, stage: import('@/shared/types').ContentStage) => void
+  onStageChange: (
+    item: PipelineItem,
+    stage: import('@/shared/types').ContentStage
+  ) => void
   onBranchSelect: (worktree: WorktreeInfo) => void
   onRename: (name: string) => void
   branchFilter: string
@@ -323,14 +361,21 @@ function RepoSection({
   onBranchSelect,
   onRename,
   branchFilter,
-  isMultiRepo,
+  isMultiRepo
 }: RepoSectionProps) {
-  const [confirmDeleteBranch, setConfirmDeleteBranch] = useState<string | null>(null)
-  const [deleteRemoteConfirm, setDeleteRemoteConfirm] = useState<string | null>(null)
+  const [confirmDeleteBranch, setConfirmDeleteBranch] = useState<string | null>(
+    null
+  )
+  const [deleteRemoteConfirm, setDeleteRemoteConfirm] = useState<string | null>(
+    null
+  )
   const [editing, setEditing] = useState(false)
   const [editName, setEditName] = useState(repo.name)
 
-  const handleDeleteBranch = async (wt: WorktreeInfo, deleteRemote?: boolean) => {
+  const handleDeleteBranch = async (
+    wt: WorktreeInfo,
+    deleteRemote?: boolean
+  ) => {
     // First click: show "Confirm?" / second click with choice
     if (confirmDeleteBranch !== wt.path) {
       setConfirmDeleteBranch(wt.path)
@@ -352,9 +397,12 @@ function RepoSection({
   }
 
   const filteredBranches = branchFilter.trim()
-    ? repo.worktrees.filter((wt) => wt.branch.toLowerCase().startsWith(branchFilter.trim().toLowerCase()))
+    ? repo.worktrees.filter(wt =>
+        wt.branch.toLowerCase().startsWith(branchFilter.trim().toLowerCase())
+      )
     : repo.worktrees
-  const count = activeTab === 'content' ? repo.items.length : filteredBranches.length
+  const count =
+    activeTab === 'content' ? repo.items.length : filteredBranches.length
 
   return (
     <div className="border-b border-zinc-200 dark:border-zinc-700">
@@ -374,14 +422,14 @@ function RepoSection({
             <input
               type="text"
               value={editName}
-              onChange={(e) => setEditName(e.target.value)}
+              onChange={e => setEditName(e.target.value)}
               onBlur={() => {
                 setEditing(false)
                 if (editName.trim() && editName.trim() !== repo.name) {
                   onRename(editName.trim())
                 }
               }}
-              onKeyDown={(e) => {
+              onKeyDown={e => {
                 if (e.key === 'Enter') {
                   setEditing(false)
                   if (editName.trim() && editName.trim() !== repo.name) {
@@ -393,14 +441,14 @@ function RepoSection({
                   setEditName(repo.name)
                 }
               }}
-              onClick={(e) => e.stopPropagation()}
+              onClick={e => e.stopPropagation()}
               autoFocus
               className="min-w-0 flex-1 rounded bg-zinc-100 dark:bg-zinc-800 px-1 py-0 text-xs font-semibold text-zinc-700 dark:text-zinc-200 outline-none ring-1 ring-blue-500"
             />
           ) : (
             <span
               className="truncate text-xs font-semibold text-zinc-700 dark:text-zinc-200"
-              onDoubleClick={(e) => {
+              onDoubleClick={e => {
                 e.stopPropagation()
                 setEditName(repo.name)
                 setEditing(true)
@@ -415,7 +463,7 @@ function RepoSection({
         </button>
         {isMultiRepo && (
           <button
-            onClick={(e) => {
+            onClick={e => {
               e.stopPropagation()
               onRemove()
             }}
@@ -424,7 +472,9 @@ function RepoSection({
                 ? 'bg-red-500/20 text-red-400'
                 : 'text-zinc-400 opacity-0 group-hover:opacity-100 hover:bg-zinc-200 dark:hover:bg-zinc-700'
             }`}
-            title={confirmRemove ? 'Click again to confirm' : 'Remove repository'}
+            title={
+              confirmRemove ? 'Click again to confirm' : 'Remove repository'
+            }
           >
             {confirmRemove ? 'Remove?' : <XIcon className="h-3 w-3" />}
           </button>
@@ -434,7 +484,7 @@ function RepoSection({
       {/* Content items */}
       {isExpanded && activeTab === 'content' && (
         <div className={isMultiRepo ? 'pl-2' : ''}>
-          {SECTION_TYPES.map((type) => (
+          {SECTION_TYPES.map(type => (
             <PipelineSection
               key={type}
               type={type}
@@ -455,60 +505,73 @@ function RepoSection({
         <div className={isMultiRepo ? 'pl-2' : ''}>
           {filteredBranches.length === 0 ? (
             <div className="px-3 py-3 text-center">
-              <p className="text-xs text-zinc-400 dark:text-zinc-500">No matching branches</p>
+              <p className="text-xs text-zinc-400 dark:text-zinc-500">
+                No matching branches
+              </p>
             </div>
           ) : (
-            filteredBranches.map((wt) => (
-                <div
-                  key={wt.path}
-                  className="group flex cursor-pointer items-center gap-2 border-b border-zinc-100 dark:border-zinc-800 px-3 py-2 hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
-                  onClick={() => onBranchSelect(wt)}
-                  role="button"
-                  tabIndex={0}
-                >
-                  <GitBranchIcon className="h-3.5 w-3.5 shrink-0 text-zinc-400 dark:text-zinc-500" />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs font-medium text-zinc-700 dark:text-zinc-200">
-                      {wt.branch}
-                    </p>
-                    <p className="truncate text-[10px] text-zinc-400 dark:text-zinc-500">
-                      {wt.path.split('/').slice(-2).join('/')}
-                    </p>
-                  </div>
-                  {deleteRemoteConfirm === wt.path ? (
-                    <div className="flex shrink-0 gap-1" onClick={(e) => e.stopPropagation()}>
-                      <button
-                        onClick={() => handleDeleteBranch(wt, false)}
-                        className="rounded bg-red-500/20 px-1.5 py-0.5 text-[10px] text-red-400 hover:bg-red-500/30"
-                        title="Delete local only"
-                      >
-                        Local
-                      </button>
-                      <button
-                        onClick={() => handleDeleteBranch(wt, true)}
-                        className="rounded bg-red-500/20 px-1.5 py-0.5 text-[10px] text-red-400 hover:bg-red-500/30"
-                        title="Delete local + remote branch"
-                      >
-                        + Remote
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleDeleteBranch(wt)
-                      }}
-                      className={`shrink-0 rounded px-1.5 py-0.5 text-xs transition-opacity ${
-                        confirmDeleteBranch === wt.path
-                          ? 'bg-red-500/20 text-red-400'
-                          : 'text-zinc-400 opacity-0 group-hover:opacity-100 hover:bg-zinc-200 dark:hover:bg-zinc-700'
-                      }`}
-                      title={confirmDeleteBranch === wt.path ? 'Click to choose local/remote' : 'Delete worktree'}
-                    >
-                      {confirmDeleteBranch === wt.path ? 'Delete?' : <XIcon className="h-3 w-3" />}
-                    </button>
-                  )}
+            filteredBranches.map(wt => (
+              <div
+                key={wt.path}
+                className="group flex cursor-pointer items-center gap-2 border-b border-zinc-100 dark:border-zinc-800 px-3 py-2 hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+                onClick={() => onBranchSelect(wt)}
+                role="button"
+                tabIndex={0}
+              >
+                <GitBranchIcon className="h-3.5 w-3.5 shrink-0 text-zinc-400 dark:text-zinc-500" />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-xs font-medium text-zinc-700 dark:text-zinc-200">
+                    {wt.branch}
+                  </p>
+                  <p className="truncate text-[10px] text-zinc-400 dark:text-zinc-500">
+                    {wt.path.split('/').slice(-2).join('/')}
+                  </p>
                 </div>
+                {deleteRemoteConfirm === wt.path ? (
+                  <div
+                    className="flex shrink-0 gap-1"
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <button
+                      onClick={() => handleDeleteBranch(wt, false)}
+                      className="rounded bg-red-500/20 px-1.5 py-0.5 text-[10px] text-red-400 hover:bg-red-500/30"
+                      title="Delete local only"
+                    >
+                      Local
+                    </button>
+                    <button
+                      onClick={() => handleDeleteBranch(wt, true)}
+                      className="rounded bg-red-500/20 px-1.5 py-0.5 text-[10px] text-red-400 hover:bg-red-500/30"
+                      title="Delete local + remote branch"
+                    >
+                      + Remote
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={e => {
+                      e.stopPropagation()
+                      handleDeleteBranch(wt)
+                    }}
+                    className={`shrink-0 rounded px-1.5 py-0.5 text-xs transition-opacity ${
+                      confirmDeleteBranch === wt.path
+                        ? 'bg-red-500/20 text-red-400'
+                        : 'text-zinc-400 opacity-0 group-hover:opacity-100 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+                    }`}
+                    title={
+                      confirmDeleteBranch === wt.path
+                        ? 'Click to choose local/remote'
+                        : 'Delete worktree'
+                    }
+                  >
+                    {confirmDeleteBranch === wt.path ? (
+                      'Delete?'
+                    ) : (
+                      <XIcon className="h-3 w-3" />
+                    )}
+                  </button>
+                )}
+              </div>
             ))
           )}
         </div>

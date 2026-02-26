@@ -42,7 +42,7 @@ function findChromium(): string {
     const paths = [
       '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
       '/Applications/Chromium.app/Contents/MacOS/Chromium',
-      '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
+      '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge'
     ]
     for (const p of paths) {
       try {
@@ -58,7 +58,7 @@ function findChromium(): string {
     const paths = [
       '/usr/bin/google-chrome',
       '/usr/bin/chromium-browser',
-      '/usr/bin/chromium',
+      '/usr/bin/chromium'
     ]
     for (const p of paths) {
       try {
@@ -73,7 +73,7 @@ function findChromium(): string {
   if (process.platform === 'win32') {
     const paths = [
       'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-      'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+      'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'
     ]
     for (const p of paths) {
       try {
@@ -86,14 +86,21 @@ function findChromium(): string {
   }
 
   throw new Error(
-    'No Chromium-based browser found. Install Google Chrome or Chromium.',
+    'No Chromium-based browser found. Install Google Chrome or Chromium.'
   )
 }
 
 export async function takeScreenshot(
-  options: ScreenshotOptions,
+  options: ScreenshotOptions
 ): Promise<ScreenshotResult> {
-  const { url, html, width, height, outputPath, deviceScaleFactor = 2 } = options
+  const {
+    url,
+    html,
+    width,
+    height,
+    outputPath,
+    deviceScaleFactor = 2
+  } = options
 
   if (!url && !html) {
     throw new Error('Either url or html must be provided')
@@ -102,13 +109,13 @@ export async function takeScreenshot(
   const executablePath = findChromium()
   const browser = await chromium.launch({
     executablePath,
-    headless: true,
+    headless: true
   })
 
   try {
     const context = await browser.newContext({
       viewport: { width, height },
-      deviceScaleFactor,
+      deviceScaleFactor
     })
     const page = await context.newPage()
 
@@ -129,16 +136,14 @@ export async function takeScreenshot(
       path: outputPath,
       size: stats.size,
       width: width * deviceScaleFactor,
-      height: height * deviceScaleFactor,
+      height: height * deviceScaleFactor
     }
   } finally {
     await browser.close()
   }
 }
 
-export async function recordVideo(
-  options: VideoOptions,
-): Promise<VideoResult> {
+export async function recordVideo(options: VideoOptions): Promise<VideoResult> {
   const {
     url,
     html,
@@ -146,7 +151,7 @@ export async function recordVideo(
     height,
     outputDir,
     duration,
-    deviceScaleFactor = 1,
+    deviceScaleFactor = 1
   } = options
 
   if (!url && !html) {
@@ -156,7 +161,7 @@ export async function recordVideo(
   const executablePath = findChromium()
   const browser = await chromium.launch({
     executablePath,
-    headless: true,
+    headless: true
   })
 
   try {
@@ -167,8 +172,8 @@ export async function recordVideo(
       deviceScaleFactor,
       recordVideo: {
         dir: outputDir,
-        size: { width, height },
-      },
+        size: { width, height }
+      }
     })
     const page = await context.newPage()
 
@@ -198,7 +203,7 @@ export async function recordVideo(
       size: stats.size,
       width,
       height,
-      duration,
+      duration
     }
   } finally {
     await browser.close()

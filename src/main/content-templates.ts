@@ -553,7 +553,7 @@ export function generateBrandClaudeMd(brand: BrandConfig): string {
 
   if (brand.dos) {
     sections.push('## Do')
-    const doLines = brand.dos.split('\n').filter((l) => l.trim())
+    const doLines = brand.dos.split('\n').filter(l => l.trim())
     for (const line of doLines) {
       sections.push(`- ${line.trim()}`)
     }
@@ -562,7 +562,7 @@ export function generateBrandClaudeMd(brand: BrandConfig): string {
 
   if (brand.donts) {
     sections.push("## Don't")
-    const dontLines = brand.donts.split('\n').filter((l) => l.trim())
+    const dontLines = brand.donts.split('\n').filter(l => l.trim())
     for (const line of dontLines) {
       sections.push(`- ${line.trim()}`)
     }

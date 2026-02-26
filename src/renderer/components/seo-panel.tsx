@@ -7,14 +7,30 @@ interface SeoPanelProps {
   activeContentType?: ContentType
 }
 
-function ScoreRing({ score, label, size = 80 }: { score: number; label: string; size?: number }) {
+function ScoreRing({
+  score,
+  label,
+  size = 80
+}: {
+  score: number
+  label: string
+  size?: number
+}) {
   const radius = (size - 8) / 2
   const circumference = 2 * Math.PI * radius
   const offset = circumference - (score / 100) * circumference
   const color =
-    score >= 70 ? 'text-green-500' : score >= 40 ? 'text-yellow-500' : 'text-red-500'
+    score >= 70
+      ? 'text-green-500'
+      : score >= 40
+        ? 'text-yellow-500'
+        : 'text-red-500'
   const strokeColor =
-    score >= 70 ? 'stroke-green-500' : score >= 40 ? 'stroke-yellow-500' : 'stroke-red-500'
+    score >= 70
+      ? 'stroke-green-500'
+      : score >= 40
+        ? 'stroke-yellow-500'
+        : 'stroke-red-500'
 
   return (
     <div className="flex flex-col items-center gap-1">
@@ -63,7 +79,10 @@ export function SeoPanel({ contentDir, activeContentType }: SeoPanelProps) {
     setResult(null)
 
     try {
-      const analysis = await window.electronAPI.seo.analyze(contentDir, keyword.trim())
+      const analysis = await window.electronAPI.seo.analyze(
+        contentDir,
+        keyword.trim()
+      )
       setResult(analysis)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Analysis failed')
@@ -76,13 +95,15 @@ export function SeoPanel({ contentDir, activeContentType }: SeoPanelProps) {
     (e: React.KeyboardEvent) => {
       if (e.key === 'Enter') handleAnalyze()
     },
-    [handleAnalyze],
+    [handleAnalyze]
   )
 
   if (activeContentType !== 'blog') {
     return (
       <div className="flex h-full items-center justify-center text-zinc-400 dark:text-zinc-500">
-        <p className="text-sm">SEO analysis is available for blog content only</p>
+        <p className="text-sm">
+          SEO analysis is available for blog content only
+        </p>
       </div>
     )
   }
@@ -102,7 +123,7 @@ export function SeoPanel({ contentDir, activeContentType }: SeoPanelProps) {
         <input
           type="text"
           value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
+          onChange={e => setKeyword(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Target keyword..."
           className="flex-1 rounded border border-zinc-200 dark:border-zinc-600 bg-white dark:bg-zinc-800 px-3 py-1.5 text-sm text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-500 focus:border-blue-500 focus:outline-none"
@@ -151,19 +172,25 @@ export function SeoPanel({ contentDir, activeContentType }: SeoPanelProps) {
               <div className="text-lg font-semibold text-zinc-800 dark:text-zinc-200">
                 {result.wordCount.toLocaleString()}
               </div>
-              <div className="text-xs text-zinc-500 dark:text-zinc-400">Words</div>
+              <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                Words
+              </div>
             </div>
             <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 p-3 text-center">
               <div className="text-lg font-semibold text-zinc-800 dark:text-zinc-200">
                 {result.keywordDensity}%
               </div>
-              <div className="text-xs text-zinc-500 dark:text-zinc-400">Keyword Density</div>
+              <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                Keyword Density
+              </div>
             </div>
             <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 p-3 text-center">
               <div className="text-lg font-semibold text-zinc-800 dark:text-zinc-200">
                 {result.readabilityGrade}
               </div>
-              <div className="text-xs text-zinc-500 dark:text-zinc-400">Reading Level</div>
+              <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                Reading Level
+              </div>
             </div>
           </div>
 
@@ -186,7 +213,11 @@ export function SeoPanel({ contentDir, activeContentType }: SeoPanelProps) {
                     }`}
                   >
                     <span className="mr-1.5">
-                      {s.type === 'good' ? '+' : s.type === 'warning' ? '!' : '-'}
+                      {s.type === 'good'
+                        ? '+'
+                        : s.type === 'warning'
+                          ? '!'
+                          : '-'}
                     </span>
                     {s.message}
                   </div>
@@ -237,8 +268,13 @@ export function SeoPanel({ contentDir, activeContentType }: SeoPanelProps) {
                             <div className="truncate" title={c.title}>
                               {c.title}
                             </div>
-                            <div className="truncate text-zinc-400 dark:text-zinc-500" title={c.url}>
-                              {c.url.replace(/^https?:\/\/(www\.)?/, '').slice(0, 40)}
+                            <div
+                              className="truncate text-zinc-400 dark:text-zinc-500"
+                              title={c.url}
+                            >
+                              {c.url
+                                .replace(/^https?:\/\/(www\.)?/, '')
+                                .slice(0, 40)}
                             </div>
                           </td>
                           <td className="px-3 py-2 text-right">
@@ -253,7 +289,9 @@ export function SeoPanel({ contentDir, activeContentType }: SeoPanelProps) {
                             </span>
                           </td>
                           <td className="px-3 py-2 text-right text-zinc-500 dark:text-zinc-400">
-                            {c.wordCount > 0 ? c.wordCount.toLocaleString() : '-'}
+                            {c.wordCount > 0
+                              ? c.wordCount.toLocaleString()
+                              : '-'}
                           </td>
                         </tr>
                       )

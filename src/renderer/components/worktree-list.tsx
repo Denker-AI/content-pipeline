@@ -48,7 +48,7 @@ export function WorktreeList({ onSelectWorktree }: WorktreeListProps) {
         console.error('Failed to remove worktree:', err)
       }
     },
-    [confirmDelete, refresh],
+    [confirmDelete, refresh]
   )
 
   if (loading) {
@@ -73,8 +73,8 @@ export function WorktreeList({ onSelectWorktree }: WorktreeListProps) {
   }
 
   const filtered = filter.trim()
-    ? worktrees.filter((wt) =>
-        wt.branch.toLowerCase().startsWith(filter.trim().toLowerCase()),
+    ? worktrees.filter(wt =>
+        wt.branch.toLowerCase().startsWith(filter.trim().toLowerCase())
       )
     : worktrees
 
@@ -86,7 +86,7 @@ export function WorktreeList({ onSelectWorktree }: WorktreeListProps) {
           <input
             type="text"
             value={filter}
-            onChange={(e) => setFilter(e.target.value)}
+            onChange={e => setFilter(e.target.value)}
             placeholder="Filter branches..."
             className="min-w-0 flex-1 rounded bg-zinc-100 dark:bg-zinc-800 px-2 py-1 text-xs text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-500 outline-none focus:ring-1 focus:ring-blue-500"
           />
@@ -106,7 +106,8 @@ export function WorktreeList({ onSelectWorktree }: WorktreeListProps) {
           {filtered.length} branch{filtered.length !== 1 ? 'es' : ''}
           {filter && filtered.length !== worktrees.length && (
             <span className="font-normal text-zinc-400 dark:text-zinc-500">
-              {' '}of {worktrees.length}
+              {' '}
+              of {worktrees.length}
             </span>
           )}
         </span>
@@ -119,7 +120,7 @@ export function WorktreeList({ onSelectWorktree }: WorktreeListProps) {
         </button>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto thin-scrollbar">
-        {filtered.map((wt) => {
+        {filtered.map(wt => {
           const isMain = !wt.branch.startsWith('content/')
           return (
             <div
@@ -140,7 +141,7 @@ export function WorktreeList({ onSelectWorktree }: WorktreeListProps) {
               </div>
               {!isMain && (
                 <button
-                  onClick={(e) => {
+                  onClick={e => {
                     e.stopPropagation()
                     handleDelete(wt)
                   }}
@@ -149,9 +150,17 @@ export function WorktreeList({ onSelectWorktree }: WorktreeListProps) {
                       ? 'bg-red-500/20 text-red-400'
                       : 'text-zinc-400 opacity-0 group-hover:opacity-100 hover:bg-zinc-200 dark:hover:bg-zinc-700'
                   }`}
-                  title={confirmDelete === wt.path ? 'Click again to confirm' : 'Delete worktree'}
+                  title={
+                    confirmDelete === wt.path
+                      ? 'Click again to confirm'
+                      : 'Delete worktree'
+                  }
                 >
-                  {confirmDelete === wt.path ? 'Confirm?' : <XIcon className="h-3 w-3" />}
+                  {confirmDelete === wt.path ? (
+                    'Confirm?'
+                  ) : (
+                    <XIcon className="h-3 w-3" />
+                  )}
                 </button>
               )}
             </div>

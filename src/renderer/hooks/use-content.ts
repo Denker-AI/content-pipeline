@@ -4,7 +4,7 @@ import type {
   ContentType,
   ContentVersion,
   FileEvent,
-  RenderMode,
+  RenderMode
 } from '@/shared/types'
 
 interface SelectedFile {
@@ -18,7 +18,10 @@ interface SelectedFile {
  * Handles both relative paths and known absolute URLs (e.g. newsletter.denker.ai)
  * that map to local assets in the content directory.
  */
-async function inlineImages(html: string, htmlFilePath: string): Promise<string> {
+async function inlineImages(
+  html: string,
+  htmlFilePath: string
+): Promise<string> {
   const api = window.electronAPI?.content
   if (!api) return html
 
@@ -42,9 +45,7 @@ async function inlineImages(html: string, htmlFilePath: string): Promise<string>
       // Absolute URL — try to map known domains to local assets
       // e.g. https://newsletter.denker.ai/assets/2026-02-19/header-hero.png?v=2
       //   → <dir>/assets/header-hero.png
-      const urlMatch = src.match(
-        /^https?:\/\/[^/]+\/assets\/[^/]+\/([^?]+)/,
-      )
+      const urlMatch = src.match(/^https?:\/\/[^/]+\/assets\/[^/]+\/([^?]+)/)
       if (urlMatch) {
         absolutePath = `${dir}/assets/${urlMatch[1]}`
       } else {
@@ -119,7 +120,7 @@ export function useContent(activeContentDir?: string) {
   useEffect(() => {
     const api = window.electronAPI?.content
     if (!api) return
-    api.getProjectRoot().then((root) => {
+    api.getProjectRoot().then(root => {
       setProjectRoot(root)
       setContentDir(`${root}/content`)
     })
@@ -139,10 +140,10 @@ export function useContent(activeContentDir?: string) {
     if (!api || !activeContentDir) return
 
     let cancelled = false
-    api.listDir(activeContentDir).then((entries) => {
+    api.listDir(activeContentDir).then(entries => {
       if (cancelled) return
       const file = entries.find(
-        (e) => !e.isDirectory && e.name !== 'metadata.json',
+        e => !e.isDirectory && e.name !== 'metadata.json'
       )
       if (file) {
         selectFile(file.path, file.relativePath, file.contentType)
@@ -160,11 +161,19 @@ export function useContent(activeContentDir?: string) {
 
   // Select and load a file
   const selectFile = useCallback(
-    async (filePath: string, relativePath: string, contentType: ContentType) => {
+    async (
+      filePath: string,
+      relativePath: string,
+      contentType: ContentType
+    ) => {
       const api = window.electronAPI?.content
       if (!api) return
 
-      const selected: SelectedFile = { path: filePath, relativePath, contentType }
+      const selected: SelectedFile = {
+        path: filePath,
+        relativePath,
+        contentType
+      }
       setSelectedItem(selected)
       setRenderMode(detectRenderMode(relativePath))
       setLoading(true)
@@ -173,12 +182,15 @@ export function useContent(activeContentDir?: string) {
         const mode = detectRenderMode(relativePath)
         const [rawContent, vers] = await Promise.all([
           api.read(filePath),
-          api.listVersions(filePath),
+          api.listVersions(filePath)
         ])
         // Inline relative images for HTML previews (fixes broken images in iframe)
-        const content = (mode === 'newsletter' || mode === 'linkedin-preview' || mode === 'asset')
-          ? await inlineImages(rawContent, filePath)
-          : rawContent
+        const content =
+          mode === 'newsletter' ||
+          mode === 'linkedin-preview' ||
+          mode === 'asset'
+            ? await inlineImages(rawContent, filePath)
+            : rawContent
         setFileContent(content)
         setVersions(vers)
       } catch (err) {
@@ -189,7 +201,7 @@ export function useContent(activeContentDir?: string) {
         setLoading(false)
       }
     },
-    [],
+    []
   )
 
   // Load a version
@@ -204,16 +216,14 @@ export function useContent(activeContentDir?: string) {
       try {
         const content = await api.read(version.path)
         setFileContent(content)
-        setSelectedItem((prev) =>
-          prev ? { ...prev, path: version.path } : null,
-        )
+        setSelectedItem(prev => (prev ? { ...prev, path: version.path } : null))
       } catch (err) {
         console.error('Failed to load version:', err)
       } finally {
         setLoading(false)
       }
     },
-    [selectedItem],
+    [selectedItem]
   )
 
   // Listen for file changes — auto-refresh current preview + discover new files
@@ -234,7 +244,8 @@ export function useContent(activeContentDir?: string) {
       const mode = detectRenderMode(selectedItem.relativePath)
       // HTML previews reference assets, CSS, etc. — any file change in the
       // watched item directory is relevant (watcher is already item-scoped).
-      const isHtmlPreview = mode === 'newsletter' || mode === 'linkedin-preview' || mode === 'asset'
+      const isHtmlPreview =
+        mode === 'newsletter' || mode === 'linkedin-preview' || mode === 'asset'
 
       // Refresh if the selected file changed, or any file changed while viewing HTML
       if (isSelectedFile || isHtmlPreview) {
@@ -243,7 +254,7 @@ export function useContent(activeContentDir?: string) {
         if (contentApi) {
           contentApi
             .read(selectedItem.path)
-            .then(async (html) => {
+            .then(async html => {
               if (isHtmlPreview) {
                 return inlineImages(html, selectedItem.path)
               }
@@ -258,14 +269,24 @@ export function useContent(activeContentDir?: string) {
       if (event.type === 'created' && activeContentDir) {
         const contentApi = window.electronAPI?.content
         if (contentApi) {
-          contentApi.listDir(activeContentDir).then((entries) => {
-            const newFile = entries.find(
-              (e) => !e.isDirectory && e.name !== 'metadata.json',
-            )
-            if (newFile && (!selectedItem || selectedItem.path !== newFile.path)) {
-              selectFile(newFile.path, newFile.relativePath, newFile.contentType)
-            }
-          }).catch(() => {})
+          contentApi
+            .listDir(activeContentDir)
+            .then(entries => {
+              const newFile = entries.find(
+                e => !e.isDirectory && e.name !== 'metadata.json'
+              )
+              if (
+                newFile &&
+                (!selectedItem || selectedItem.path !== newFile.path)
+              ) {
+                selectFile(
+                  newFile.path,
+                  newFile.relativePath,
+                  newFile.contentType
+                )
+              }
+            })
+            .catch(() => {})
         }
       }
     })
@@ -297,6 +318,6 @@ export function useContent(activeContentDir?: string) {
     refreshCount: refreshCountRef.current,
     selectFile,
     selectVersion,
-    openProject,
+    openProject
   }
 }

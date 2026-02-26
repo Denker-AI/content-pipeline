@@ -5,7 +5,7 @@ import type {
   ContentItem,
   ContentType,
   ContentVersion,
-  DirEntry,
+  DirEntry
 } from '@/shared/types'
 
 /**
@@ -45,9 +45,7 @@ function extractDate(relativePath: string): string | null {
 function extractTitle(relativePath: string): string {
   const basename = path.basename(relativePath, path.extname(relativePath))
   // Turn slugs into title case: "my-post-title" → "My Post Title"
-  return basename
-    .replace(/[-_]/g, ' ')
-    .replace(/\b\w/g, (c) => c.toUpperCase())
+  return basename.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
 }
 
 /**
@@ -58,7 +56,9 @@ async function walkDir(dir: string): Promise<string[]> {
 
   let entries: import('fs').Dirent[]
   try {
-    entries = await fs.readdir(dir, { withFileTypes: true }) as import('fs').Dirent[]
+    entries = (await fs.readdir(dir, {
+      withFileTypes: true
+    })) as import('fs').Dirent[]
   } catch {
     return files
   }
@@ -94,7 +94,7 @@ export async function listContent(contentDir: string): Promise<ContentItem[]> {
       title: extractTitle(relativePath),
       path: filePath,
       relativePath,
-      date: extractDate(relativePath),
+      date: extractDate(relativePath)
     })
   }
 
@@ -115,12 +115,12 @@ export async function listContent(contentDir: string): Promise<ContentItem[]> {
  */
 export async function listDir(
   dirPath: string,
-  contentDir: string,
+  contentDir: string
 ): Promise<DirEntry[]> {
   let entries: import('fs').Dirent[]
   try {
     entries = (await fs.readdir(dirPath, {
-      withFileTypes: true,
+      withFileTypes: true
     })) as import('fs').Dirent[]
   } catch {
     return []
@@ -141,8 +141,10 @@ export async function listDir(
       path: fullPath,
       relativePath,
       isDirectory: entry.isDirectory(),
-      contentType: entry.isDirectory() ? 'unknown' : detectContentType(relativePath),
-      date: extractDate(relativePath),
+      contentType: entry.isDirectory()
+        ? 'unknown'
+        : detectContentType(relativePath),
+      date: extractDate(relativePath)
     }
 
     if (entry.isDirectory()) {
@@ -169,7 +171,7 @@ export async function listDir(
  */
 export async function listVersions(
   filePath: string,
-  contentDir: string,
+  contentDir: string
 ): Promise<ContentVersion[]> {
   const relativePath = path.relative(contentDir, filePath)
   const contentType = detectContentType(relativePath)
@@ -208,7 +210,7 @@ export async function listVersions(
       versions.push({
         label,
         path: path.join(draftsDir, draft),
-        isFinal: false,
+        isFinal: false
       })
     }
   } catch {
@@ -222,7 +224,7 @@ export async function listVersions(
     versions.push({
       label: 'final',
       path: finalPath,
-      isFinal: true,
+      isFinal: true
     })
   } catch {
     // No final version

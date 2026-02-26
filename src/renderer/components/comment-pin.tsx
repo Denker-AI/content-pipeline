@@ -9,7 +9,7 @@ interface CommentPinProps {
 export function CommentPin({ number, x, y, active, onClick }: CommentPinProps) {
   return (
     <button
-      onClick={(e) => {
+      onClick={e => {
         e.stopPropagation()
         onClick?.()
       }}

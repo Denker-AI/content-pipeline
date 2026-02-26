@@ -12,7 +12,8 @@ let mainWindow: BrowserWindow | null = null
 export async function createWindow(): Promise<BrowserWindow> {
   const settings = await loadUserSettings()
   const theme = settings.theme || 'dark'
-  const isDark = theme === 'dark' || (theme === 'auto' && nativeTheme.shouldUseDarkColors)
+  const isDark =
+    theme === 'dark' || (theme === 'auto' && nativeTheme.shouldUseDarkColors)
 
   mainWindow = new BrowserWindow({
     width: 1200,
@@ -25,8 +26,8 @@ export async function createWindow(): Promise<BrowserWindow> {
       nodeIntegration: false,
       contextIsolation: true,
       sandbox: false,
-      preload: path.join(__dirname, 'preload.cjs'),
-    },
+      preload: path.join(__dirname, 'preload.cjs')
+    }
   })
 
   if (process.env.VITE_DEV_SERVER_URL) {
