@@ -6,7 +6,6 @@ import { OnboardingWizard } from './components/onboarding-wizard'
 import { PipelineSidebar } from './components/pipeline-sidebar'
 import { PreviewPane } from './components/preview-pane'
 import { SettingsPanel } from './components/settings-panel'
-import { StatusBar } from './components/status-bar'
 import type { Tab } from './components/tab-bar'
 import { TabBar } from './components/tab-bar'
 import { TerminalPane } from './components/terminal-pane'
@@ -251,6 +250,8 @@ export function App() {
               onItemCreated={handleItemCreated}
               onBranchSelect={handleBranchSelect}
               onOpenProject={openProject}
+              onOpenSettings={openSettings}
+              onOpenWizard={() => setShowWizard(true)}
               hasProject={!!contentDir}
             />
           }
@@ -328,7 +329,6 @@ export function App() {
           }
         />
       </div>
-      <StatusBar />
       <SettingsPanel isOpen={settingsOpen} onClose={closeSettings} />
     </div>
   )
