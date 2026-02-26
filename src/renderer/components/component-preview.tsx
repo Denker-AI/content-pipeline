@@ -11,6 +11,7 @@ interface ComponentPreviewProps {
   activeContentDir?: string
   activeContentType?: ContentType
   activePostText?: string
+  activeTabId?: string | null
 }
 
 export function ComponentPreview({
@@ -22,6 +23,7 @@ export function ComponentPreview({
   activeContentDir,
   activeContentType,
   activePostText,
+  activeTabId,
 }: ComponentPreviewProps) {
   const [attachState, setAttachState] = useState<'idle' | 'attaching' | 'done'>('idle')
 
@@ -30,7 +32,9 @@ export function ComponentPreview({
       ? `Context: This component will be used as a LinkedIn carousel visual for a post with this text:\n\n${activePostText}\n\n`
       : ''
     const prompt = `${contextPrefix}Create a self-contained HTML preview for ${componentName} at ${componentPath} with realistic mock data. Use only vanilla HTML, CSS, and JS (no external dependencies). Output the complete HTML between these exact marker lines on their own lines: ===HTML_PREVIEW_START=== and ===HTML_PREVIEW_END===`
-    window.electronAPI?.terminal.sendInput(prompt + '\n')
+    if (activeTabId) {
+      window.electronAPI?.terminal.sendInput(activeTabId, prompt + '\n')
+    }
   }
 
   const handleAttachToPost = useCallback(async () => {

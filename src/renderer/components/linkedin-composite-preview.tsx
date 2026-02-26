@@ -6,6 +6,7 @@ interface LinkedInCompositePreviewProps {
   contentDir: string
   renderMode: RenderMode
   textContent?: string
+  activeTabId?: string | null
 }
 
 interface ImageSlide {
@@ -17,6 +18,7 @@ export function LinkedInCompositePreview({
   contentDir,
   renderMode,
   textContent,
+  activeTabId,
 }: LinkedInCompositePreviewProps) {
   const [postText, setPostText] = useState('')
   const [images, setImages] = useState<ImageSlide[]>([])
@@ -117,15 +119,17 @@ export function LinkedInCompositePreview({
   }, [images.length])
 
   const handleGenerateVisual = useCallback(() => {
+    if (!activeTabId) return
     const prompt = `I have a LinkedIn post with this text:\n\n${postText}\n\nDesign a visually compelling 1080x1350 carousel slide (HTML/CSS) that complements this post. Use only vanilla HTML, CSS, and JS. Output the complete HTML between ===HTML_PREVIEW_START=== and ===HTML_PREVIEW_END===\n`
-    window.electronAPI?.terminal.sendInput(prompt)
-  }, [postText])
+    window.electronAPI?.terminal.sendInput(activeTabId, prompt)
+  }, [postText, activeTabId])
 
   const handleGenerateText = useCallback(() => {
+    if (!activeTabId) return
     const imageCount = images.length
     const prompt = `I have a LinkedIn carousel with ${imageCount} slide(s).\n\nWrite a compelling LinkedIn post (post-text.md) in founder voice, no emojis, max 3000 chars. Save it to ${contentDir}/post-text.md\n`
-    window.electronAPI?.terminal.sendInput(prompt)
-  }, [images.length, contentDir])
+    window.electronAPI?.terminal.sendInput(activeTabId, prompt)
+  }, [images.length, contentDir, activeTabId])
 
   if (loading) {
     return (

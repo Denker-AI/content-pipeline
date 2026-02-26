@@ -24,7 +24,7 @@ interface PipelineSectionProps {
   isExpanded: boolean
   onToggle: () => void
   onItemSelect: (item: PipelineItem) => void
-  onCreateNew: (type: ContentType) => void
+  onCreateNew: (type: ContentType) => void | Promise<void>
   activeItemId: string | null
   onStageChange: (item: PipelineItem, stage: ContentStage) => void
 }

@@ -61,10 +61,10 @@ export function useComments() {
   )
 
   const sendToTerminal = useCallback(
-    (filePath: string) => {
+    (filePath: string, tabId?: string | null) => {
       const prompt = buildPrompt(filePath)
-      if (!prompt) return
-      window.electronAPI?.terminal.sendInput(prompt + '\n')
+      if (!prompt || !tabId) return
+      window.electronAPI?.terminal.sendInput(tabId, prompt + '\n')
     },
     [buildPrompt],
   )

@@ -8,12 +8,14 @@ const SECTION_TYPES: ContentType[] = ['linkedin', 'blog', 'newsletter']
 
 interface PipelineSidebarProps {
   onItemSelect: (item: PipelineItem) => void
+  onItemCreated: (item: PipelineItem) => void
   onOpenProject: () => void
   hasProject: boolean
 }
 
 export function PipelineSidebar({
   onItemSelect,
+  onItemCreated,
   onOpenProject,
   hasProject,
 }: PipelineSidebarProps) {
@@ -35,6 +37,13 @@ export function PipelineSidebar({
   const handleSelect = (item: PipelineItem) => {
     activateItem(item)
     onItemSelect(item)
+  }
+
+  const handleCreate = async (type: ContentType) => {
+    const item = await createContent(type)
+    if (item) {
+      onItemCreated(item)
+    }
   }
 
   if (!hasProject) {
@@ -104,7 +113,7 @@ export function PipelineSidebar({
             isExpanded={expandedSections.has(type)}
             onToggle={() => toggleSection(type)}
             onItemSelect={handleSelect}
-            onCreateNew={createContent}
+            onCreateNew={handleCreate}
             activeItemId={activeItemId}
             onStageChange={updateStage}
           />

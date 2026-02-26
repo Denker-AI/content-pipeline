@@ -4,24 +4,36 @@ import { useTerminal } from '../hooks/use-terminal'
 
 import 'xterm/css/xterm.css'
 
-export function TerminalPane() {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const { fit } = useTerminal(containerRef)
+interface TerminalPaneProps {
+  tabId: string | null
+}
 
+export function TerminalPane({ tabId }: TerminalPaneProps) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const { fit } = useTerminal(containerRef, tabId)
+
+  // Debounced resize observer to prevent scroll jumping during streaming
   useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout>
     const observer = new ResizeObserver(() => {
-      try {
-        fit()
-      } catch {
-        // ignore transient fit errors during layout changes
-      }
+      clearTimeout(timeoutId)
+      timeoutId = setTimeout(() => {
+        try {
+          fit()
+        } catch {
+          // ignore transient fit errors during layout changes
+        }
+      }, 50)
     })
 
     if (containerRef.current) {
       observer.observe(containerRef.current)
     }
 
-    return () => observer.disconnect()
+    return () => {
+      clearTimeout(timeoutId)
+      observer.disconnect()
+    }
   }, [fit])
 
   return (
