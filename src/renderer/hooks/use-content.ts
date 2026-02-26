@@ -13,6 +13,48 @@ interface SelectedFile {
   contentType: ContentType
 }
 
+/**
+ * Rewrite relative image src attributes in HTML to data URLs.
+ * This fixes broken images when rendering HTML in iframes via doc.write()
+ * (which has no base URL for resolving relative paths).
+ */
+async function inlineImages(html: string, htmlFilePath: string): Promise<string> {
+  const api = window.electronAPI?.content
+  if (!api) return html
+
+  // Extract directory of the HTML file to resolve relative paths
+  const dir = htmlFilePath.replace(/\/[^/]+$/, '')
+
+  // Find all img src attributes with relative paths (not http/https/data)
+  const imgRegex = /<img\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/gi
+  const matches = [...html.matchAll(imgRegex)]
+
+  let result = html
+  for (const match of matches) {
+    const src = match[1]
+    // Skip absolute URLs and data URLs
+    if (/^(https?:|data:|\/\/)/.test(src)) continue
+
+    // Resolve relative path from HTML file's directory
+    const parts = [...dir.split('/'), ...src.split('/')]
+    const resolved: string[] = []
+    for (const part of parts) {
+      if (part === '..') resolved.pop()
+      else if (part !== '.') resolved.push(part)
+    }
+    const absolutePath = resolved.join('/')
+
+    try {
+      const dataUrl = await api.readAsDataUrl(absolutePath)
+      result = result.replace(src, dataUrl)
+    } catch {
+      // Image not found — leave as-is
+    }
+  }
+
+  return result
+}
+
 export function detectRenderMode(relativePath: string): RenderMode {
   const name = relativePath.split('/').pop() ?? ''
 
@@ -96,10 +138,15 @@ export function useContent(activeContentDir?: string) {
       setLoading(true)
 
       try {
-        const [content, vers] = await Promise.all([
+        const mode = detectRenderMode(relativePath)
+        const [rawContent, vers] = await Promise.all([
           api.read(filePath),
           api.listVersions(filePath),
         ])
+        // Inline relative images for HTML previews (fixes broken images in iframe)
+        const content = (mode === 'newsletter' || mode === 'linkedin-preview' || mode === 'asset')
+          ? await inlineImages(rawContent, filePath)
+          : rawContent
         setFileContent(content)
         setVersions(vers)
       } catch (err) {
@@ -148,8 +195,15 @@ export function useContent(activeContentDir?: string) {
         refreshCountRef.current += 1
         const contentApi = window.electronAPI?.content
         if (contentApi) {
+          const mode = detectRenderMode(selectedItem.relativePath)
           contentApi
             .read(selectedItem.path)
+            .then(async (html) => {
+              if (mode === 'newsletter' || mode === 'linkedin-preview' || mode === 'asset') {
+                return inlineImages(html, selectedItem.path)
+              }
+              return html
+            })
             .then(setFileContent)
             .catch(() => {})
         }
