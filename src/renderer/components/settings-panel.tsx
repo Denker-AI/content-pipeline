@@ -15,6 +15,7 @@ const DEFAULT_USER: UserSettings = {
   blogWebhookUrl: '',
   braveApiKey: '',
   theme: 'dark',
+  repos: [],
 }
 
 export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {

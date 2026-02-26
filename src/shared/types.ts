@@ -81,6 +81,7 @@ export interface PipelineItem {
 // Pipeline API exposed via preload
 export interface PipelineAPI {
   listPipelineItems: () => Promise<PipelineItem[]>
+  listPipelineItemsForRepo: (repoPath: string) => Promise<PipelineItem[]>
   createContent: (type: ContentType) => Promise<PipelineItem>
   updateStage: (metadataPath: string, stage: ContentStage) => Promise<void>
   updateMetadata: (metadataPath: string, metadata: Partial<ContentMetadata>) => Promise<void>
@@ -142,6 +143,8 @@ export interface ContentAPI {
   openProject: () => Promise<string | null>
   getProjectRoot: () => Promise<string>
   onProjectChanged: (callback: (root: string) => void) => () => void
+  addRepo: () => Promise<string | null>
+  removeRepo: (path: string) => Promise<void>
 }
 
 // Result from component render attempt
@@ -167,6 +170,15 @@ export interface UserSettings {
   braveApiKey: string
   theme: 'light' | 'dark'
   projectRoot?: string
+  repos: string[]
+}
+
+// Multi-repo sidebar data
+export interface RepoSidebarData {
+  path: string
+  name: string
+  items: PipelineItem[]
+  worktrees: WorktreeInfo[]
 }
 
 // Project-level settings (stored in content-pipeline.json in project root)
@@ -332,6 +344,7 @@ export interface GitCommitFile {
 // Git API exposed via preload
 export interface GitAPI {
   listWorktrees: () => Promise<WorktreeInfo[]>
+  listWorktreesForRepo: (repoPath: string) => Promise<WorktreeInfo[]>
   removeWorktree: (worktreePath: string) => Promise<void>
   status: (cwd: string) => Promise<GitFileEntry[]>
   recentFiles: (cwd: string, limit: number) => Promise<GitCommitFile[]>

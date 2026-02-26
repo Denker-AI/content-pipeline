@@ -63,6 +63,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.invoke('content:listVersions', filePath),
     openProject: () => ipcRenderer.invoke('content:openProject'),
     getProjectRoot: () => ipcRenderer.invoke('content:getProjectRoot'),
+    addRepo: () => ipcRenderer.invoke('content:addRepo'),
+    removeRepo: (path) => ipcRenderer.invoke('content:removeRepo', path),
     onProjectChanged: (callback) => {
       const listener = (_event, data) => callback(data)
       ipcRenderer.on('content:projectChanged', listener)
@@ -117,12 +119,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   git: {
     listWorktrees: () => ipcRenderer.invoke('git:listWorktrees'),
+    listWorktreesForRepo: (repoPath) => ipcRenderer.invoke('git:listWorktreesForRepo', repoPath),
     removeWorktree: (worktreePath) => ipcRenderer.invoke('git:removeWorktree', worktreePath),
     status: (cwd) => ipcRenderer.invoke('git:status', cwd),
     recentFiles: (cwd, limit) => ipcRenderer.invoke('git:recentFiles', cwd, limit),
   },
   pipeline: {
     listPipelineItems: () => ipcRenderer.invoke('pipeline:list'),
+    listPipelineItemsForRepo: (repoPath) => ipcRenderer.invoke('pipeline:listForRepo', repoPath),
     createContent: (type) => ipcRenderer.invoke('pipeline:create', type),
     updateStage: (metadataPath, stage) =>
       ipcRenderer.invoke('pipeline:updateStage', metadataPath, stage),

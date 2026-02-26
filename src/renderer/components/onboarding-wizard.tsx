@@ -2,13 +2,22 @@ import { useState } from 'react'
 
 import type { BrandConfig } from '@/shared/types'
 
-import { CheckIcon, CodeIcon, FolderOpenIcon, NewsletterIcon, SparkleIcon } from './icons'
+import {
+  AnnotateIcon,
+  CameraIcon,
+  CheckIcon,
+  CodeIcon,
+  FolderOpenIcon,
+  NewsletterIcon,
+  PublishIcon,
+  SparkleIcon,
+} from './icons'
 
 interface OnboardingWizardProps {
   onComplete: () => void
 }
 
-const STEPS = 5
+const STEPS = 6
 
 const EMPTY_BRAND: BrandConfig = {
   company: '',
@@ -25,6 +34,8 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
   const [projectPath, setProjectPath] = useState<string | null>(null)
   const [brand, setBrand] = useState<BrandConfig>(EMPTY_BRAND)
   const [installing, setInstalling] = useState(false)
+  const [linkedinToken, setLinkedinToken] = useState('')
+  const [resendApiKey, setResendApiKey] = useState('')
 
   const next = () => setStep((s) => Math.min(s + 1, STEPS - 1))
   const prev = () => setStep((s) => Math.max(s - 1, 0))
@@ -46,6 +57,24 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
     } finally {
       setInstalling(false)
     }
+  }
+
+  const handleSaveApiKeys = async () => {
+    if (linkedinToken || resendApiKey) {
+      try {
+        const settings = await window.electronAPI?.settings.getUser()
+        if (settings) {
+          await window.electronAPI?.settings.saveUser({
+            ...settings,
+            linkedinToken: linkedinToken || settings.linkedinToken,
+            resendApiKey: resendApiKey || settings.resendApiKey,
+          })
+        }
+      } catch (err) {
+        console.error('Failed to save API keys:', err)
+      }
+    }
+    next()
   }
 
   const updateBrand = (field: keyof BrandConfig, value: string) => {
@@ -93,7 +122,8 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
               Create LinkedIn posts, blogs, and newsletters with AI — all from one place.
             </p>
 
-            <div className="mb-8 grid grid-cols-3 gap-4">
+            <div className="mb-8 grid grid-cols-3 gap-3">
+              {/* Terminal */}
               <div className="rounded-xl border border-zinc-800 bg-zinc-800/50 p-4">
                 <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10">
                   <CodeIcon className="h-5 w-5 text-emerald-400" />
@@ -101,6 +131,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                 <p className="text-xs font-medium text-zinc-300">Terminal</p>
                 <p className="mt-1 text-[11px] text-zinc-500">Write with Claude Code in a real terminal</p>
               </div>
+              {/* Preview */}
               <div className="rounded-xl border border-zinc-800 bg-zinc-800/50 p-4">
                 <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-purple-500/10">
                   <NewsletterIcon className="h-5 w-5 text-purple-400" />
@@ -108,12 +139,37 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                 <p className="text-xs font-medium text-zinc-300">Preview</p>
                 <p className="mt-1 text-[11px] text-zinc-500">Live preview of posts, blogs, newsletters</p>
               </div>
+              {/* Pipeline */}
               <div className="rounded-xl border border-zinc-800 bg-zinc-800/50 p-4">
                 <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500/10">
                   <FolderOpenIcon className="h-5 w-5 text-amber-400" />
                 </div>
                 <p className="text-xs font-medium text-zinc-300">Pipeline</p>
                 <p className="mt-1 text-[11px] text-zinc-500">Organize from idea to published</p>
+              </div>
+              {/* Screenshot */}
+              <div className="rounded-xl border border-zinc-800 bg-zinc-800/50 p-4">
+                <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-cyan-500/10">
+                  <CameraIcon className="h-5 w-5 text-cyan-400" />
+                </div>
+                <p className="text-xs font-medium text-zinc-300">Screenshot</p>
+                <p className="mt-1 text-[11px] text-zinc-500">Capture screenshots and video of your content</p>
+              </div>
+              {/* Annotate */}
+              <div className="rounded-xl border border-zinc-800 bg-zinc-800/50 p-4">
+                <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-rose-500/10">
+                  <AnnotateIcon className="h-5 w-5 text-rose-400" />
+                </div>
+                <p className="text-xs font-medium text-zinc-300">Annotate</p>
+                <p className="mt-1 text-[11px] text-zinc-500">Click to annotate and send feedback to Claude</p>
+              </div>
+              {/* Publish */}
+              <div className="rounded-xl border border-zinc-800 bg-zinc-800/50 p-4">
+                <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500/10">
+                  <PublishIcon className="h-5 w-5 text-blue-400" />
+                </div>
+                <p className="text-xs font-medium text-zinc-300">Publish</p>
+                <p className="mt-1 text-[11px] text-zinc-500">Publish to LinkedIn, send newsletters, deploy blogs</p>
               </div>
             </div>
 
@@ -262,8 +318,58 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
           </div>
         )}
 
-        {/* Step 3: Install Skills */}
+        {/* Step 3: API Keys */}
         {step === 3 && (
+          <div>
+            <h2 className="mb-2 text-lg font-semibold text-white">Connect Services</h2>
+            <p className="mb-6 text-sm text-zinc-400">
+              Optional — add API keys to enable publishing. You can add these later in Settings.
+            </p>
+
+            <div className="mb-6 space-y-4">
+              <div>
+                <label className="mb-1 block text-xs text-zinc-400">LinkedIn Token</label>
+                <input
+                  type="password"
+                  className={inputClass}
+                  value={linkedinToken}
+                  onChange={(e) => setLinkedinToken(e.target.value)}
+                  placeholder="Your LinkedIn access token"
+                />
+                <p className="mt-1 text-[11px] text-zinc-500">Required to publish LinkedIn posts</p>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs text-zinc-400">Resend API Key</label>
+                <input
+                  type="password"
+                  className={inputClass}
+                  value={resendApiKey}
+                  onChange={(e) => setResendApiKey(e.target.value)}
+                  placeholder="re_..."
+                />
+                <p className="mt-1 text-[11px] text-zinc-500">Required to send newsletters</p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <button
+                onClick={next}
+                className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+              >
+                Skip for now
+              </button>
+              <button
+                onClick={handleSaveApiKeys}
+                className="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-500 transition-colors"
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 4: Install Skills */}
+        {step === 4 && (
           <div>
             <h2 className="mb-2 text-lg font-semibold text-white">Install Skills</h2>
             <p className="mb-6 text-sm text-zinc-400">
@@ -314,8 +420,8 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
           </div>
         )}
 
-        {/* Step 4: Done */}
-        {step === 4 && (
+        {/* Step 5: Done */}
+        {step === 5 && (
           <div className="text-center">
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-green-500/10">
               <CheckIcon className="h-7 w-7 text-green-400" />

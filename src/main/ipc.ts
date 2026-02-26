@@ -253,9 +253,52 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
 
     // Persist so next launch auto-loads this project
     const settings = await loadUserSettings()
-    await saveUserSettings({ ...settings, projectRoot })
+    // Also add to repos list if not already present
+    const repos = settings.repos ?? []
+    if (!repos.includes(projectRoot)) {
+      repos.push(projectRoot)
+    }
+    await saveUserSettings({ ...settings, projectRoot, repos })
 
     return projectRoot
+  })
+
+  ipcMain.handle('content:addRepo', async () => {
+    const result = await dialog.showOpenDialog(mainWindow, {
+      properties: ['openDirectory'],
+      title: 'Add Repository',
+    })
+
+    if (result.canceled || result.filePaths.length === 0) {
+      return null
+    }
+
+    const repoPath = result.filePaths[0]
+    const settings = await loadUserSettings()
+    const repos = settings.repos ?? []
+    if (!repos.includes(repoPath)) {
+      repos.push(repoPath)
+    }
+    await saveUserSettings({ ...settings, repos })
+
+    // Switch active project to the new repo
+    projectRoot = repoPath
+    stopWatcher()
+    startWatcher(getContentDir())
+    await saveUserSettings({ ...settings, projectRoot: repoPath, repos })
+
+    if (!mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('content:projectChanged', repoPath)
+      mainWindow.webContents.send('pipeline:contentChanged')
+    }
+
+    return repoPath
+  })
+
+  ipcMain.handle('content:removeRepo', async (_event, repoPath: string) => {
+    const settings = await loadUserSettings()
+    const repos = (settings.repos ?? []).filter((r) => r !== repoPath)
+    await saveUserSettings({ ...settings, repos })
   })
 
   // Settings IPC handlers
@@ -279,6 +322,16 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
   // Pipeline IPC handlers
   ipcMain.handle('pipeline:list', async () => {
     return listPipelineItems(getContentDir())
+  })
+
+  ipcMain.handle('pipeline:listForRepo', async (_event, repoPath: string) => {
+    const contentDir = path.join(repoPath, 'content')
+    try {
+      await fs.access(contentDir)
+      return listPipelineItems(contentDir)
+    } catch {
+      return []
+    }
   })
 
   ipcMain.handle(
@@ -429,6 +482,14 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     return listWorktrees(projectRoot)
   })
 
+  ipcMain.handle('git:listWorktreesForRepo', async (_event, repoPath: string) => {
+    try {
+      return await listWorktrees(repoPath)
+    } catch {
+      return []
+    }
+  })
+
   ipcMain.handle('git:removeWorktree', async (_event, worktreePath: string) => {
     await removeWorktree(projectRoot, worktreePath)
     // Also delete the branch (best-effort)
@@ -568,11 +629,14 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     ipcMain.removeHandler('content:listVersions')
     ipcMain.removeHandler('content:getProjectRoot')
     ipcMain.removeHandler('content:openProject')
+    ipcMain.removeHandler('content:addRepo')
+    ipcMain.removeHandler('content:removeRepo')
     ipcMain.removeHandler('settings:getUser')
     ipcMain.removeHandler('settings:saveUser')
     ipcMain.removeHandler('settings:getProject')
     ipcMain.removeHandler('settings:saveProject')
     ipcMain.removeHandler('pipeline:list')
+    ipcMain.removeHandler('pipeline:listForRepo')
     ipcMain.removeHandler('pipeline:create')
     ipcMain.removeHandler('pipeline:updateStage')
     ipcMain.removeHandler('pipeline:updateMetadata')
@@ -594,6 +658,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     ipcMain.removeHandler('component:scan')
     ipcMain.removeHandler('component:render')
     ipcMain.removeHandler('git:listWorktrees')
+    ipcMain.removeHandler('git:listWorktreesForRepo')
     ipcMain.removeHandler('git:removeWorktree')
     ipcMain.removeHandler('git:status')
     ipcMain.removeHandler('git:recentFiles')

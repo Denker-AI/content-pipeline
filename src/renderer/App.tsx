@@ -210,6 +210,16 @@ export function App() {
     [openTab],
   )
 
+  // Start a Claude session in the active terminal tab
+  const handleStartClaude = useCallback(
+    (mode: 'normal' | 'yolo') => {
+      if (!activeTabId) return
+      const cmd = mode === 'yolo' ? 'claude --dangerously-skip-permissions\n' : 'claude\n'
+      window.electronAPI?.terminal.sendInput(activeTabId, cmd)
+    },
+    [activeTabId],
+  )
+
   // Check if onboarding wizard is needed
   useEffect(() => {
     const check = async () => {
@@ -252,6 +262,7 @@ export function App() {
               onOpenProject={openProject}
               onOpenSettings={openSettings}
               onOpenWizard={() => setShowWizard(true)}
+              onStartClaude={handleStartClaude}
               hasProject={!!contentDir}
             />
           }

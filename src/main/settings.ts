@@ -16,6 +16,7 @@ const DEFAULT_USER_SETTINGS: UserSettings = {
   blogWebhookUrl: '',
   braveApiKey: '',
   theme: 'dark',
+  repos: [],
 }
 
 const DEFAULT_PROJECT_SETTINGS: ProjectSettings = {
