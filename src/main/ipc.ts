@@ -349,18 +349,31 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
       const worktree = await createWorktree(projectRoot, branch, worktreePath, {
         pullBeforeCreate: settings.pullBeforeWorktree ?? true
       })
-      await writeMetadata(item.metadataPath, {
+
+      // Copy initial content into the worktree so preview can find it.
+      // The worktree is a fresh checkout of HEAD which won't have the
+      // uncommitted files we just created in the main working tree.
+      const srcDir = item.contentDir
+      const destDir = path.join(worktree.path, 'content', item.id)
+      await fs.mkdir(destDir, { recursive: true })
+      const entries = await fs.readdir(srcDir)
+      for (const entry of entries) {
+        await fs.copyFile(path.join(srcDir, entry), path.join(destDir, entry))
+      }
+
+      // Update metadata in BOTH locations with worktree info
+      const worktreeMetadata = {
         worktreeBranch: worktree.branch,
         worktreePath: worktree.path
-      })
+      }
+      await writeMetadata(item.metadataPath, worktreeMetadata)
+      await writeMetadata(path.join(destDir, 'metadata.json'), worktreeMetadata)
+
       item.worktreeBranch = worktree.branch
       item.worktreePath = worktree.path
     }
 
-    // Notify renderer of new content
-    if (!mainWindow.isDestroyed()) {
-      safeSend('pipeline:contentChanged')
-    }
+    safeSend('pipeline:contentChanged')
 
     return item
   })
