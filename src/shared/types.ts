@@ -166,6 +166,7 @@ export interface UserSettings {
   authCookies: Record<string, string>
   linkedinToken: string
   resendApiKey: string
+  resendFromEmail: string
   blogWebhookUrl: string
   braveApiKey: string
   theme: 'light' | 'dark' | 'auto'
@@ -266,8 +267,19 @@ export interface ResendSendRequest {
   previewText: string
 }
 
+export interface ResendTestRequest {
+  contentDir: string
+  to: string
+  subject: string
+  previewText: string
+}
+
 export interface ResendSendResult {
   broadcastId: string
+}
+
+export interface ResendTestResult {
+  emailId: string
 }
 
 // Blog webhook publish types
@@ -287,6 +299,7 @@ export interface PublishAPI {
   linkedin: (contentDir: string) => Promise<LinkedInPublishResult>
   resendListAudiences: () => Promise<ResendAudience[]>
   resendSend: (request: ResendSendRequest) => Promise<ResendSendResult>
+  resendSendTest: (request: ResendTestRequest) => Promise<ResendTestResult>
   blog: (contentDir: string) => Promise<BlogPublishResult>
 }
 

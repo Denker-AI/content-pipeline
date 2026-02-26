@@ -1,7 +1,7 @@
 import fs from 'fs/promises'
 import path from 'path'
 
-import type { ResendAudience, ResendSendResult } from '@/shared/types'
+import type { ResendAudience, ResendSendResult, ResendTestResult } from '@/shared/types'
 
 const API_BASE = 'https://api.resend.com'
 
@@ -45,6 +45,7 @@ async function findEmailHtml(contentDir: string): Promise<string> {
 
 async function createBroadcast(
   apiKey: string,
+  fromEmail: string,
   audienceId: string,
   subject: string,
   previewText: string,
@@ -55,7 +56,7 @@ async function createBroadcast(
     headers: authHeaders(apiKey),
     body: JSON.stringify({
       audience_id: audienceId,
-      from: 'onboarding@resend.dev',
+      from: fromEmail,
       subject,
       preview_text: previewText,
       html,
@@ -83,15 +84,62 @@ async function sendBroadcast(
   }
 }
 
+export async function sendTestEmail(
+  contentDir: string,
+  apiKey: string,
+  fromEmail: string,
+  to: string,
+  subject: string,
+  previewText: string,
+): Promise<ResendTestResult> {
+  if (!apiKey) {
+    throw new Error('Resend API key not configured. Set it in Settings.')
+  }
+  if (!fromEmail) {
+    throw new Error('Resend "From" email not configured. Set it in Settings.')
+  }
+
+  const html = await findEmailHtml(contentDir)
+  if (!html) {
+    throw new Error('email.html is empty')
+  }
+
+  // Prepend preview text as hidden preheader if provided
+  const fullHtml = previewText
+    ? `<div style="display:none;max-height:0;overflow:hidden">${previewText}</div>${html}`
+    : html
+
+  const res = await fetch(`${API_BASE}/emails`, {
+    method: 'POST',
+    headers: authHeaders(apiKey),
+    body: JSON.stringify({
+      from: fromEmail,
+      to: [to],
+      subject: `[TEST] ${subject}`,
+      html: fullHtml,
+    }),
+  })
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`Failed to send test email (${res.status}): ${text}`)
+  }
+  const data = (await res.json()) as { id: string }
+  return { emailId: data.id }
+}
+
 export async function sendNewsletter(
   contentDir: string,
   apiKey: string,
+  fromEmail: string,
   audienceId: string,
   subject: string,
   previewText: string,
 ): Promise<ResendSendResult> {
   if (!apiKey) {
     throw new Error('Resend API key not configured. Set it in Settings.')
+  }
+  if (!fromEmail) {
+    throw new Error('Resend "From" email not configured. Set it in Settings.')
   }
 
   const html = await findEmailHtml(contentDir)
@@ -102,6 +150,7 @@ export async function sendNewsletter(
   // Create the broadcast
   const broadcastId = await createBroadcast(
     apiKey,
+    fromEmail,
     audienceId,
     subject,
     previewText,

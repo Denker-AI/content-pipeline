@@ -18,6 +18,7 @@ import type {
   PipelineItem,
   ProjectSettings,
   ResendSendRequest,
+  ResendTestRequest,
   UserSettings,
 } from '@/shared/types'
 
@@ -44,7 +45,7 @@ import {
   resizePtyForTab,
   writePtyForTab,
 } from './pty'
-import { listAudiences, sendNewsletter } from './resend'
+import { listAudiences, sendNewsletter, sendTestEmail } from './resend'
 import { analyzeSEO } from './seo'
 import {
   loadProjectSettings,
@@ -448,7 +449,23 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
       return sendNewsletter(
         request.contentDir,
         settings.resendApiKey,
+        settings.resendFromEmail,
         request.audienceId,
+        request.subject,
+        request.previewText,
+      )
+    },
+  )
+
+  ipcMain.handle(
+    'publish:resend:sendTest',
+    async (_event, request: ResendTestRequest) => {
+      const settings = await loadUserSettings()
+      return sendTestEmail(
+        request.contentDir,
+        settings.resendApiKey,
+        settings.resendFromEmail,
+        request.to,
         request.subject,
         request.previewText,
       )
@@ -642,6 +659,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     ipcMain.removeHandler('publish:linkedin')
     ipcMain.removeHandler('publish:resend:audiences')
     ipcMain.removeHandler('publish:resend:send')
+    ipcMain.removeHandler('publish:resend:sendTest')
     ipcMain.removeHandler('publish:blog')
     ipcMain.removeHandler('seo:analyze')
     ipcMain.removeHandler('project:isConfigured')

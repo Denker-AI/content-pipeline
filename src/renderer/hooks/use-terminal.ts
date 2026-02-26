@@ -50,7 +50,7 @@ const lightTheme = {
 }
 
 function getTheme() {
-  return window.matchMedia('(prefers-color-scheme: dark)').matches
+  return document.documentElement.classList.contains('dark')
     ? darkTheme
     : lightTheme
 }
@@ -77,12 +77,14 @@ export function useTerminal(
 
     let dataCleanup: (() => void) | undefined
 
-    // Listen for OS theme changes and update terminal theme dynamically
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    const handleThemeChange = () => {
+    // Listen for app theme changes (dark class on <html>) and update terminal
+    const observer = new MutationObserver(() => {
       terminal.options.theme = getTheme()
-    }
-    mediaQuery.addEventListener('change', handleThemeChange)
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    })
 
     // Defer open() so the container has proper layout
     const rafId = requestAnimationFrame(() => {
@@ -121,7 +123,7 @@ export function useTerminal(
 
     return () => {
       cancelAnimationFrame(rafId)
-      mediaQuery.removeEventListener('change', handleThemeChange)
+      observer.disconnect()
       dataCleanup?.()
       terminal.dispose()
       terminalRef.current = null

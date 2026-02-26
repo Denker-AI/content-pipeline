@@ -13,6 +13,7 @@ const DEFAULT_USER_SETTINGS: UserSettings = {
   authCookies: {},
   linkedinToken: '',
   resendApiKey: '',
+  resendFromEmail: '',
   blogWebhookUrl: '',
   braveApiKey: '',
   theme: 'dark',

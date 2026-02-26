@@ -11,7 +11,7 @@ export function VersionSelector({
   currentPath,
   onSelect,
 }: VersionSelectorProps) {
-  if (versions.length === 0) return null
+  if (versions.length <= 1) return null
 
   return (
     <div className="flex shrink-0 items-center gap-1 border-b border-zinc-200 dark:border-zinc-700 px-3 py-1.5">
