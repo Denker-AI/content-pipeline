@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 import type { ContentType, PipelineItem, RepoSidebarData, WorktreeInfo } from '@/shared/types'
 
@@ -45,6 +45,7 @@ export function PipelineSidebar({
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedRepos, setExpandedRepos] = useState<Set<string>>(() => new Set())
   const [confirmRemoveRepo, setConfirmRemoveRepo] = useState<string | null>(null)
+  const didInitialExpand = useRef(false)
 
   const { repos, loading: reposLoading, addRepo, removeRepo } = useRepos()
 
@@ -59,8 +60,9 @@ export function PipelineSidebar({
     toggleSection,
   } = usePipeline()
 
-  // Auto-expand repos on first load
-  if (repos.length > 0 && expandedRepos.size === 0) {
+  // Auto-expand repos on first load only
+  if (repos.length > 0 && !didInitialExpand.current) {
+    didInitialExpand.current = true
     const initial = new Set(repos.map((r) => r.path))
     if (initial.size > 0) setExpandedRepos(initial)
   }
@@ -322,7 +324,8 @@ function RepoSection({
     }
   }
 
-  const count = activeTab === 'content' ? repo.items.length : repo.worktrees.length
+  const contentBranches = repo.worktrees.filter((wt) => wt.branch.startsWith('content/'))
+  const count = activeTab === 'content' ? repo.items.length : contentBranches.length
 
   return (
     <div className="border-b border-zinc-200 dark:border-zinc-700">
@@ -382,17 +385,16 @@ function RepoSection({
         </div>
       )}
 
-      {/* Branch items */}
+      {/* Branch items — only content/ branches */}
       {isExpanded && activeTab === 'branches' && (
         <div className={isMultiRepo ? 'pl-2' : ''}>
-          {repo.worktrees.length === 0 ? (
+          {contentBranches.length === 0 ? (
             <div className="px-3 py-3 text-center">
-              <p className="text-xs text-zinc-400 dark:text-zinc-500">No branches</p>
+              <p className="text-xs text-zinc-400 dark:text-zinc-500">No content branches</p>
+              <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-600">Create content to auto-create a branch</p>
             </div>
           ) : (
-            repo.worktrees.map((wt) => {
-              const isMain = !wt.branch.startsWith('content/')
-              return (
+            contentBranches.map((wt) => (
                 <div
                   key={wt.path}
                   className="group flex cursor-pointer items-center gap-2 border-b border-zinc-100 dark:border-zinc-800 px-3 py-2 hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
@@ -409,25 +411,22 @@ function RepoSection({
                       {wt.path.split('/').slice(-2).join('/')}
                     </p>
                   </div>
-                  {!isMain && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleDeleteBranch(wt)
-                      }}
-                      className={`shrink-0 rounded px-1.5 py-0.5 text-xs transition-opacity ${
-                        confirmDeleteBranch === wt.path
-                          ? 'bg-red-500/20 text-red-400'
-                          : 'text-zinc-400 opacity-0 group-hover:opacity-100 hover:bg-zinc-200 dark:hover:bg-zinc-700'
-                      }`}
-                      title={confirmDeleteBranch === wt.path ? 'Click again to confirm' : 'Delete worktree'}
-                    >
-                      {confirmDeleteBranch === wt.path ? 'Confirm?' : <XIcon className="h-3 w-3" />}
-                    </button>
-                  )}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleDeleteBranch(wt)
+                    }}
+                    className={`shrink-0 rounded px-1.5 py-0.5 text-xs transition-opacity ${
+                      confirmDeleteBranch === wt.path
+                        ? 'bg-red-500/20 text-red-400'
+                        : 'text-zinc-400 opacity-0 group-hover:opacity-100 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+                    }`}
+                    title={confirmDeleteBranch === wt.path ? 'Click again to confirm' : 'Delete worktree'}
+                  >
+                    {confirmDeleteBranch === wt.path ? 'Confirm?' : <XIcon className="h-3 w-3" />}
+                  </button>
                 </div>
-              )
-            })
+            ))
           )}
         </div>
       )}
