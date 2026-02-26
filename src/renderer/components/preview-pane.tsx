@@ -238,7 +238,7 @@ export function PreviewPane({
             }`}
             title="Toggle file sidebar"
           >
-            Files
+            Code
           </button>
         )}
       </div>
