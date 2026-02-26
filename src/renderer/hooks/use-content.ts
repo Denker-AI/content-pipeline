@@ -224,14 +224,20 @@ export function useContent(activeContentDir?: string) {
     const cleanup = api.onFileChange((event: FileEvent) => {
       if (!selectedItem) return
 
-      const isSelectedFile = selectedItem.relativePath === event.path
+      // The file watcher emits paths relative to the watched item directory
+      // (e.g. "email.html"), while selectedItem.relativePath is relative to
+      // the content root (e.g. "newsletters/2026-02-26/email.html").
+      // Use endsWith to handle both cases.
+      const isSelectedFile =
+        selectedItem.relativePath === event.path ||
+        selectedItem.relativePath.endsWith(`/${event.path}`)
       const mode = detectRenderMode(selectedItem.relativePath)
-      // HTML previews reference assets (images, etc.) — refresh when any file changes
+      // HTML previews reference assets, CSS, etc. — any file change in the
+      // watched item directory is relevant (watcher is already item-scoped).
       const isHtmlPreview = mode === 'newsletter' || mode === 'linkedin-preview' || mode === 'asset'
-      const isAssetChange = /\.(png|jpg|jpeg|webp|gif|svg|css|js)$/i.test(event.path)
 
-      // Refresh if the selected file changed, or an asset changed while viewing HTML
-      if (isSelectedFile || (isHtmlPreview && isAssetChange)) {
+      // Refresh if the selected file changed, or any file changed while viewing HTML
+      if (isSelectedFile || isHtmlPreview) {
         refreshCountRef.current += 1
         const contentApi = window.electronAPI?.content
         if (contentApi) {
