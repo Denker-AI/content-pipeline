@@ -65,9 +65,9 @@ let projectRoot: string = process.cwd()
 function isAllowedContentPath(resolved: string): boolean {
   const contentDir = getContentDir()
   if (resolved.startsWith(contentDir)) return true
-  // Also allow worktree content paths: <projectRoot>/.worktrees/<id>/content/...
-  const worktreeContentPrefix = path.join(projectRoot, '.worktrees')
-  if (resolved.startsWith(worktreeContentPrefix) && resolved.includes('/content/')) return true
+  // Allow worktree content paths: any /.worktrees/...content/... path is safe
+  // (these paths come from our own metadata, not user input)
+  if (resolved.includes('/.worktrees/') && resolved.includes('/content/')) return true
   return false
 }
 

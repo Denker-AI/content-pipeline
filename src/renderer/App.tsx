@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import type { ContentType, PipelineItem, WorktreeInfo } from '@/shared/types'
 
-import { BoltIcon, ClaudeIcon, GitBranchIcon } from './components/icons'
+import { ClaudeIcon, GitBranchIcon } from './components/icons'
 import { OnboardingWizard } from './components/onboarding-wizard'
 import { PipelineSidebar } from './components/pipeline-sidebar'
 import { PreviewPane } from './components/preview-pane'
@@ -331,16 +331,16 @@ export function App() {
                     <button
                       onClick={() => handleStartClaude('normal')}
                       className="flex h-6 w-6 items-center justify-center rounded text-zinc-400 hover:bg-zinc-200 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors"
-                      title="Start Claude session"
+                      title="Run Claude (normal mode)"
                     >
                       <ClaudeIcon className="h-3.5 w-3.5" />
                     </button>
                     <button
                       onClick={() => handleStartClaude('yolo')}
                       className="flex h-6 w-6 items-center justify-center rounded text-amber-500/70 hover:bg-amber-500/10 hover:text-amber-500 dark:hover:bg-amber-500/10 dark:hover:text-amber-400 transition-colors"
-                      title="Start Claude (skip permissions)"
+                      title="Run Claude (auto-accept mode)"
                     >
-                      <BoltIcon className="h-3.5 w-3.5" />
+                      <ClaudeIcon className="h-3.5 w-3.5" />
                     </button>
                   </div>
                 )}
