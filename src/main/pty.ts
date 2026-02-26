@@ -1,16 +1,9 @@
 import type { IPty } from 'node-pty'
 import pty from 'node-pty'
-import os from 'os'
 
-let ptyProcess: IPty | null = null
+const ptyProcesses = new Map<string, IPty>()
 
-export function createPty(onData: (data: string) => void): IPty {
-  const shell =
-    process.env.SHELL ||
-    (process.platform === 'win32' ? 'powershell.exe' : '/bin/zsh')
-  const home = process.env.HOME || os.homedir()
-
-  // Clean env for the PTY shell
+function makeEnv(): Record<string, string> {
   const env = { ...process.env } as Record<string, string>
   if (!env.PATH) {
     env.PATH = '/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
@@ -18,33 +11,53 @@ export function createPty(onData: (data: string) => void): IPty {
   // Remove Claude Code session markers so `claude` can launch inside the terminal
   delete env.CLAUDECODE
   delete env.CLAUDE_CODE_SESSION
+  return env
+}
 
-  ptyProcess = pty.spawn(shell, [], {
+export function createPtyForTab(
+  tabId: string,
+  cwd: string,
+  onData: (data: string) => void,
+): IPty {
+  // Kill existing PTY for this tab if any
+  destroyPtyForTab(tabId)
+
+  const shell =
+    process.env.SHELL ||
+    (process.platform === 'win32' ? 'powershell.exe' : '/bin/zsh')
+
+  const proc = pty.spawn(shell, [], {
     name: 'xterm-256color',
     cols: 80,
     rows: 24,
-    cwd: home,
-    env
+    cwd,
+    env: makeEnv(),
   })
 
-  ptyProcess.onData(onData)
-
-  return ptyProcess
+  proc.onData(onData)
+  ptyProcesses.set(tabId, proc)
+  return proc
 }
 
-export function writePty(data: string) {
-  ptyProcess?.write(data)
+export function writePtyForTab(tabId: string, data: string) {
+  ptyProcesses.get(tabId)?.write(data)
 }
 
-export function resizePty(cols: number, rows: number) {
-  ptyProcess?.resize(cols, rows)
+export function resizePtyForTab(tabId: string, cols: number, rows: number) {
+  ptyProcesses.get(tabId)?.resize(cols, rows)
 }
 
-export function changePtyDirectory(dir: string) {
-  ptyProcess?.write(`\x03\ncd ${JSON.stringify(dir)}\n`)
+export function destroyPtyForTab(tabId: string) {
+  const proc = ptyProcesses.get(tabId)
+  if (proc) {
+    proc.kill()
+    ptyProcesses.delete(tabId)
+  }
 }
 
-export function destroyPty() {
-  ptyProcess?.kill()
-  ptyProcess = null
+export function destroyAllPtys() {
+  for (const proc of ptyProcesses.values()) {
+    proc.kill()
+  }
+  ptyProcesses.clear()
 }

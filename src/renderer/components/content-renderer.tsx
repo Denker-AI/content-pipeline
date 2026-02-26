@@ -11,6 +11,7 @@ interface ContentRendererProps {
   renderMode: RenderMode
   refreshCount: number
   contentDir?: string
+  activeTabId?: string | null
 }
 
 // Renders HTML in an iframe.
@@ -176,6 +177,7 @@ export function ContentRenderer({
   renderMode,
   refreshCount,
   contentDir,
+  activeTabId,
 }: ContentRendererProps) {
   // For LinkedIn content with a known contentDir, always show composite
   if (contentDir && (renderMode === 'linkedin-text' || renderMode === 'carousel-slide')) {
@@ -184,6 +186,7 @@ export function ContentRenderer({
         contentDir={contentDir}
         renderMode={renderMode}
         textContent={renderMode === 'linkedin-text' ? content : undefined}
+        activeTabId={activeTabId}
       />
     )
   }

@@ -11,7 +11,7 @@ export function StatusBar() {
     const api = window.electronAPI?.terminal
     if (!api) return
 
-    const cleanup = api.onParsed((event: ParsedEvent) => {
+    const cleanup = api.onParsed((_tabId: string, event: ParsedEvent) => {
       switch (event.type) {
         case 'session-id':
           setSessionId(String(event.data.sessionId))

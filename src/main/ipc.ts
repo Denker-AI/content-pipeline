@@ -32,7 +32,13 @@ import {
   updateStage,
   writeMetadata,
 } from './pipeline'
-import { changePtyDirectory, createPty, destroyPty, resizePty, writePty } from './pty'
+import {
+  createPtyForTab,
+  destroyAllPtys,
+  destroyPtyForTab,
+  resizePtyForTab,
+  writePtyForTab,
+} from './pty'
 import { listAudiences, sendNewsletter } from './resend'
 import { analyzeSEO } from './seo'
 import {
@@ -68,56 +74,81 @@ export function getContentDir(): string {
 }
 
 export function registerIpcHandlers(mainWindow: BrowserWindow) {
-  const parser = new TerminalParser()
+  // Per-tab terminal parsers
+  const parsers = new Map<string, TerminalParser>()
 
-  parser.onEvent(async (event) => {
-    if (!mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('terminal:parsed', event)
-      if (event.type === 'component-found') {
-        mainWindow.webContents.send('terminal:component', event.data)
-      }
-      if (event.type === 'component-preview-html') {
-        mainWindow.webContents.send('terminal:component-preview-html', event.data.html)
-      }
-      if (event.type === 'cwd-changed') {
-        const newDir = event.data.dir as string
-        if (!newDir || newDir === projectRoot) return
-        // Only switch project root if the new dir has a content/ subdirectory
-        try {
-          await fs.access(path.join(newDir, 'content'))
-          projectRoot = newDir
-          stopWatcher()
-          startWatcher(getContentDir())
-          const settings = await loadUserSettings()
-          await saveUserSettings({ ...settings, projectRoot: newDir })
-          mainWindow.webContents.send('content:projectChanged', newDir)
-          mainWindow.webContents.send('pipeline:contentChanged')
-        } catch {
-          // No content/ directory — not a project root, ignore
+  // --- Tab lifecycle IPC ---
+
+  ipcMain.handle(
+    'terminal:createTab',
+    async (_event, tabId: string, cwd: string) => {
+      const parser = new TerminalParser()
+      parsers.set(tabId, parser)
+
+      parser.onEvent(async (event) => {
+        if (!mainWindow.isDestroyed()) {
+          mainWindow.webContents.send('terminal:parsed', tabId, event)
+          if (event.type === 'component-found') {
+            mainWindow.webContents.send('terminal:component', event.data)
+          }
+          if (event.type === 'component-preview-html') {
+            mainWindow.webContents.send(
+              'terminal:component-preview-html',
+              event.data.html,
+            )
+          }
+          if (event.type === 'cwd-changed') {
+            const newDir = event.data.dir as string
+            if (!newDir || newDir === projectRoot) return
+            try {
+              await fs.access(path.join(newDir, 'content'))
+              projectRoot = newDir
+              stopWatcher()
+              startWatcher(getContentDir())
+              const settings = await loadUserSettings()
+              await saveUserSettings({ ...settings, projectRoot: newDir })
+              mainWindow.webContents.send('content:projectChanged', newDir)
+              mainWindow.webContents.send('pipeline:contentChanged')
+            } catch {
+              // No content/ directory — not a project root, ignore
+            }
+          }
         }
+      })
+
+      try {
+        createPtyForTab(tabId, cwd, (data: string) => {
+          if (!mainWindow.isDestroyed()) {
+            mainWindow.webContents.send('terminal:data', tabId, data)
+          }
+          parser.feed(data)
+        })
+      } catch (err) {
+        console.error(`Failed to create PTY for tab ${tabId}:`, err)
+        throw err
       }
-    }
+    },
+  )
+
+  ipcMain.handle('terminal:closeTab', async (_event, tabId: string) => {
+    destroyPtyForTab(tabId)
+    parsers.delete(tabId)
   })
 
-  try {
-    createPty((data: string) => {
-      if (!mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('terminal:data', data)
-      }
-      parser.feed(data)
-    })
-  } catch (err) {
-    console.error('Failed to create PTY:', err)
-  }
+  // Terminal IPC — tab-aware
+  ipcMain.on(
+    'terminal:input',
+    (_event, tabId: string, data: string) => {
+      writePtyForTab(tabId, data)
+    },
+  )
 
-  // Terminal IPC
-  ipcMain.on('terminal:input', (_event, data: string) => {
-    writePty(data)
-  })
-
-  ipcMain.on('terminal:resize', (_event, cols: number, rows: number) => {
-    resizePty(cols, rows)
-  })
+  ipcMain.on(
+    'terminal:resize',
+    (_event, tabId: string, cols: number, rows: number) => {
+      resizePtyForTab(tabId, cols, rows)
+    },
+  )
 
   // File watcher — forward events to renderer
   const unsubscribe = onFileChange((event) => {
@@ -242,29 +273,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         item.worktreePath = worktree.path
       }
 
-      // Activate the new content piece
-      setActiveContent(item)
-      const watchDir = item.worktreePath
-        ? path.join(item.worktreePath, 'content')
-        : contentDir
-      stopWatcher()
-      startWatcher(watchDir)
-      if (item.worktreePath) {
-        changePtyDirectory(item.worktreePath)
-      }
-
-      // Type starter prompt into PTY (no Enter — let user complete)
-      const starterPrompts: Record<string, string> = {
-        linkedin: 'Create a LinkedIn post about ',
-        blog: 'Write a blog post about ',
-        newsletter: 'Create a newsletter about ',
-      }
-      const prompt = starterPrompts[type]
-      if (prompt) {
-        writePty(prompt)
-      }
-
-      // Notify renderer
+      // Notify renderer of new content
       if (!mainWindow.isDestroyed()) {
         mainWindow.webContents.send('pipeline:contentChanged')
       }
@@ -304,11 +313,6 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     'pipeline:activate',
     async (_event, item: PipelineItem) => {
       setActiveContent(item)
-
-      // Switch PTY directory if worktree
-      if (item.worktreePath) {
-        changePtyDirectory(item.worktreePath)
-      }
 
       // Restart file watcher on active content's directory
       const watchDir = item.worktreePath
@@ -426,12 +430,15 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
 
   // Cleanup
   mainWindow.on('closed', () => {
-    destroyPty()
+    destroyAllPtys()
+    parsers.clear()
     unsubscribe()
     unsubscribePipeline()
     stopWatcher()
     ipcMain.removeAllListeners('terminal:input')
     ipcMain.removeAllListeners('terminal:resize')
+    ipcMain.removeHandler('terminal:createTab')
+    ipcMain.removeHandler('terminal:closeTab')
     ipcMain.removeHandler('content:list')
     ipcMain.removeHandler('content:listDir')
     ipcMain.removeHandler('content:read')

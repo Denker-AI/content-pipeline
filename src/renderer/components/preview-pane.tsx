@@ -27,6 +27,7 @@ interface SelectedFile {
 interface PreviewPaneProps {
   activeContentDir?: string
   activeContentType?: ContentType
+  activeTabId?: string | null
   selectedItem: SelectedFile | null
   fileContent: string
   renderMode: RenderMode
@@ -41,6 +42,7 @@ interface PreviewPaneProps {
 export function PreviewPane({
   activeContentDir,
   activeContentType,
+  activeTabId,
   selectedItem,
   fileContent,
   renderMode,
@@ -143,7 +145,9 @@ export function PreviewPane({
               ? `Context: This component will be used as a LinkedIn carousel visual for a post with this text:\n\n${activePostTextRef.current}\n\n`
               : ''
             const prompt = `${contextPrefix}Here is the source code for the ${previewComponent.name} component:\n\n\`\`\`tsx\n${result.source}\n\`\`\`\n\nCreate a self-contained HTML preview with realistic mock data that accurately represents how this component looks and functions. Use only vanilla HTML, CSS, and JS (no external dependencies). Output the complete HTML between these exact marker lines on their own lines: ===HTML_PREVIEW_START=== and ===HTML_PREVIEW_END===`
-            window.electronAPI?.terminal.sendInput(prompt + '\n')
+            if (activeTabId) {
+              window.electronAPI?.terminal.sendInput(activeTabId, prompt + '\n')
+            }
           }, 500)
         }
       })
@@ -151,7 +155,7 @@ export function PreviewPane({
         if (activePathRef.current !== thisPath) return
         setPreviewError('failed')
       })
-  }, [previewComponent])
+  }, [previewComponent, activeTabId])
 
   const handlePreview = useCallback((component: DetectedComponent) => {
     setPreviewHtml(null)
@@ -165,9 +169,9 @@ export function PreviewPane({
 
   const handleSendToClaude = useCallback(() => {
     if (selectedItem) {
-      sendToTerminal(selectedItem.relativePath)
+      sendToTerminal(selectedItem.relativePath, activeTabId)
     }
-  }, [selectedItem, sendToTerminal])
+  }, [selectedItem, sendToTerminal, activeTabId])
 
   const hasComments = comments.length > 0
   const tabs: Tab[] =
@@ -283,6 +287,7 @@ export function PreviewPane({
                       renderMode={renderMode}
                       refreshCount={refreshCount}
                       contentDir={activeContentDir}
+                      activeTabId={activeTabId}
                     />
                   </div>
                 </CommentOverlay>
@@ -336,6 +341,7 @@ export function PreviewPane({
                 activeContentDir={activeContentDir}
                 activeContentType={activeContentType}
                 activePostText={activePostText}
+                activeTabId={activeTabId}
               />
               {contentDir && (
                 <CaptureToolbar

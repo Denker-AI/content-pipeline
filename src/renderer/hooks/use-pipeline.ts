@@ -83,13 +83,14 @@ export function usePipeline() {
     return cleanup
   }, [checkConfigured])
 
-  // Create content
-  const createContent = useCallback(async (type: ContentType) => {
+  // Create content — returns the item so the caller can open a tab
+  const createContent = useCallback(async (type: ContentType): Promise<PipelineItem | null> => {
     const api = window.electronAPI?.pipeline
-    if (!api) return
+    if (!api) return null
 
     const item = await api.createContent(type)
     setActiveItemId(item.id)
+    return item
   }, [])
 
   // Activate content

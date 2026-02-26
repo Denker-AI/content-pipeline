@@ -117,12 +117,14 @@ export interface ContentVersion {
   isFinal: boolean
 }
 
-// Terminal IPC API exposed via preload script
+// Terminal IPC API exposed via preload script (tab-aware)
 export interface TerminalAPI {
-  onData: (callback: (data: string) => void) => () => void
-  onParsed: (callback: (event: ParsedEvent) => void) => () => void
-  sendInput: (data: string) => void
-  resize: (cols: number, rows: number) => void
+  onData: (callback: (tabId: string, data: string) => void) => () => void
+  onParsed: (callback: (tabId: string, event: ParsedEvent) => void) => () => void
+  sendInput: (tabId: string, data: string) => void
+  resize: (tabId: string, cols: number, rows: number) => void
+  createTab: (tabId: string, cwd: string) => Promise<void>
+  closeTab: (tabId: string) => Promise<void>
 }
 
 // File watcher API exposed via preload
