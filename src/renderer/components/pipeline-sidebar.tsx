@@ -341,10 +341,16 @@ function RepoSection({
   onStageChange,
   isMultiRepo,
 }: RepoSectionProps) {
-  // Single repo: render content sections directly (no collapsible header, no border)
+  // Single repo: show repo name as a static label, no collapse/remove
   if (!isMultiRepo) {
     return (
       <div>
+        <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-zinc-200 dark:border-zinc-700">
+          <FolderIcon className="h-3 w-3 shrink-0 text-zinc-400" />
+          <span className="truncate text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
+            {repo.name}
+          </span>
+        </div>
         {SECTION_TYPES.map((type) => (
           <PipelineSection
             key={type}

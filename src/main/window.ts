@@ -1,18 +1,24 @@
-import { BrowserWindow } from 'electron'
+import { BrowserWindow, nativeTheme } from 'electron'
 
 import path from 'path'
 import { fileURLToPath } from 'url'
+
+import { loadUserSettings } from './settings'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 let mainWindow: BrowserWindow | null = null
 
-export function createWindow(): BrowserWindow {
+export async function createWindow(): Promise<BrowserWindow> {
+  const settings = await loadUserSettings()
+  const theme = settings.theme || 'dark'
+  const isDark = theme === 'dark' || (theme === 'auto' && nativeTheme.shouldUseDarkColors)
+
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
     title: 'Content Pipeline',
-    backgroundColor: '#ffffff',
+    backgroundColor: isDark ? '#09090b' : '#fafafa',
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,

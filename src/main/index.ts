@@ -33,7 +33,7 @@ function setupMenu(mainWindow: BrowserWindow) {
 
 app.whenReady().then(async () => {
   await initProjectRoot()
-  const mainWindow = createWindow()
+  const mainWindow = await createWindow()
   registerIpcHandlers(mainWindow)
   setupMenu(mainWindow)
   if (app.isPackaged) {
@@ -47,9 +47,9 @@ app.on('window-all-closed', () => {
   }
 })
 
-app.on('activate', () => {
+app.on('activate', async () => {
   if (BrowserWindow.getAllWindows().length === 0) {
-    const mainWindow = createWindow()
+    const mainWindow = await createWindow()
     registerIpcHandlers(mainWindow)
   }
 })
