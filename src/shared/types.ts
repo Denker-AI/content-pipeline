@@ -1,6 +1,12 @@
 // Parsed terminal event types
 export interface ParsedEvent {
-  type: 'file-changed' | 'session-id' | 'token-cost' | 'component-found' | 'cwd-changed' | 'component-preview-html'
+  type:
+    | 'file-changed'
+    | 'session-id'
+    | 'token-cost'
+    | 'component-found'
+    | 'cwd-changed'
+    | 'component-preview-html'
   data: Record<string, string | number>
 }
 
@@ -20,7 +26,12 @@ export interface FileEvent {
 }
 
 // Content types detected from directory structure
-export type ContentType = 'newsletter' | 'linkedin' | 'blog' | 'asset' | 'unknown'
+export type ContentType =
+  | 'newsletter'
+  | 'linkedin'
+  | 'blog'
+  | 'asset'
+  | 'unknown'
 
 export interface ContentItem {
   type: ContentType
@@ -33,47 +44,53 @@ export interface ContentItem {
 // Git worktree info
 export interface WorktreeInfo {
   branch: string
-  path: string          // absolute path to worktree
-  contentDir: string    // content/ inside worktree
+  path: string // absolute path to worktree
+  contentDir: string // content/ inside worktree
 }
 
 // Asset attached to a content piece (e.g. carousel image)
 export interface ContentAsset {
-  id: string                    // Date.now().toString(36)
-  filename: string              // e.g. "linkedin-carousel-2026-02-23T10-30-00.png"
-  sourceComponent?: string      // file path of source component
-  sourceComponentName?: string  // PascalCase name
+  id: string // Date.now().toString(36)
+  filename: string // e.g. "linkedin-carousel-2026-02-23T10-30-00.png"
+  sourceComponent?: string // file path of source component
+  sourceComponentName?: string // PascalCase name
   width: number
   height: number
-  createdAt: string             // ISO 8601
-  order: number                 // carousel position (0-based)
+  createdAt: string // ISO 8601
+  order: number // carousel position (0-based)
 }
 
 // Content pipeline stages
-export type ContentStage = 'idea' | 'draft' | 'review' | 'final' | 'scheduled' | 'published'
+export type ContentStage =
+  | 'idea'
+  | 'draft'
+  | 'review'
+  | 'final'
+  | 'scheduled'
+  | 'published'
 
 // Metadata stored in each content folder's metadata.json
 export interface ContentMetadata {
   type: ContentType
   stage: ContentStage
   title: string
-  createdAt: string   // ISO 8601
-  updatedAt: string   // ISO 8601
+  createdAt: string // ISO 8601
+  updatedAt: string // ISO 8601
   worktreeBranch?: string
   worktreePath?: string
-  scheduledAt?: string  // ISO 8601, set when stage is 'scheduled'
+  scheduledAt?: string // ISO 8601, set when stage is 'scheduled'
   assets?: ContentAsset[]
 }
 
 // A content piece as displayed in the pipeline sidebar
 export interface PipelineItem {
-  id: string              // unique slug: <type>/<date-slug>
+  id: string // unique slug: <type>/<date-slug>
   type: ContentType
   stage: ContentStage
   title: string
   date: string
-  metadataPath: string    // absolute path to metadata.json
-  contentDir: string      // absolute path to the content folder
+  metadataPath: string // absolute path to metadata.json
+  contentDir: string // absolute path to the content folder
   worktreeBranch?: string
   worktreePath?: string
 }
@@ -84,7 +101,10 @@ export interface PipelineAPI {
   listPipelineItemsForRepo: (repoPath: string) => Promise<PipelineItem[]>
   createContent: (type: ContentType) => Promise<PipelineItem>
   updateStage: (metadataPath: string, stage: ContentStage) => Promise<void>
-  updateMetadata: (metadataPath: string, metadata: Partial<ContentMetadata>) => Promise<void>
+  updateMetadata: (
+    metadataPath: string,
+    metadata: Partial<ContentMetadata>
+  ) => Promise<void>
   readMetadata: (metadataPath: string) => Promise<ContentMetadata>
   activateContent: (item: PipelineItem) => Promise<void>
   getActiveContent: () => Promise<PipelineItem | null>
@@ -121,7 +141,9 @@ export interface ContentVersion {
 // Terminal IPC API exposed via preload script (tab-aware)
 export interface TerminalAPI {
   onData: (callback: (tabId: string, data: string) => void) => () => void
-  onParsed: (callback: (tabId: string, event: ParsedEvent) => void) => () => void
+  onParsed: (
+    callback: (tabId: string, event: ParsedEvent) => void
+  ) => () => void
   sendInput: (tabId: string, data: string) => void
   resize: (tabId: string, cols: number, rows: number) => void
   createTab: (tabId: string, cwd: string) => Promise<void>
@@ -154,7 +176,9 @@ export type ComponentRenderResult =
 
 // Component API exposed via preload
 export interface ComponentAPI {
-  onComponentFound: (callback: (component: DetectedComponent) => void) => () => void
+  onComponentFound: (
+    callback: (component: DetectedComponent) => void
+  ) => () => void
   onPreviewHtml: (callback: (html: string) => void) => () => void
   scan: () => Promise<DetectedComponent[]>
   render: (filePath: string) => Promise<ComponentRenderResult>
@@ -172,10 +196,10 @@ export interface UserSettings {
   theme: 'light' | 'dark' | 'auto'
   projectRoot?: string
   repos: string[]
-  repoLabels: Record<string, string>  // path → custom display name
-  pullBeforeWorktree?: boolean        // pull latest from origin before creating worktree (default: true)
+  repoLabels: Record<string, string> // path → custom display name
+  pullBeforeWorktree?: boolean // pull latest from origin before creating worktree (default: true)
   lastSession?: {
-    openTabIds: string[]       // content item IDs that were open
+    openTabIds: string[] // content item IDs that were open
     activeTabId: string | null // which tab was focused
   }
 }
@@ -338,10 +362,10 @@ export interface SEOAPI {
 export interface AnnotationComment {
   id: string
   pinNumber: number
-  x: number          // percentage (0-100) relative to preview area
-  y: number          // percentage (0-100) relative to preview area
+  x: number // percentage (0-100) relative to preview area
+  y: number // percentage (0-100) relative to preview area
   text: string
-  nearText: string   // text extracted near the click position
+  nearText: string // text extracted near the click position
   resolved: boolean
 }
 
@@ -364,7 +388,10 @@ export interface GitCommitFile {
 export interface GitAPI {
   listWorktrees: () => Promise<WorktreeInfo[]>
   listWorktreesForRepo: (repoPath: string) => Promise<WorktreeInfo[]>
-  removeWorktree: (worktreePath: string, deleteRemoteBranch?: boolean) => Promise<void>
+  removeWorktree: (
+    worktreePath: string,
+    deleteRemoteBranch?: boolean
+  ) => Promise<void>
   status: (cwd: string) => Promise<GitFileEntry[]>
   recentFiles: (cwd: string, limit: number) => Promise<GitCommitFile[]>
 }

@@ -1,10 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import type {
-  ContentStage,
-  ContentType,
-  PipelineItem,
-} from '@/shared/types'
+import type { ContentStage, ContentType, PipelineItem } from '@/shared/types'
 
 const SECTION_TYPES: ContentType[] = ['linkedin', 'blog', 'newsletter']
 
@@ -13,7 +9,7 @@ export function usePipeline() {
   const [activeItemId, setActiveItemId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [expandedSections, setExpandedSections] = useState<Set<ContentType>>(
-    () => new Set(SECTION_TYPES),
+    () => new Set(SECTION_TYPES)
   )
   const [searchQuery, setSearchQuery] = useState('')
   const [isConfigured, setIsConfigured] = useState(true)
@@ -26,7 +22,7 @@ export function usePipeline() {
     try {
       const [pipelineItems, active] = await Promise.all([
         api.listPipelineItems(),
-        api.getActiveContent(),
+        api.getActiveContent()
       ])
       setItems(pipelineItems)
       if (active) {
@@ -84,14 +80,17 @@ export function usePipeline() {
   }, [checkConfigured])
 
   // Create content — returns the item so the caller can open a tab
-  const createContent = useCallback(async (type: ContentType): Promise<PipelineItem | null> => {
-    const api = window.electronAPI?.pipeline
-    if (!api) return null
+  const createContent = useCallback(
+    async (type: ContentType): Promise<PipelineItem | null> => {
+      const api = window.electronAPI?.pipeline
+      if (!api) return null
 
-    const item = await api.createContent(type)
-    setActiveItemId(item.id)
-    return item
-  }, [])
+      const item = await api.createContent(type)
+      setActiveItemId(item.id)
+      return item
+    },
+    []
+  )
 
   // Activate content
   const activateItem = useCallback(async (item: PipelineItem) => {
@@ -109,18 +108,16 @@ export function usePipeline() {
       if (!api) return
 
       // Optimistic: update local state immediately
-      setItems((prev) =>
-        prev.map((i) => (i.id === item.id ? { ...i, stage } : i)),
-      )
+      setItems(prev => prev.map(i => (i.id === item.id ? { ...i, stage } : i)))
 
       await api.updateStage(item.metadataPath, stage)
     },
-    [],
+    []
   )
 
   // Toggle section
   const toggleSection = useCallback((type: ContentType) => {
-    setExpandedSections((prev) => {
+    setExpandedSections(prev => {
       const next = new Set(prev)
       if (next.has(type)) {
         next.delete(type)
@@ -136,9 +133,9 @@ export function usePipeline() {
     const query = searchQuery.toLowerCase().trim()
     const filtered = query
       ? items.filter(
-          (item) =>
+          item =>
             item.title.toLowerCase().includes(query) ||
-            item.contentDir.toLowerCase().includes(query),
+            item.contentDir.toLowerCase().includes(query)
         )
       : items
 
@@ -147,7 +144,7 @@ export function usePipeline() {
       blog: [],
       newsletter: [],
       asset: [],
-      unknown: [],
+      unknown: []
     }
 
     for (const item of filtered) {
@@ -175,6 +172,6 @@ export function usePipeline() {
     activateItem,
     updateStage,
     toggleSection,
-    installConfig,
+    installConfig
   }
 }

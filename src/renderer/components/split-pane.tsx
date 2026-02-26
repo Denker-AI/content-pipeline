@@ -37,14 +37,20 @@ export function SplitPane({ left, right }: SplitPaneProps) {
 
   return (
     <div ref={containerRef} className="flex h-full w-full">
-      <div style={{ width: `${leftWidth}%` }} className="h-full overflow-hidden">
+      <div
+        style={{ width: `${leftWidth}%` }}
+        className="h-full overflow-hidden"
+      >
         {left}
       </div>
       <div
         onMouseDown={handleMouseDown}
         className="w-1 shrink-0 cursor-col-resize bg-zinc-200 dark:bg-zinc-700 transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-500"
       />
-      <div style={{ width: `${100 - leftWidth}%` }} className="h-full overflow-hidden">
+      <div
+        style={{ width: `${100 - leftWidth}%` }}
+        className="h-full overflow-hidden"
+      >
         {right}
       </div>
     </div>

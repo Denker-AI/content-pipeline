@@ -24,7 +24,7 @@ function HtmlPreview({
   naturalWidth,
   naturalHeight,
   fill,
-  allowScripts,
+  allowScripts
 }: {
   content: string
   refreshCount: number
@@ -55,7 +55,7 @@ function HtmlPreview({
     setNavigatedAway(false)
 
     // Intercept link clicks to detect navigation
-    doc.addEventListener('click', (e) => {
+    doc.addEventListener('click', e => {
       const link = (e.target as HTMLElement).closest('a')
       if (link?.href && !link.href.startsWith('javascript:')) {
         e.preventDefault()
@@ -70,7 +70,8 @@ function HtmlPreview({
     // Auto-height: grow iframe to match its content so the parent can scroll
     if (!naturalHeight && !fill) {
       const measure = () => {
-        const h = iframeRef.current?.contentDocument?.documentElement?.scrollHeight
+        const h =
+          iframeRef.current?.contentDocument?.documentElement?.scrollHeight
         if (h && h > 0 && iframeRef.current) {
           iframeRef.current.style.height = `${h}px`
         }
@@ -96,8 +97,18 @@ function HtmlPreview({
       onClick={writeContent}
       className="absolute left-3 top-3 z-10 flex items-center gap-1 rounded bg-zinc-800/80 px-2 py-1 text-xs text-white shadow hover:bg-zinc-700/90"
     >
-      <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+      <svg
+        className="h-3 w-3"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M15 19l-7-7 7-7"
+        />
       </svg>
       Back to preview
     </button>
@@ -120,7 +131,7 @@ function HtmlPreview({
             width: naturalWidth,
             height: naturalHeight,
             transform: `scale(${scale})`,
-            transformOrigin: 'top left',
+            transformOrigin: 'top left'
           }}
         >
           <iframe
@@ -130,7 +141,7 @@ function HtmlPreview({
               height: naturalHeight,
               border: 0,
               display: 'block',
-              background: 'white',
+              background: 'white'
             }}
             sandbox={sandbox}
             title="Content preview"
@@ -197,7 +208,11 @@ function LinkedInTextPreview({ content }: { content: string }) {
       </div>
       <div className="mt-2 flex justify-end text-xs">
         <span
-          className={charCount > limit ? 'text-red-400' : 'text-zinc-400 dark:text-zinc-500'}
+          className={
+            charCount > limit
+              ? 'text-red-400'
+              : 'text-zinc-400 dark:text-zinc-500'
+          }
         >
           {charCount.toLocaleString()} / {limit.toLocaleString()} chars
         </span>
@@ -211,10 +226,13 @@ export function ContentRenderer({
   renderMode,
   refreshCount,
   contentDir,
-  activeTabId,
+  activeTabId
 }: ContentRendererProps) {
   // For LinkedIn content with a known contentDir, always show composite
-  if (contentDir && (renderMode === 'linkedin-text' || renderMode === 'carousel-slide')) {
+  if (
+    contentDir &&
+    (renderMode === 'linkedin-text' || renderMode === 'carousel-slide')
+  ) {
     return (
       <LinkedInCompositePreview
         contentDir={contentDir}
@@ -272,13 +290,22 @@ export function ContentRenderer({
   if (renderMode === 'linkedin-preview') {
     return (
       <div className="mx-auto max-w-[552px] py-4">
-        <HtmlPreview content={content} refreshCount={refreshCount} allowScripts />
+        <HtmlPreview
+          content={content}
+          refreshCount={refreshCount}
+          allowScripts
+        />
       </div>
     )
   }
 
   // Asset / unknown: fill the available preview area, allow scripts
   return (
-    <HtmlPreview content={content} refreshCount={refreshCount} fill allowScripts />
+    <HtmlPreview
+      content={content}
+      refreshCount={refreshCount}
+      fill
+      allowScripts
+    />
   )
 }

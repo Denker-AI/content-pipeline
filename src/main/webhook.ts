@@ -38,11 +38,15 @@ function parseFrontmatter(raw: string): {
     let value: unknown = trimmed.slice(colonIdx + 1).trim()
 
     // Handle arrays (simple single-line format: [a, b, c])
-    if (typeof value === 'string' && value.startsWith('[') && value.endsWith(']')) {
+    if (
+      typeof value === 'string' &&
+      value.startsWith('[') &&
+      value.endsWith(']')
+    ) {
       value = value
         .slice(1, -1)
         .split(',')
-        .map((s) => s.trim().replace(/^["']|["']$/g, ''))
+        .map(s => s.trim().replace(/^["']|["']$/g, ''))
     }
 
     // Strip surrounding quotes
@@ -70,11 +74,11 @@ async function findBlogMarkdown(contentDir: string): Promise<{
   const entries = await fs.readdir(contentDir, { withFileTypes: true })
   // Look for .md files (prefer blog.md or post.md, fall back to first .md)
   const mdFiles = entries
-    .filter((e) => e.isFile() && e.name.endsWith('.md'))
-    .map((e) => e.name)
+    .filter(e => e.isFile() && e.name.endsWith('.md'))
+    .map(e => e.name)
 
   const preferred = ['blog.md', 'post.md', 'index.md']
-  const picked = preferred.find((p) => mdFiles.includes(p)) ?? mdFiles[0]
+  const picked = preferred.find(p => mdFiles.includes(p)) ?? mdFiles[0]
 
   if (!picked) {
     throw new Error(`No .md file found in ${contentDir}`)
@@ -109,7 +113,7 @@ function updateFrontmatterStatus(raw: string): string {
 
 export async function publishBlogToWebhook(
   contentDir: string,
-  webhookUrl: string,
+  webhookUrl: string
 ): Promise<BlogPublishResult> {
   if (!webhookUrl) {
     throw new Error('Blog webhook URL not configured. Set it in Settings.')
@@ -131,13 +135,13 @@ export async function publishBlogToWebhook(
     tags: frontmatter.tags ?? [],
     content: html,
     markdown: body,
-    metadata: frontmatter,
+    metadata: frontmatter
   }
 
   const res = await fetch(webhookUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(payload)
   })
 
   if (!res.ok) {
@@ -157,7 +161,7 @@ export async function publishBlogToWebhook(
     published_at: new Date().toISOString(),
     title: frontmatter.title,
     slug: frontmatter.slug,
-    status_code: res.status,
+    status_code: res.status
   }
   await fs.writeFile(blogJsonPath, JSON.stringify(blogJson, null, 2), 'utf-8')
 
@@ -165,8 +169,8 @@ export async function publishBlogToWebhook(
     title: frontmatter.title,
     slug: frontmatter.slug,
     webhookUrl,
-    statusCode: res.status,
+    statusCode: res.status
   }
 }
 
-export { findBlogMarkdown,parseFrontmatter }
+export { findBlogMarkdown, parseFrontmatter }

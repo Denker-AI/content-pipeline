@@ -9,14 +9,16 @@ interface VersionSelectorProps {
 export function VersionSelector({
   versions,
   currentPath,
-  onSelect,
+  onSelect
 }: VersionSelectorProps) {
   if (versions.length <= 1) return null
 
   return (
     <div className="flex shrink-0 items-center gap-1 border-b border-zinc-200 dark:border-zinc-700 px-3 py-1.5">
-      <span className="mr-2 text-xs text-zinc-400 dark:text-zinc-500">Version:</span>
-      {versions.map((version) => {
+      <span className="mr-2 text-xs text-zinc-400 dark:text-zinc-500">
+        Version:
+      </span>
+      {versions.map(version => {
         const isActive = version.path === currentPath
         return (
           <button

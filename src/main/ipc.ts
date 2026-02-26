@@ -19,7 +19,7 @@ import type {
   ProjectSettings,
   ResendSendRequest,
   ResendTestRequest,
-  UserSettings,
+  UserSettings
 } from '@/shared/types'
 
 import { captureScreenshot, captureVideo } from './capture'
@@ -28,7 +28,11 @@ import { scanComponents } from './component-scanner'
 import { listContent, listDir, listVersions } from './content'
 import { onFileChange, startWatcher, stopWatcher } from './file-watcher'
 import { publishToLinkedIn } from './linkedin'
-import { installProjectConfig, installProjectConfigWithBrand, isProjectConfigured } from './onboarding'
+import {
+  installProjectConfig,
+  installProjectConfigWithBrand,
+  isProjectConfigured
+} from './onboarding'
 import {
   createContentPiece,
   getActiveContent,
@@ -36,14 +40,14 @@ import {
   readMetadata,
   setActiveContent,
   updateStage,
-  writeMetadata,
+  writeMetadata
 } from './pipeline'
 import {
   createPtyForTab,
   destroyAllPtys,
   destroyPtyForTab,
   resizePtyForTab,
-  writePtyForTab,
+  writePtyForTab
 } from './pty'
 import { listAudiences, sendNewsletter, sendTestEmail } from './resend'
 import { analyzeSEO } from './seo'
@@ -51,11 +55,16 @@ import {
   loadProjectSettings,
   loadUserSettings,
   saveProjectSettings,
-  saveUserSettings,
+  saveUserSettings
 } from './settings'
 import { TerminalParser } from './terminal-parser'
 import { publishBlogToWebhook } from './webhook'
-import { createWorktree, isGitRepo, listWorktrees, removeWorktree } from './worktree'
+import {
+  createWorktree,
+  isGitRepo,
+  listWorktrees,
+  removeWorktree
+} from './worktree'
 
 let projectRoot: string = process.cwd()
 
@@ -68,7 +77,8 @@ function isAllowedContentPath(resolved: string): boolean {
   if (resolved.startsWith(contentDir)) return true
   // Allow worktree content paths: any /.worktrees/...content/... path is safe
   // (these paths come from our own metadata, not user input)
-  if (resolved.includes('/.worktrees/') && resolved.includes('/content/')) return true
+  if (resolved.includes('/.worktrees/') && resolved.includes('/content/'))
+    return true
   return false
 }
 
@@ -104,7 +114,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
       const parser = new TerminalParser()
       parsers.set(tabId, parser)
 
-      parser.onEvent(async (event) => {
+      parser.onEvent(async event => {
         if (!mainWindow.isDestroyed()) {
           mainWindow.webContents.send('terminal:parsed', tabId, event)
           if (event.type === 'component-found') {
@@ -113,7 +123,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
           if (event.type === 'component-preview-html') {
             mainWindow.webContents.send(
               'terminal:component-preview-html',
-              event.data.html,
+              event.data.html
             )
           }
           if (event.type === 'cwd-changed') {
@@ -146,7 +156,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         console.error(`Failed to create PTY for tab ${tabId}:`, err)
         throw err
       }
-    },
+    }
   )
 
   ipcMain.handle('terminal:closeTab', async (_event, tabId: string) => {
@@ -155,22 +165,19 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
   })
 
   // Terminal IPC — tab-aware
-  ipcMain.on(
-    'terminal:input',
-    (_event, tabId: string, data: string) => {
-      writePtyForTab(tabId, data)
-    },
-  )
+  ipcMain.on('terminal:input', (_event, tabId: string, data: string) => {
+    writePtyForTab(tabId, data)
+  })
 
   ipcMain.on(
     'terminal:resize',
     (_event, tabId: string, cols: number, rows: number) => {
       resizePtyForTab(tabId, cols, rows)
-    },
+    }
   )
 
   // File watcher — forward events to renderer
-  const unsubscribe = onFileChange((event) => {
+  const unsubscribe = onFileChange(event => {
     if (!mainWindow.isDestroyed()) {
       mainWindow.webContents.send('file:change', event)
     }
@@ -219,20 +226,20 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     }
     const ext = path.extname(filePath).toLowerCase().slice(1)
     const mimeMap: Record<string, string> = {
-      png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg',
-      gif: 'image/gif', webp: 'image/webp',
+      png: 'image/png',
+      jpg: 'image/jpeg',
+      jpeg: 'image/jpeg',
+      gif: 'image/gif',
+      webp: 'image/webp'
     }
     const mime = mimeMap[ext] ?? 'application/octet-stream'
     const buf = await fs.readFile(resolved)
     return `data:${mime};base64,${buf.toString('base64')}`
   })
 
-  ipcMain.handle(
-    'content:listVersions',
-    async (_event, filePath: string) => {
-      return listVersions(filePath, getContentDir())
-    },
-  )
+  ipcMain.handle('content:listVersions', async (_event, filePath: string) => {
+    return listVersions(filePath, getContentDir())
+  })
 
   ipcMain.handle('content:getProjectRoot', () => {
     return projectRoot
@@ -241,7 +248,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
   ipcMain.handle('content:openProject', async () => {
     const result = await dialog.showOpenDialog(mainWindow, {
       properties: ['openDirectory'],
-      title: 'Open Project',
+      title: 'Open Project'
     })
 
     if (result.canceled || result.filePaths.length === 0) {
@@ -267,7 +274,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
   ipcMain.handle('content:addRepo', async () => {
     const result = await dialog.showOpenDialog(mainWindow, {
       properties: ['openDirectory'],
-      title: 'Add Repository',
+      title: 'Add Repository'
     })
 
     if (result.canceled || result.filePaths.length === 0) {
@@ -298,26 +305,25 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
 
   ipcMain.handle('content:removeRepo', async (_event, repoPath: string) => {
     const settings = await loadUserSettings()
-    const repos = (settings.repos ?? []).filter((r) => r !== repoPath)
+    const repos = (settings.repos ?? []).filter(r => r !== repoPath)
     await saveUserSettings({ ...settings, repos })
   })
 
   // Settings IPC handlers
   ipcMain.handle('settings:getUser', async () => loadUserSettings())
 
-  ipcMain.handle(
-    'settings:saveUser',
-    async (_event, settings: UserSettings) => saveUserSettings(settings),
+  ipcMain.handle('settings:saveUser', async (_event, settings: UserSettings) =>
+    saveUserSettings(settings)
   )
 
   ipcMain.handle('settings:getProject', async () =>
-    loadProjectSettings(projectRoot),
+    loadProjectSettings(projectRoot)
   )
 
   ipcMain.handle(
     'settings:saveProject',
     async (_event, settings: ProjectSettings) =>
-      saveProjectSettings(projectRoot, settings),
+      saveProjectSettings(projectRoot, settings)
   )
 
   // Pipeline IPC handlers
@@ -335,36 +341,33 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     }
   })
 
-  ipcMain.handle(
-    'pipeline:create',
-    async (_event, type: ContentType) => {
-      const contentDir = getContentDir()
-      const item = await createContentPiece(contentDir, type)
+  ipcMain.handle('pipeline:create', async (_event, type: ContentType) => {
+    const contentDir = getContentDir()
+    const item = await createContentPiece(contentDir, type)
 
-      // If project is a git repo, create a worktree
-      if (await isGitRepo(projectRoot)) {
-        const settings = await loadUserSettings()
-        const branch = `content/${item.id}`
-        const worktreePath = path.join(projectRoot, '.worktrees', item.id)
-        const worktree = await createWorktree(projectRoot, branch, worktreePath, {
-          pullBeforeCreate: settings.pullBeforeWorktree ?? true,
-        })
-        await writeMetadata(item.metadataPath, {
-          worktreeBranch: worktree.branch,
-          worktreePath: worktree.path,
-        })
-        item.worktreeBranch = worktree.branch
-        item.worktreePath = worktree.path
-      }
+    // If project is a git repo, create a worktree
+    if (await isGitRepo(projectRoot)) {
+      const settings = await loadUserSettings()
+      const branch = `content/${item.id}`
+      const worktreePath = path.join(projectRoot, '.worktrees', item.id)
+      const worktree = await createWorktree(projectRoot, branch, worktreePath, {
+        pullBeforeCreate: settings.pullBeforeWorktree ?? true
+      })
+      await writeMetadata(item.metadataPath, {
+        worktreeBranch: worktree.branch,
+        worktreePath: worktree.path
+      })
+      item.worktreeBranch = worktree.branch
+      item.worktreePath = worktree.path
+    }
 
-      // Notify renderer of new content
-      if (!mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('pipeline:contentChanged')
-      }
+    // Notify renderer of new content
+    if (!mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('pipeline:contentChanged')
+    }
 
-      return item
-    },
-  )
+    return item
+  })
 
   ipcMain.handle(
     'pipeline:updateStage',
@@ -373,7 +376,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
       if (!mainWindow.isDestroyed()) {
         mainWindow.webContents.send('pipeline:contentChanged')
       }
-    },
+    }
   )
 
   ipcMain.handle(
@@ -383,31 +386,28 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
       if (!mainWindow.isDestroyed()) {
         mainWindow.webContents.send('pipeline:contentChanged')
       }
-    },
+    }
   )
 
   ipcMain.handle(
     'pipeline:readMetadata',
     async (_event, metadataPath: string) => {
       return readMetadata(metadataPath)
-    },
+    }
   )
 
-  ipcMain.handle(
-    'pipeline:activate',
-    async (_event, item: PipelineItem) => {
-      setActiveContent(item)
+  ipcMain.handle('pipeline:activate', async (_event, item: PipelineItem) => {
+    setActiveContent(item)
 
-      // Restart file watcher on active content's specific directory
-      // For worktree items, watch the item subdirectory (not the whole content root)
-      // so that relative paths match what the renderer expects.
-      const watchDir = item.worktreePath
-        ? path.join(item.worktreePath, 'content', item.id)
-        : item.contentDir
-      stopWatcher()
-      startWatcher(watchDir)
-    },
-  )
+    // Restart file watcher on active content's specific directory
+    // For worktree items, watch the item subdirectory (not the whole content root)
+    // so that relative paths match what the renderer expects.
+    const watchDir = item.worktreePath
+      ? path.join(item.worktreePath, 'content', item.id)
+      : item.contentDir
+    stopWatcher()
+    startWatcher(watchDir)
+  })
 
   ipcMain.handle('pipeline:getActive', () => {
     return getActiveContent()
@@ -418,24 +418,21 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     'capture:screenshot',
     async (_event, request: CaptureScreenshotRequest) => {
       return captureScreenshot(request)
-    },
+    }
   )
 
   ipcMain.handle(
     'capture:video',
     async (_event, request: CaptureVideoRequest) => {
       return captureVideo(request)
-    },
+    }
   )
 
   // Publish IPC handlers
-  ipcMain.handle(
-    'publish:linkedin',
-    async (_event, contentDir: string) => {
-      const settings = await loadUserSettings()
-      return publishToLinkedIn(contentDir, settings.linkedinToken)
-    },
-  )
+  ipcMain.handle('publish:linkedin', async (_event, contentDir: string) => {
+    const settings = await loadUserSettings()
+    return publishToLinkedIn(contentDir, settings.linkedinToken)
+  })
 
   ipcMain.handle('publish:resend:audiences', async () => {
     const settings = await loadUserSettings()
@@ -452,9 +449,9 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         settings.resendFromEmail,
         request.audienceId,
         request.subject,
-        request.previewText,
+        request.previewText
       )
-    },
+    }
   )
 
   ipcMain.handle(
@@ -467,18 +464,15 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         settings.resendFromEmail,
         request.to,
         request.subject,
-        request.previewText,
+        request.previewText
       )
-    },
+    }
   )
 
-  ipcMain.handle(
-    'publish:blog',
-    async (_event, contentDir: string) => {
-      const settings = await loadUserSettings()
-      return publishBlogToWebhook(contentDir, settings.blogWebhookUrl)
-    },
-  )
+  ipcMain.handle('publish:blog', async (_event, contentDir: string) => {
+    const settings = await loadUserSettings()
+    return publishBlogToWebhook(contentDir, settings.blogWebhookUrl)
+  })
 
   // SEO IPC handler
   ipcMain.handle(
@@ -486,7 +480,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     async (_event, contentDir: string, keyword: string) => {
       const settings = await loadUserSettings()
       return analyzeSEO(contentDir, keyword, settings.braveApiKey)
-    },
+    }
   )
 
   // Component scan IPC handler — walks project directory for .tsx/.jsx files
@@ -504,24 +498,32 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     return listWorktrees(projectRoot)
   })
 
-  ipcMain.handle('git:listWorktreesForRepo', async (_event, repoPath: string) => {
-    try {
-      return await listWorktrees(repoPath)
-    } catch {
-      return []
+  ipcMain.handle(
+    'git:listWorktreesForRepo',
+    async (_event, repoPath: string) => {
+      try {
+        return await listWorktrees(repoPath)
+      } catch {
+        return []
+      }
     }
-  })
+  )
 
-  ipcMain.handle('git:removeWorktree', async (_event, worktreePath: string, deleteRemoteBranch?: boolean) => {
-    await removeWorktree(projectRoot, worktreePath, { deleteRemoteBranch })
-    if (!mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('pipeline:contentChanged')
+  ipcMain.handle(
+    'git:removeWorktree',
+    async (_event, worktreePath: string, deleteRemoteBranch?: boolean) => {
+      await removeWorktree(projectRoot, worktreePath, { deleteRemoteBranch })
+      if (!mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('pipeline:contentChanged')
+      }
     }
-  })
+  )
 
   ipcMain.handle('git:status', async (_event, cwd: string) => {
     try {
-      const { stdout } = await execFileAsync('git', ['status', '--porcelain'], { cwd })
+      const { stdout } = await execFileAsync('git', ['status', '--porcelain'], {
+        cwd
+      })
       const lines = stdout.split('\n').filter((l: string) => l.trim())
       return lines.map((line: string) => {
         const xy = line.slice(0, 2)
@@ -537,37 +539,50 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     }
   })
 
-  ipcMain.handle('git:recentFiles', async (_event, cwd: string, limit: number) => {
-    try {
-      const { stdout } = await execFileAsync(
-        'git',
-        ['log', `--max-count=${limit}`, '--name-only', '--pretty=format:%H|%s|%aI'],
-        { cwd },
-      )
-      const results: Array<{ path: string; commitMessage: string; commitHash: string; date: string }> = []
-      let currentHash = ''
-      let currentMsg = ''
-      let currentDate = ''
-      for (const line of stdout.split('\n')) {
-        if (line.includes('|') && line.split('|').length >= 3) {
-          const parts = line.split('|')
-          currentHash = parts[0]
-          currentMsg = parts[1]
-          currentDate = parts[2]
-        } else if (line.trim() && currentHash) {
-          results.push({
-            path: line.trim(),
-            commitMessage: currentMsg,
-            commitHash: currentHash,
-            date: currentDate,
-          })
+  ipcMain.handle(
+    'git:recentFiles',
+    async (_event, cwd: string, limit: number) => {
+      try {
+        const { stdout } = await execFileAsync(
+          'git',
+          [
+            'log',
+            `--max-count=${limit}`,
+            '--name-only',
+            '--pretty=format:%H|%s|%aI'
+          ],
+          { cwd }
+        )
+        const results: Array<{
+          path: string
+          commitMessage: string
+          commitHash: string
+          date: string
+        }> = []
+        let currentHash = ''
+        let currentMsg = ''
+        let currentDate = ''
+        for (const line of stdout.split('\n')) {
+          if (line.includes('|') && line.split('|').length >= 3) {
+            const parts = line.split('|')
+            currentHash = parts[0]
+            currentMsg = parts[1]
+            currentDate = parts[2]
+          } else if (line.trim() && currentHash) {
+            results.push({
+              path: line.trim(),
+              commitMessage: currentMsg,
+              commitHash: currentHash,
+              date: currentDate
+            })
+          }
         }
+        return results
+      } catch {
+        return []
       }
-      return results
-    } catch {
-      return []
     }
-  })
+  )
 
   // Shell IPC handlers
   ipcMain.handle('shell:openExternal', async (_event, url: string) => {
@@ -590,12 +605,15 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     }
   })
 
-  ipcMain.handle('project:installWithBrand', async (_event, brand: BrandConfig) => {
-    await installProjectConfigWithBrand(projectRoot, brand)
-    if (!mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('pipeline:contentChanged')
+  ipcMain.handle(
+    'project:installWithBrand',
+    async (_event, brand: BrandConfig) => {
+      await installProjectConfigWithBrand(projectRoot, brand)
+      if (!mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('pipeline:contentChanged')
+      }
     }
-  })
+  )
 
   ipcMain.handle('project:readClaudeMd', async () => {
     const claudeMdPath = path.join(projectRoot, 'content', 'CLAUDE.md')
@@ -613,11 +631,8 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
   })
 
   // Watch for metadata.json changes and notify renderer
-  const unsubscribePipeline = onFileChange((event) => {
-    if (
-      event.path.endsWith('metadata.json') &&
-      !mainWindow.isDestroyed()
-    ) {
+  const unsubscribePipeline = onFileChange(event => {
+    if (event.path.endsWith('metadata.json') && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('pipeline:contentChanged')
     }
   })

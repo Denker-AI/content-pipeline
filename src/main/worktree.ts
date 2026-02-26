@@ -12,7 +12,7 @@ const execFileAsync = promisify(execFile)
 export async function isGitRepo(dir: string): Promise<boolean> {
   try {
     await execFileAsync('git', ['rev-parse', '--is-inside-work-tree'], {
-      cwd: dir,
+      cwd: dir
     })
     return true
   } catch {
@@ -25,13 +25,13 @@ export async function isGitRepo(dir: string): Promise<boolean> {
  */
 async function branchExists(
   projectRoot: string,
-  branch: string,
+  branch: string
 ): Promise<boolean> {
   try {
     await execFileAsync(
       'git',
       ['show-ref', '--verify', '--quiet', `refs/heads/${branch}`],
-      { cwd: projectRoot },
+      { cwd: projectRoot }
     )
     return true
   } catch {
@@ -44,7 +44,7 @@ async function branchExists(
  */
 async function resolveUniqueBranch(
   projectRoot: string,
-  baseBranch: string,
+  baseBranch: string
 ): Promise<string> {
   let candidate = baseBranch
   let suffix = 2
@@ -74,7 +74,7 @@ export async function createWorktree(
   projectRoot: string,
   branch: string,
   worktreePath: string,
-  options?: { pullBeforeCreate?: boolean },
+  options?: { pullBeforeCreate?: boolean }
 ): Promise<WorktreeInfo> {
   if (options?.pullBeforeCreate) {
     await pullLatest(projectRoot)
@@ -85,13 +85,13 @@ export async function createWorktree(
   await execFileAsync(
     'git',
     ['worktree', 'add', worktreePath, '-b', uniqueBranch],
-    { cwd: projectRoot },
+    { cwd: projectRoot }
   )
 
   return {
     branch: uniqueBranch,
     path: path.resolve(worktreePath),
-    contentDir: path.join(path.resolve(worktreePath), 'content'),
+    contentDir: path.join(path.resolve(worktreePath), 'content')
   }
 }
 
@@ -99,12 +99,12 @@ export async function createWorktree(
  * List all git worktrees in the repository.
  */
 export async function listWorktrees(
-  projectRoot: string,
+  projectRoot: string
 ): Promise<WorktreeInfo[]> {
   const { stdout } = await execFileAsync(
     'git',
     ['worktree', 'list', '--porcelain'],
-    { cwd: projectRoot },
+    { cwd: projectRoot }
   )
 
   const worktrees: WorktreeInfo[] = []
@@ -121,7 +121,7 @@ export async function listWorktrees(
         worktrees.push({
           branch: currentBranch,
           path: currentPath,
-          contentDir: path.join(currentPath, 'content'),
+          contentDir: path.join(currentPath, 'content')
         })
       }
       currentPath = ''
@@ -137,13 +137,13 @@ export async function listWorktrees(
  */
 async function getWorktreeBranch(
   projectRoot: string,
-  worktreePath: string,
+  worktreePath: string
 ): Promise<string | null> {
   try {
     const { stdout } = await execFileAsync(
       'git',
       ['rev-parse', '--abbrev-ref', 'HEAD'],
-      { cwd: worktreePath },
+      { cwd: worktreePath }
     )
     return stdout.trim() || null
   } catch {
@@ -157,12 +157,12 @@ async function getWorktreeBranch(
 export async function removeWorktree(
   projectRoot: string,
   worktreePath: string,
-  options?: { deleteRemoteBranch?: boolean },
+  options?: { deleteRemoteBranch?: boolean }
 ): Promise<void> {
   const branch = await getWorktreeBranch(projectRoot, worktreePath)
 
   await execFileAsync('git', ['worktree', 'remove', worktreePath, '--force'], {
-    cwd: projectRoot,
+    cwd: projectRoot
   })
 
   // Delete the local branch after worktree is removed
@@ -177,7 +177,7 @@ export async function removeWorktree(
     if (options?.deleteRemoteBranch) {
       try {
         await execFileAsync('git', ['push', 'origin', '--delete', branch], {
-          cwd: projectRoot,
+          cwd: projectRoot
         })
       } catch {
         // Remote branch may not exist or no remote configured

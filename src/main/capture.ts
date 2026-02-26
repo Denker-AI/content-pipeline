@@ -32,29 +32,26 @@ function generateFilename(prefix: string, ext: string): string {
 function getScreenshotDir(
   contentDir: string,
   contentType?: ContentType,
-  presetName?: string,
+  presetName?: string
 ): string {
   // For LinkedIn carousel preset, use carousel-images subdirectory
-  if (
-    contentType === 'linkedin' &&
-    presetName === 'LinkedIn Carousel'
-  ) {
+  if (contentType === 'linkedin' && presetName === 'LinkedIn Carousel') {
     return path.join(contentDir, 'carousel-images')
   }
   return path.join(contentDir, 'screenshots')
 }
 
 export async function captureScreenshot(
-  request: CaptureScreenshotRequest,
+  request: CaptureScreenshotRequest
 ): Promise<ScreenshotResult> {
   const outputDir = getScreenshotDir(
     request.contentDir,
     request.contentType,
-    request.presetName,
+    request.presetName
   )
   const filename = generateFilename(
     request.presetName.toLowerCase().replace(/\s+/g, '-'),
-    'png',
+    'png'
   )
   const outputPath = path.join(outputDir, filename)
 
@@ -64,12 +61,12 @@ export async function captureScreenshot(
     width: request.width,
     height: request.height,
     outputPath,
-    deviceScaleFactor: 2,
+    deviceScaleFactor: 2
   })
 }
 
 export async function captureVideo(
-  request: CaptureVideoRequest,
+  request: CaptureVideoRequest
 ): Promise<VideoResult> {
   const outputDir = path.join(request.contentDir, 'videos')
 
@@ -79,6 +76,6 @@ export async function captureVideo(
     width: request.width,
     height: request.height,
     outputDir,
-    duration: request.duration,
+    duration: request.duration
   })
 }

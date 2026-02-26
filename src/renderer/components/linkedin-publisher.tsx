@@ -46,13 +46,19 @@ function PreviewThumb({ html }: { html: string }) {
           height: Math.round(PREVIEW_THUMB_H / PREVIEW_SCALE),
           transform: `scale(${PREVIEW_SCALE})`,
           transformOrigin: 'top left',
-          pointerEvents: 'none',
+          pointerEvents: 'none'
         }}
       >
         <iframe
           ref={iframeRef}
           sandbox="allow-scripts allow-same-origin"
-          style={{ width: PREVIEW_W, height: Math.round(PREVIEW_THUMB_H / PREVIEW_SCALE), border: 0, background: 'white', display: 'block' }}
+          style={{
+            width: PREVIEW_W,
+            height: Math.round(PREVIEW_THUMB_H / PREVIEW_SCALE),
+            border: 0,
+            background: 'white',
+            display: 'block'
+          }}
           title="Post preview"
         />
       </div>
@@ -88,13 +94,19 @@ function SlideThumb({ html }: { html: string }) {
           height: SLIDE_H,
           transform: `scale(${THUMB_SCALE})`,
           transformOrigin: 'top left',
-          pointerEvents: 'none',
+          pointerEvents: 'none'
         }}
       >
         <iframe
           ref={iframeRef}
           sandbox="allow-scripts allow-same-origin"
-          style={{ width: SLIDE_W, height: SLIDE_H, border: 0, background: 'white', display: 'block' }}
+          style={{
+            width: SLIDE_W,
+            height: SLIDE_H,
+            border: 0,
+            background: 'white',
+            display: 'block'
+          }}
           title="Slide preview"
         />
       </div>
@@ -105,11 +117,11 @@ function SlideThumb({ html }: { html: string }) {
 export function LinkedInPublisher({
   isOpen,
   onClose,
-  contentDir,
+  contentDir
 }: LinkedInPublisherProps) {
   const [postText, setPostText] = useState('')
-  const [images, setImages] = useState<ImageFile[]>([])    // PNG/JPG files — actual upload-ready images
-  const [slides, setSlides] = useState<SlideFile[]>([])    // slide-*.html files
+  const [images, setImages] = useState<ImageFile[]>([]) // PNG/JPG files — actual upload-ready images
+  const [slides, setSlides] = useState<SlideFile[]>([]) // slide-*.html files
   const [previewHtml, setPreviewHtml] = useState<string | null>(null) // preview.html (filled)
   const [loadingContent, setLoadingContent] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -147,7 +159,7 @@ export function LinkedInPublisher({
 
         // 1. PNG/JPG images — upload-ready, show these first
         const imgEntries = entries
-          .filter((e) => !e.isDirectory && /\.(png|jpg|jpeg|webp)$/i.test(e.name))
+          .filter(e => !e.isDirectory && /\.(png|jpg|jpeg|webp)$/i.test(e.name))
           .sort((a, b) => a.name.localeCompare(b.name))
 
         const imgData: ImageFile[] = []
@@ -155,13 +167,15 @@ export function LinkedInPublisher({
           try {
             const dataUrl = await api.readAsDataUrl(entry.path)
             imgData.push({ name: entry.name, dataUrl })
-          } catch { /* skip */ }
+          } catch {
+            /* skip */
+          }
         }
         setImages(imgData)
 
         // 2. slide-*.html files (carousel)
         const slideEntries = entries
-          .filter((e) => !e.isDirectory && /^slide-\d+.*\.html$/i.test(e.name))
+          .filter(e => !e.isDirectory && /^slide-\d+.*\.html$/i.test(e.name))
           .sort((a, b) => a.name.localeCompare(b.name))
 
         const slideData: SlideFile[] = []
@@ -169,7 +183,9 @@ export function LinkedInPublisher({
           try {
             const html = await api.read(entry.path)
             slideData.push({ name: entry.name, html })
-          } catch { /* skip */ }
+          } catch {
+            /* skip */
+          }
         }
         setSlides(slideData)
 
@@ -177,7 +193,9 @@ export function LinkedInPublisher({
         try {
           const html = await api.read(`${contentDir}/preview.html`)
           if (!html.includes('{{')) setPreviewHtml(html)
-        } catch { /* no preview.html */ }
+        } catch {
+          /* no preview.html */
+        }
       } catch {
         // content dir unreadable
       }
@@ -215,8 +233,12 @@ export function LinkedInPublisher({
 
   const logScheduled = useCallback(async () => {
     if (!scheduleDate) return
-    const scheduledAt = new Date(`${scheduleDate}T${scheduleTime}:00`).toISOString()
-    await window.electronAPI?.pipeline.updateMetadata(metadataPath, { scheduledAt })
+    const scheduledAt = new Date(
+      `${scheduleDate}T${scheduleTime}:00`
+    ).toISOString()
+    await window.electronAPI?.pipeline.updateMetadata(metadataPath, {
+      scheduledAt
+    })
     await window.electronAPI?.pipeline.updateStage(metadataPath, 'scheduled')
     setDone('scheduled')
   }, [metadataPath, scheduleDate, scheduleTime])
@@ -233,12 +255,15 @@ export function LinkedInPublisher({
 
   const scheduleDateLabel =
     scheduleDate && scheduleTime
-      ? new Date(`${scheduleDate}T${scheduleTime}:00`).toLocaleString(undefined, {
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-        })
+      ? new Date(`${scheduleDate}T${scheduleTime}:00`).toLocaleString(
+          undefined,
+          {
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          }
+        )
       : null
 
   return (
@@ -248,18 +273,29 @@ export function LinkedInPublisher({
     >
       <div
         className="relative w-full max-w-xl max-h-[88vh] overflow-y-auto rounded-lg border border-zinc-700 bg-zinc-900 shadow-xl flex flex-col"
-        onClick={(e) => e.stopPropagation()}
+        onClick={e => e.stopPropagation()}
       >
         {/* Header */}
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-zinc-700 bg-zinc-900 px-5 py-3">
-          <h2 className="text-sm font-semibold text-white">Share on LinkedIn</h2>
+          <h2 className="text-sm font-semibold text-white">
+            Share on LinkedIn
+          </h2>
           <button
             onClick={onClose}
             className="text-zinc-400 hover:text-white"
             aria-label="Close"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                clipRule="evenodd"
+              />
             </svg>
           </button>
         </div>
@@ -273,13 +309,22 @@ export function LinkedInPublisher({
           <div className="px-5 py-10 text-center">
             {done === 'published' ? (
               <>
-                <p className="text-sm font-medium text-green-400">Marked as published</p>
-                <p className="mt-1 text-xs text-zinc-500">Stage updated in your pipeline.</p>
+                <p className="text-sm font-medium text-green-400">
+                  Marked as published
+                </p>
+                <p className="mt-1 text-xs text-zinc-500">
+                  Stage updated in your pipeline.
+                </p>
               </>
             ) : (
               <>
-                <p className="text-sm font-medium text-blue-400">Scheduled for {scheduleDateLabel}</p>
-                <p className="mt-1 text-xs text-zinc-500">Logged in your pipeline. Post manually on LinkedIn at that time.</p>
+                <p className="text-sm font-medium text-blue-400">
+                  Scheduled for {scheduleDateLabel}
+                </p>
+                <p className="mt-1 text-xs text-zinc-500">
+                  Logged in your pipeline. Post manually on LinkedIn at that
+                  time.
+                </p>
               </>
             )}
             <button
@@ -294,9 +339,13 @@ export function LinkedInPublisher({
             {/* Post text */}
             <div>
               <div className="mb-1 flex items-center justify-between">
-                <label className="text-xs font-medium text-zinc-400">Post Text</label>
+                <label className="text-xs font-medium text-zinc-400">
+                  Post Text
+                </label>
                 <div className="flex items-center gap-2">
-                  <span className={`text-xs ${charCount > 3000 ? 'text-red-400' : 'text-zinc-500'}`}>
+                  <span
+                    className={`text-xs ${charCount > 3000 ? 'text-red-400' : 'text-zinc-500'}`}
+                  >
                     {charCount.toLocaleString()} / 3,000
                   </span>
                   <button
@@ -330,14 +379,19 @@ export function LinkedInPublisher({
                 <div className="mb-1 flex items-center justify-between">
                   <label className="text-xs font-medium text-zinc-400">
                     Images ({images.length})
-                    <span className="ml-1 text-[10px] text-green-500 font-normal">ready to upload</span>
+                    <span className="ml-1 text-[10px] text-green-500 font-normal">
+                      ready to upload
+                    </span>
                   </label>
-                  <button onClick={openInFinder} className="text-xs text-zinc-400 hover:text-zinc-200">
+                  <button
+                    onClick={openInFinder}
+                    className="text-xs text-zinc-400 hover:text-zinc-200"
+                  >
                     Open folder ↗
                   </button>
                 </div>
                 <div className="flex gap-2 overflow-x-auto pb-1">
-                  {images.map((img) => (
+                  {images.map(img => (
                     <div key={img.name} className="shrink-0 text-center">
                       <img
                         src={img.dataUrl}
@@ -345,7 +399,10 @@ export function LinkedInPublisher({
                         className="rounded border border-zinc-700 object-cover"
                         style={{ width: 120, height: 150 }}
                       />
-                      <p className="mt-1 text-[10px] text-zinc-500 truncate" style={{ maxWidth: 120 }}>
+                      <p
+                        className="mt-1 text-[10px] text-zinc-500 truncate"
+                        style={{ maxWidth: 120 }}
+                      >
                         {img.name}
                       </p>
                     </div>
@@ -360,19 +417,27 @@ export function LinkedInPublisher({
                 <div className="mb-1 flex items-center justify-between">
                   <label className="text-xs font-medium text-zinc-400">
                     Slides ({slides.length})
-                    <span className="ml-1 text-[10px] text-amber-400 font-normal">capture to export</span>
+                    <span className="ml-1 text-[10px] text-amber-400 font-normal">
+                      capture to export
+                    </span>
                   </label>
                   {images.length === 0 && (
-                    <button onClick={openInFinder} className="text-xs text-zinc-400 hover:text-zinc-200">
+                    <button
+                      onClick={openInFinder}
+                      className="text-xs text-zinc-400 hover:text-zinc-200"
+                    >
                       Open folder ↗
                     </button>
                   )}
                 </div>
                 <div className="flex gap-2 overflow-x-auto pb-1">
-                  {slides.map((slide) => (
+                  {slides.map(slide => (
                     <div key={slide.name} className="shrink-0 text-center">
                       <SlideThumb html={slide.html} />
-                      <p className="mt-1 text-[10px] text-zinc-500 truncate" style={{ maxWidth: THUMB_W }}>
+                      <p
+                        className="mt-1 text-[10px] text-zinc-500 truncate"
+                        style={{ maxWidth: THUMB_W }}
+                      >
                         {slide.name.replace(/\.html$/i, '')}
                       </p>
                     </div>
@@ -388,8 +453,13 @@ export function LinkedInPublisher({
             {previewHtml && images.length === 0 && slides.length === 0 && (
               <div>
                 <div className="mb-1 flex items-center justify-between">
-                  <label className="text-xs font-medium text-zinc-400">Post Preview</label>
-                  <button onClick={openInFinder} className="text-xs text-zinc-400 hover:text-zinc-200">
+                  <label className="text-xs font-medium text-zinc-400">
+                    Post Preview
+                  </label>
+                  <button
+                    onClick={openInFinder}
+                    className="text-xs text-zinc-400 hover:text-zinc-200"
+                  >
                     Open folder ↗
                   </button>
                 </div>
@@ -406,13 +476,13 @@ export function LinkedInPublisher({
                 <input
                   type="date"
                   value={scheduleDate}
-                  onChange={(e) => setScheduleDate(e.target.value)}
+                  onChange={e => setScheduleDate(e.target.value)}
                   className="flex-1 rounded border border-zinc-700 bg-zinc-800 px-2 py-1.5 text-xs text-zinc-200 focus:border-blue-500 focus:outline-none"
                 />
                 <input
                   type="time"
                   value={scheduleTime}
-                  onChange={(e) => setScheduleTime(e.target.value)}
+                  onChange={e => setScheduleTime(e.target.value)}
                   className="rounded border border-zinc-700 bg-zinc-800 px-2 py-1.5 text-xs text-zinc-200 focus:border-blue-500 focus:outline-none"
                 />
               </div>

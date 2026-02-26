@@ -1,26 +1,28 @@
 import fs from 'fs/promises'
 import path from 'path'
 
-import type { ResendAudience, ResendSendResult, ResendTestResult } from '@/shared/types'
+import type {
+  ResendAudience,
+  ResendSendResult,
+  ResendTestResult
+} from '@/shared/types'
 
 const API_BASE = 'https://api.resend.com'
 
 function authHeaders(apiKey: string): Record<string, string> {
   return {
     Authorization: `Bearer ${apiKey}`,
-    'Content-Type': 'application/json',
+    'Content-Type': 'application/json'
   }
 }
 
-export async function listAudiences(
-  apiKey: string,
-): Promise<ResendAudience[]> {
+export async function listAudiences(apiKey: string): Promise<ResendAudience[]> {
   if (!apiKey) {
     throw new Error('Resend API key not configured. Set it in Settings.')
   }
 
   const res = await fetch(`${API_BASE}/audiences`, {
-    headers: authHeaders(apiKey),
+    headers: authHeaders(apiKey)
   })
   if (!res.ok) {
     const text = await res.text()
@@ -30,7 +32,7 @@ export async function listAudiences(
   const data = (await res.json()) as {
     data: Array<{ id: string; name: string }>
   }
-  return data.data.map((a) => ({ id: a.id, name: a.name }))
+  return data.data.map(a => ({ id: a.id, name: a.name }))
 }
 
 async function findEmailHtml(contentDir: string): Promise<string> {
@@ -49,7 +51,7 @@ async function createBroadcast(
   audienceId: string,
   subject: string,
   previewText: string,
-  html: string,
+  html: string
 ): Promise<string> {
   const res = await fetch(`${API_BASE}/broadcasts`, {
     method: 'POST',
@@ -59,8 +61,8 @@ async function createBroadcast(
       from: fromEmail,
       subject,
       preview_text: previewText,
-      html,
-    }),
+      html
+    })
   })
   if (!res.ok) {
     const text = await res.text()
@@ -72,11 +74,11 @@ async function createBroadcast(
 
 async function sendBroadcast(
   apiKey: string,
-  broadcastId: string,
+  broadcastId: string
 ): Promise<void> {
   const res = await fetch(`${API_BASE}/broadcasts/${broadcastId}/send`, {
     method: 'POST',
-    headers: authHeaders(apiKey),
+    headers: authHeaders(apiKey)
   })
   if (!res.ok) {
     const text = await res.text()
@@ -90,7 +92,7 @@ export async function sendTestEmail(
   fromEmail: string,
   to: string,
   subject: string,
-  previewText: string,
+  previewText: string
 ): Promise<ResendTestResult> {
   if (!apiKey) {
     throw new Error('Resend API key not configured. Set it in Settings.')
@@ -116,8 +118,8 @@ export async function sendTestEmail(
       from: fromEmail,
       to: [to],
       subject: `[TEST] ${subject}`,
-      html: fullHtml,
-    }),
+      html: fullHtml
+    })
   })
   if (!res.ok) {
     const text = await res.text()
@@ -133,7 +135,7 @@ export async function sendNewsletter(
   fromEmail: string,
   audienceId: string,
   subject: string,
-  previewText: string,
+  previewText: string
 ): Promise<ResendSendResult> {
   if (!apiKey) {
     throw new Error('Resend API key not configured. Set it in Settings.')
@@ -154,7 +156,7 @@ export async function sendNewsletter(
     audienceId,
     subject,
     previewText,
-    html,
+    html
   )
 
   // Send it
@@ -167,12 +169,12 @@ export async function sendNewsletter(
     status: 'sent',
     sent_at: new Date().toISOString(),
     audience_id: audienceId,
-    subject,
+    subject
   }
   await fs.writeFile(
     newsletterJsonPath,
     JSON.stringify(newsletterJson, null, 2),
-    'utf-8',
+    'utf-8'
   )
 
   return { broadcastId }

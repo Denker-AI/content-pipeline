@@ -14,11 +14,10 @@ import { ThreePaneLayout } from './components/three-pane-layout'
 import { useContent } from './hooks/use-content'
 import { useTheme } from './hooks/use-theme'
 
-
 const STARTER_PROMPTS: Record<string, string> = {
   linkedin: 'Create a LinkedIn post about ',
   blog: 'Write a blog post about ',
-  newsletter: 'Create a newsletter about ',
+  newsletter: 'Create a newsletter about '
 }
 
 export function App() {
@@ -55,17 +54,17 @@ export function App() {
     refreshCount,
     selectFile,
     selectVersion,
-    openProject,
+    openProject
   } = useContent(activeContentDir)
 
-  const projectName = projectRoot ? projectRoot.split('/').pop() ?? '' : ''
+  const projectName = projectRoot ? (projectRoot.split('/').pop() ?? '') : ''
 
   // Open a tab for a pipeline item (or focus if already open)
   const openTab = useCallback(
     async (item: PipelineItem, isNew = false) => {
       setActiveItem(item)
 
-      const existingTab = tabs.find((t) => t.id === item.id)
+      const existingTab = tabs.find(t => t.id === item.id)
       if (existingTab) {
         // Already open — just focus it
         setActiveTabId(existingTab.id)
@@ -76,7 +75,7 @@ export function App() {
 
       // Create a new tab
       const newTab: Tab = { id: item.id, pipelineItem: item }
-      setTabs((prev) => [...prev, newTab])
+      setTabs(prev => [...prev, newTab])
       setActiveTabId(newTab.id)
 
       // Create PTY for this tab
@@ -92,7 +91,7 @@ export function App() {
         pendingPromptsRef.current.add(newTab.id)
       }
     },
-    [tabs],
+    [tabs]
   )
 
   // Type starter prompts after PTY is ready (short delay for shell init)
@@ -103,7 +102,7 @@ export function App() {
     pendingPromptsRef.current.clear()
 
     for (const tabId of pending) {
-      const tab = tabs.find((t) => t.id === tabId)
+      const tab = tabs.find(t => t.id === tabId)
       if (!tab) continue
 
       const prompt = STARTER_PROMPTS[tab.pipelineItem.type]
@@ -119,16 +118,16 @@ export function App() {
   // Close a tab
   const closeTab = useCallback(
     (tabId: string) => {
-      const tabIndex = tabs.findIndex((t) => t.id === tabId)
+      const tabIndex = tabs.findIndex(t => t.id === tabId)
 
       // Destroy PTY
       window.electronAPI?.terminal.closeTab(tabId)
 
-      setTabs((prev) => prev.filter((t) => t.id !== tabId))
+      setTabs(prev => prev.filter(t => t.id !== tabId))
 
       // If closing the active tab, switch to a neighbor
       if (activeTabId === tabId) {
-        const remaining = tabs.filter((t) => t.id !== tabId)
+        const remaining = tabs.filter(t => t.id !== tabId)
         if (remaining.length > 0) {
           const nextIndex = Math.min(tabIndex, remaining.length - 1)
           const nextTab = remaining[nextIndex]
@@ -141,20 +140,20 @@ export function App() {
         }
       }
     },
-    [tabs, activeTabId],
+    [tabs, activeTabId]
   )
 
   // Switch active tab
   const switchTab = useCallback(
     async (tabId: string) => {
       setActiveTabId(tabId)
-      const tab = tabs.find((t) => t.id === tabId)
+      const tab = tabs.find(t => t.id === tabId)
       if (tab) {
         setActiveItem(tab.pipelineItem)
         await window.electronAPI?.pipeline.activateContent(tab.pipelineItem)
       }
     },
-    [tabs],
+    [tabs]
   )
 
   // Content tab click — preview only (no terminal)
@@ -163,12 +162,12 @@ export function App() {
       setActiveItem(item)
       await window.electronAPI?.pipeline.activateContent(item)
       // If there's already a tab for this item, focus it
-      const existingTab = tabs.find((t) => t.id === item.id)
+      const existingTab = tabs.find(t => t.id === item.id)
       if (existingTab) {
         setActiveTabId(existingTab.id)
       }
     },
-    [tabs],
+    [tabs]
   )
 
   // Sidebar create ("+") — create content and open terminal tab
@@ -176,7 +175,7 @@ export function App() {
     (item: PipelineItem) => {
       openTab(item, true)
     },
-    [openTab],
+    [openTab]
   )
 
   // Branch tab click — open terminal + show preview
@@ -185,11 +184,11 @@ export function App() {
       // Find the matching pipeline item for this worktree
       const items = await window.electronAPI?.pipeline.listPipelineItems()
       const item = items?.find(
-        (i) =>
+        i =>
           i.worktreeBranch === worktree.branch ||
           i.worktreePath === worktree.path ||
           // Fallback: derive branch from item ID (content/<type>/<date>)
-          `content/${i.id}` === worktree.branch,
+          `content/${i.id}` === worktree.branch
       )
       if (item) {
         // Ensure worktree fields are set even if metadata was missing them
@@ -198,17 +197,18 @@ export function App() {
         openTab(item, false)
       }
     },
-    [openTab],
+    [openTab]
   )
 
   // Start a Claude session in the active terminal tab
   const handleStartClaude = useCallback(
     (mode: 'normal' | 'yolo') => {
       if (!activeTabId) return
-      const cmd = mode === 'yolo' ? 'claude --dangerously-skip-permissions\n' : 'claude\n'
+      const cmd =
+        mode === 'yolo' ? 'claude --dangerously-skip-permissions\n' : 'claude\n'
       window.electronAPI?.terminal.sendInput(activeTabId, cmd)
     },
-    [activeTabId],
+    [activeTabId]
   )
 
   // Save session state when tabs or active tab change (debounced)
@@ -221,9 +221,9 @@ export function App() {
       await window.electronAPI?.settings.saveUser({
         ...settings,
         lastSession: {
-          openTabIds: tabs.map((t) => t.id),
-          activeTabId,
-        },
+          openTabIds: tabs.map(t => t.id),
+          activeTabId
+        }
       })
     }, 500)
   }, [tabs, activeTabId])
@@ -244,7 +244,7 @@ export function App() {
       if (!items?.length) return
 
       for (const tabId of session.openTabIds) {
-        const item = items.find((i) => i.id === tabId)
+        const item = items.find(i => i.id === tabId)
         if (item) {
           await openTab(item, false)
         }
@@ -252,7 +252,7 @@ export function App() {
 
       // Focus the last active tab
       if (session.activeTabId) {
-        const activeItem = items.find((i) => i.id === session.activeTabId)
+        const activeItem = items.find(i => i.id === session.activeTabId)
         if (activeItem) {
           setActiveTabId(session.activeTabId)
           setActiveItem(activeItem)
@@ -287,16 +287,16 @@ export function App() {
       const items = await window.electronAPI?.pipeline.listPipelineItems()
       if (!items?.length) return
 
-      setTabs((prev) =>
-        prev.map((tab) => {
-          const fresh = items.find((i) => i.id === tab.id)
+      setTabs(prev =>
+        prev.map(tab => {
+          const fresh = items.find(i => i.id === tab.id)
           return fresh ? { ...tab, pipelineItem: fresh } : tab
-        }),
+        })
       )
 
-      setActiveItem((prev) => {
+      setActiveItem(prev => {
         if (!prev) return prev
-        const fresh = items.find((i) => i.id === prev.id)
+        const fresh = items.find(i => i.id === prev.id)
         return fresh ?? prev
       })
     })
@@ -308,7 +308,7 @@ export function App() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === ',' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
-        setSettingsOpen((prev) => !prev)
+        setSettingsOpen(prev => !prev)
       }
     }
     window.addEventListener('keydown', handleKeyDown)
@@ -317,7 +317,9 @@ export function App() {
 
   return (
     <div className="flex h-screen flex-col bg-zinc-50 dark:bg-zinc-950">
-      {showWizard && <OnboardingWizard onComplete={() => setShowWizard(false)} />}
+      {showWizard && (
+        <OnboardingWizard onComplete={() => setShowWizard(false)} />
+      )}
       <div className="flex-1 overflow-hidden">
         <ThreePaneLayout
           left={
@@ -386,11 +388,13 @@ export function App() {
                     </p>
                   </div>
                 ) : (
-                  tabs.map((tab) => (
+                  tabs.map(tab => (
                     <div
                       key={tab.id}
                       className={`absolute inset-0 ${
-                        tab.id === activeTabId ? '' : 'pointer-events-none invisible'
+                        tab.id === activeTabId
+                          ? ''
+                          : 'pointer-events-none invisible'
                       }`}
                     >
                       <TerminalPane tabId={tab.id} />

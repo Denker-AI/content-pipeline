@@ -19,7 +19,7 @@ export function CommentOverlay({
   onAddComment,
   selectedCommentId,
   onSelectComment,
-  children,
+  children
 }: CommentOverlayProps) {
   const overlayRef = useRef<HTMLDivElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -62,7 +62,7 @@ export function CommentOverlay({
 
       return ''
     },
-    [],
+    []
   )
 
   const handleOverlayClick = useCallback(
@@ -79,20 +79,27 @@ export function CommentOverlay({
       const scrollHeight = scrollEl.scrollHeight
 
       // Position = (viewport offset + scroll offset) / full scrollable size
-      const x = ((e.clientX - rect.left + scrollEl.scrollLeft) / scrollWidth) * 100
-      const y = ((e.clientY - rect.top + scrollEl.scrollTop) / scrollHeight) * 100
+      const x =
+        ((e.clientX - rect.left + scrollEl.scrollLeft) / scrollWidth) * 100
+      const y =
+        ((e.clientY - rect.top + scrollEl.scrollTop) / scrollHeight) * 100
       const nearText = extractNearText(e.clientX, e.clientY)
 
       setPendingPin({ x, y, nearText })
       setInputText('')
       onSelectComment(null)
     },
-    [annotating, extractNearText, onSelectComment],
+    [annotating, extractNearText, onSelectComment]
   )
 
   const handleSubmit = useCallback(() => {
     if (!pendingPin || !inputText.trim()) return
-    onAddComment(pendingPin.x, pendingPin.y, inputText.trim(), pendingPin.nearText)
+    onAddComment(
+      pendingPin.x,
+      pendingPin.y,
+      inputText.trim(),
+      pendingPin.nearText
+    )
     setPendingPin(null)
     setInputText('')
   }, [pendingPin, inputText, onAddComment])
@@ -108,14 +115,17 @@ export function CommentOverlay({
         setInputText('')
       }
     },
-    [handleSubmit],
+    [handleSubmit]
   )
 
-  const activeComments = comments.filter((c) => !c.resolved)
+  const activeComments = comments.filter(c => !c.resolved)
   const nextPinNumber = activeComments.length + 1
 
   return (
-    <div ref={overlayRef} className="relative h-full w-full overflow-auto thin-scrollbar" >
+    <div
+      ref={overlayRef}
+      className="relative h-full w-full overflow-auto thin-scrollbar"
+    >
       {/* Inner container sized to scrollable content — pins live here
           so they scroll with the content instead of staying fixed. */}
       <div ref={scrollRef} className="relative min-h-full">
@@ -130,7 +140,7 @@ export function CommentOverlay({
         )}
 
         {/* Existing pins — positioned relative to full scrollable content */}
-        {activeComments.map((comment) => (
+        {activeComments.map(comment => (
           <CommentPin
             key={comment.id}
             number={comment.pinNumber}
@@ -154,9 +164,9 @@ export function CommentOverlay({
               className="absolute z-30 w-64 rounded-lg border border-zinc-200 dark:border-zinc-600 bg-white dark:bg-zinc-800 p-3 shadow-xl"
               style={{
                 left: `${Math.min(pendingPin.x, 70)}%`,
-                top: `${pendingPin.y + 3}%`,
+                top: `${pendingPin.y + 3}%`
               }}
-              onClick={(e) => e.stopPropagation()}
+              onClick={e => e.stopPropagation()}
             >
               {pendingPin.nearText && (
                 <p className="mb-2 truncate text-xs text-zinc-500 dark:text-zinc-400">
@@ -166,14 +176,16 @@ export function CommentOverlay({
               <textarea
                 ref={inputRef}
                 value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
+                onChange={e => setInputText(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Type your comment..."
                 className="w-full resize-none rounded border border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-900 px-2 py-1.5 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 focus:border-blue-500 focus:outline-none"
                 rows={2}
               />
               <div className="mt-2 flex items-center justify-between">
-                <span className="text-xs text-zinc-400 dark:text-zinc-500">Enter to add</span>
+                <span className="text-xs text-zinc-400 dark:text-zinc-500">
+                  Enter to add
+                </span>
                 <div className="flex gap-1">
                   <button
                     onClick={() => {

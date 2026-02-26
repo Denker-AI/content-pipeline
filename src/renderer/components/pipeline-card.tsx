@@ -14,8 +14,18 @@ function formatDate(dateStr: string): string {
   const parts = dateStr.split('-')
   if (parts.length < 2) return dateStr
   const monthNames = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec'
   ]
   const month = monthNames[parseInt(parts[1], 10) - 1] ?? parts[1]
   const day = parts[2] ? parseInt(parts[2], 10) : ''
@@ -26,14 +36,14 @@ export function PipelineCard({
   item,
   isActive,
   onSelect,
-  onStageChange,
+  onStageChange
 }: PipelineCardProps) {
   return (
     <div
       role="button"
       tabIndex={0}
       onClick={() => onSelect(item)}
-      onKeyDown={(e) => e.key === 'Enter' && onSelect(item)}
+      onKeyDown={e => e.key === 'Enter' && onSelect(item)}
       className={`flex w-full cursor-pointer items-center gap-2 border-l-2 px-3 py-2 text-left transition-colors ${
         isActive
           ? 'border-blue-500 bg-zinc-100 dark:bg-zinc-800'
@@ -41,7 +51,9 @@ export function PipelineCard({
       }`}
     >
       <div className="min-w-0 flex-1">
-        <p className="truncate text-xs text-zinc-700 dark:text-zinc-200">{item.title}</p>
+        <p className="truncate text-xs text-zinc-700 dark:text-zinc-200">
+          {item.title}
+        </p>
         {item.date && (
           <p className="mt-0.5 text-[10px] text-zinc-400 dark:text-zinc-500">
             {formatDate(item.date)}
@@ -50,7 +62,7 @@ export function PipelineCard({
       </div>
       <StageBadge
         stage={item.stage}
-        onChange={(stage) => onStageChange(item, stage)}
+        onChange={stage => onStageChange(item, stage)}
       />
     </div>
   )

@@ -7,12 +7,14 @@ import {
   CONTENT_CLAUDE_MD,
   generateBrandClaudeMd,
   LINKEDIN_POST_COMMAND,
-  LINKEDIN_PREVIEW_TEMPLATE,
+  LINKEDIN_PREVIEW_TEMPLATE
 } from './content-templates'
 
 const CANARY_FILE = '.claude/commands/linkedin-post.md'
 
-export async function isProjectConfigured(projectRoot: string): Promise<boolean> {
+export async function isProjectConfigured(
+  projectRoot: string
+): Promise<boolean> {
   try {
     await fs.access(path.join(projectRoot, CANARY_FILE))
     return true
@@ -25,21 +27,21 @@ export async function installProjectConfig(projectRoot: string): Promise<void> {
   const files: { filePath: string; content: string }[] = [
     {
       filePath: path.join(projectRoot, 'content', 'CLAUDE.md'),
-      content: CONTENT_CLAUDE_MD,
+      content: CONTENT_CLAUDE_MD
     },
     {
       filePath: path.join(
         projectRoot,
         'content',
         'templates',
-        'linkedin-post-preview.html',
+        'linkedin-post-preview.html'
       ),
-      content: LINKEDIN_PREVIEW_TEMPLATE,
+      content: LINKEDIN_PREVIEW_TEMPLATE
     },
     {
       filePath: path.join(projectRoot, CANARY_FILE),
-      content: LINKEDIN_POST_COMMAND,
-    },
+      content: LINKEDIN_POST_COMMAND
+    }
   ]
 
   for (const { filePath, content } of files) {
@@ -57,28 +59,28 @@ export async function installProjectConfig(projectRoot: string): Promise<void> {
 
 export async function installProjectConfigWithBrand(
   projectRoot: string,
-  brand: BrandConfig,
+  brand: BrandConfig
 ): Promise<void> {
   const claudeMd = generateBrandClaudeMd(brand)
 
   const files: { filePath: string; content: string }[] = [
     {
       filePath: path.join(projectRoot, 'content', 'CLAUDE.md'),
-      content: claudeMd,
+      content: claudeMd
     },
     {
       filePath: path.join(
         projectRoot,
         'content',
         'templates',
-        'linkedin-post-preview.html',
+        'linkedin-post-preview.html'
       ),
-      content: LINKEDIN_PREVIEW_TEMPLATE,
+      content: LINKEDIN_PREVIEW_TEMPLATE
     },
     {
       filePath: path.join(projectRoot, CANARY_FILE),
-      content: LINKEDIN_POST_COMMAND,
-    },
+      content: LINKEDIN_POST_COMMAND
+    }
   ]
 
   for (const { filePath, content } of files) {

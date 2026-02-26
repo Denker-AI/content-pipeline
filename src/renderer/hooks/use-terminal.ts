@@ -23,7 +23,7 @@ const darkTheme = {
   brightBlue: '#60a5fa',
   brightMagenta: '#c084fc',
   brightCyan: '#22d3ee',
-  brightWhite: '#ffffff',
+  brightWhite: '#ffffff'
 }
 
 const lightTheme = {
@@ -46,7 +46,7 @@ const lightTheme = {
   brightBlue: '#3b82f6',
   brightMagenta: '#a855f7',
   brightCyan: '#06b6d4',
-  brightWhite: '#09090b',
+  brightWhite: '#09090b'
 }
 
 function getTheme() {
@@ -57,7 +57,7 @@ function getTheme() {
 
 export function useTerminal(
   containerRef: React.RefObject<HTMLDivElement | null>,
-  tabId: string | null,
+  tabId: string | null
 ) {
   const terminalRef = useRef<Terminal | null>(null)
   const fitAddonRef = useRef<FitAddon | null>(null)
@@ -69,7 +69,7 @@ export function useTerminal(
       cursorBlink: true,
       fontSize: 13,
       fontFamily: 'Menlo, Monaco, "Courier New", monospace',
-      theme: getTheme(),
+      theme: getTheme()
     })
 
     const fitAddon = new FitAddon()
@@ -83,7 +83,7 @@ export function useTerminal(
     })
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['class'],
+      attributeFilter: ['class']
     })
 
     // Defer open() so the container has proper layout
@@ -113,7 +113,7 @@ export function useTerminal(
           }
         })
 
-        terminal.onData((data) => {
+        terminal.onData(data => {
           api.sendInput(tabId, data)
         })
 

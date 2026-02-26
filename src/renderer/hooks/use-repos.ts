@@ -17,32 +17,37 @@ export function useRepos() {
         const root = await window.electronAPI?.content.getProjectRoot()
         if (root) {
           const [items, worktrees] = await Promise.all([
-            window.electronAPI?.pipeline.listPipelineItems() ?? Promise.resolve([]),
-            window.electronAPI?.git.listWorktrees() ?? Promise.resolve([]),
+            window.electronAPI?.pipeline.listPipelineItems() ??
+              Promise.resolve([]),
+            window.electronAPI?.git.listWorktrees() ?? Promise.resolve([])
           ])
-          setRepos([{
-            path: root,
-            name: labels[root] ?? root.split('/').pop() ?? root,
-            items: items ?? [],
-            worktrees: worktrees ?? [],
-          }])
+          setRepos([
+            {
+              path: root,
+              name: labels[root] ?? root.split('/').pop() ?? root,
+              items: items ?? [],
+              worktrees: worktrees ?? []
+            }
+          ])
         } else {
           setRepos([])
         }
       } else {
         const results = await Promise.all(
-          repoPaths.map(async (repoPath) => {
+          repoPaths.map(async repoPath => {
             const [items, worktrees] = await Promise.all([
-              window.electronAPI?.pipeline.listPipelineItemsForRepo(repoPath) ?? Promise.resolve([]),
-              window.electronAPI?.git.listWorktreesForRepo(repoPath) ?? Promise.resolve([]),
+              window.electronAPI?.pipeline.listPipelineItemsForRepo(repoPath) ??
+                Promise.resolve([]),
+              window.electronAPI?.git.listWorktreesForRepo(repoPath) ??
+                Promise.resolve([])
             ])
             return {
               path: repoPath,
               name: labels[repoPath] ?? repoPath.split('/').pop() ?? repoPath,
               items: items ?? [],
-              worktrees: worktrees ?? [],
+              worktrees: worktrees ?? []
             }
-          }),
+          })
         )
         setRepos(results)
       }
@@ -81,23 +86,32 @@ export function useRepos() {
     return result ?? null
   }, [refresh])
 
-  const removeRepo = useCallback(async (repoPath: string) => {
-    await window.electronAPI?.content.removeRepo(repoPath)
-    await refresh()
-  }, [refresh])
+  const removeRepo = useCallback(
+    async (repoPath: string) => {
+      await window.electronAPI?.content.removeRepo(repoPath)
+      await refresh()
+    },
+    [refresh]
+  )
 
-  const renameRepo = useCallback(async (repoPath: string, newName: string) => {
-    const settings = await window.electronAPI?.settings.getUser()
-    if (!settings) return
-    const labels = { ...settings.repoLabels ?? {} }
-    if (newName.trim()) {
-      labels[repoPath] = newName.trim()
-    } else {
-      delete labels[repoPath]
-    }
-    await window.electronAPI?.settings.saveUser({ ...settings, repoLabels: labels })
-    await refresh()
-  }, [refresh])
+  const renameRepo = useCallback(
+    async (repoPath: string, newName: string) => {
+      const settings = await window.electronAPI?.settings.getUser()
+      if (!settings) return
+      const labels = { ...(settings.repoLabels ?? {}) }
+      if (newName.trim()) {
+        labels[repoPath] = newName.trim()
+      } else {
+        delete labels[repoPath]
+      }
+      await window.electronAPI?.settings.saveUser({
+        ...settings,
+        repoLabels: labels
+      })
+      await refresh()
+    },
+    [refresh]
+  )
 
   return { repos, loading, addRepo, removeRepo, renameRepo, refresh }
 }

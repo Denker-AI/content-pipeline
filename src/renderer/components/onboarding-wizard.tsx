@@ -10,7 +10,7 @@ import {
   FolderOpenIcon,
   NewsletterIcon,
   PublishIcon,
-  SparkleIcon,
+  SparkleIcon
 } from './icons'
 
 interface OnboardingWizardProps {
@@ -26,7 +26,7 @@ const EMPTY_BRAND: BrandConfig = {
   targetAudience: '',
   dos: '',
   donts: '',
-  examplePosts: '',
+  examplePosts: ''
 }
 
 export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
@@ -37,8 +37,8 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
   const [linkedinToken, setLinkedinToken] = useState('')
   const [resendApiKey, setResendApiKey] = useState('')
 
-  const next = () => setStep((s) => Math.min(s + 1, STEPS - 1))
-  const prev = () => setStep((s) => Math.max(s - 1, 0))
+  const next = () => setStep(s => Math.min(s + 1, STEPS - 1))
+  const prev = () => setStep(s => Math.max(s - 1, 0))
 
   const handleOpenProject = async () => {
     const result = await window.electronAPI?.content.openProject()
@@ -67,7 +67,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
           await window.electronAPI?.settings.saveUser({
             ...settings,
             linkedinToken: linkedinToken || settings.linkedinToken,
-            resendApiKey: resendApiKey || settings.resendApiKey,
+            resendApiKey: resendApiKey || settings.resendApiKey
           })
         }
       } catch (err) {
@@ -78,7 +78,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
   }
 
   const updateBrand = (field: keyof BrandConfig, value: string) => {
-    setBrand((prev) => ({ ...prev, [field]: value }))
+    setBrand(prev => ({ ...prev, [field]: value }))
   }
 
   const inputClass =
@@ -93,7 +93,11 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
             <div
               key={i}
               className={`h-1.5 rounded-full transition-all ${
-                i === step ? 'w-6 bg-blue-500' : i < step ? 'w-1.5 bg-blue-500/50' : 'w-1.5 bg-zinc-700'
+                i === step
+                  ? 'w-6 bg-blue-500'
+                  : i < step
+                    ? 'w-1.5 bg-blue-500/50'
+                    : 'w-1.5 bg-zinc-700'
               }`}
             />
           ))}
@@ -105,8 +109,18 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
             onClick={prev}
             className="absolute left-4 top-4 rounded-lg p-2 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300 transition-colors"
           >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15 19l-7-7 7-7"
+              />
             </svg>
           </button>
         )}
@@ -117,9 +131,12 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-500/10">
               <SparkleIcon className="h-7 w-7 text-blue-400" />
             </div>
-            <h1 className="mb-2 text-2xl font-semibold text-white">Welcome to Content Pipeline</h1>
+            <h1 className="mb-2 text-2xl font-semibold text-white">
+              Welcome to Content Pipeline
+            </h1>
             <p className="mb-8 text-sm text-zinc-400">
-              Create LinkedIn posts, blogs, and newsletters with AI — all from one place.
+              Create LinkedIn posts, blogs, and newsletters with AI — all from
+              one place.
             </p>
 
             <div className="mb-8 grid grid-cols-3 gap-3">
@@ -129,7 +146,9 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                   <CodeIcon className="h-5 w-5 text-emerald-400" />
                 </div>
                 <p className="text-xs font-medium text-zinc-300">Terminal</p>
-                <p className="mt-1 text-[11px] text-zinc-500">Write with Claude Code in a real terminal</p>
+                <p className="mt-1 text-[11px] text-zinc-500">
+                  Write with Claude Code in a real terminal
+                </p>
               </div>
               {/* Preview */}
               <div className="rounded-xl border border-zinc-800 bg-zinc-800/50 p-4">
@@ -137,7 +156,9 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                   <NewsletterIcon className="h-5 w-5 text-purple-400" />
                 </div>
                 <p className="text-xs font-medium text-zinc-300">Preview</p>
-                <p className="mt-1 text-[11px] text-zinc-500">Live preview of posts, blogs, newsletters</p>
+                <p className="mt-1 text-[11px] text-zinc-500">
+                  Live preview of posts, blogs, newsletters
+                </p>
               </div>
               {/* Pipeline */}
               <div className="rounded-xl border border-zinc-800 bg-zinc-800/50 p-4">
@@ -145,7 +166,9 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                   <FolderOpenIcon className="h-5 w-5 text-amber-400" />
                 </div>
                 <p className="text-xs font-medium text-zinc-300">Pipeline</p>
-                <p className="mt-1 text-[11px] text-zinc-500">Organize from idea to published</p>
+                <p className="mt-1 text-[11px] text-zinc-500">
+                  Organize from idea to published
+                </p>
               </div>
               {/* Screenshot */}
               <div className="rounded-xl border border-zinc-800 bg-zinc-800/50 p-4">
@@ -153,7 +176,9 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                   <CameraIcon className="h-5 w-5 text-cyan-400" />
                 </div>
                 <p className="text-xs font-medium text-zinc-300">Screenshot</p>
-                <p className="mt-1 text-[11px] text-zinc-500">Capture screenshots and video of your content</p>
+                <p className="mt-1 text-[11px] text-zinc-500">
+                  Capture screenshots and video of your content
+                </p>
               </div>
               {/* Annotate */}
               <div className="rounded-xl border border-zinc-800 bg-zinc-800/50 p-4">
@@ -161,7 +186,9 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                   <AnnotateIcon className="h-5 w-5 text-rose-400" />
                 </div>
                 <p className="text-xs font-medium text-zinc-300">Annotate</p>
-                <p className="mt-1 text-[11px] text-zinc-500">Click to annotate and send feedback to Claude</p>
+                <p className="mt-1 text-[11px] text-zinc-500">
+                  Click to annotate and send feedback to Claude
+                </p>
               </div>
               {/* Publish */}
               <div className="rounded-xl border border-zinc-800 bg-zinc-800/50 p-4">
@@ -169,7 +196,9 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                   <PublishIcon className="h-5 w-5 text-blue-400" />
                 </div>
                 <p className="text-xs font-medium text-zinc-300">Publish</p>
-                <p className="mt-1 text-[11px] text-zinc-500">Publish to LinkedIn, send newsletters, deploy blogs</p>
+                <p className="mt-1 text-[11px] text-zinc-500">
+                  Publish to LinkedIn, send newsletters, deploy blogs
+                </p>
               </div>
             </div>
 
@@ -185,9 +214,12 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
         {/* Step 1: Connect Repository */}
         {step === 1 && (
           <div>
-            <h2 className="mb-2 text-lg font-semibold text-white">Connect Repository</h2>
+            <h2 className="mb-2 text-lg font-semibold text-white">
+              Connect Repository
+            </h2>
             <p className="mb-6 text-sm text-zinc-400">
-              Select the project folder where your content lives. This should be a git repository.
+              Select the project folder where your content lives. This should be
+              a git repository.
             </p>
 
             {projectPath ? (
@@ -196,8 +228,12 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                   <CheckIcon className="h-5 w-5 text-green-400" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-green-300">Project connected</p>
-                  <p className="truncate text-xs text-green-400/70">{projectPath}</p>
+                  <p className="text-sm font-medium text-green-300">
+                    Project connected
+                  </p>
+                  <p className="truncate text-xs text-green-400/70">
+                    {projectPath}
+                  </p>
                 </div>
               </div>
             ) : (
@@ -225,83 +261,102 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
         {/* Step 2: Brand Setup */}
         {step === 2 && (
           <div>
-            <h2 className="mb-2 text-lg font-semibold text-white">Brand Setup</h2>
+            <h2 className="mb-2 text-lg font-semibold text-white">
+              Brand Setup
+            </h2>
             <p className="mb-6 text-sm text-zinc-400">
-              Tell Claude about your brand. This generates a CLAUDE.md file that guides all content creation.
+              Tell Claude about your brand. This generates a CLAUDE.md file that
+              guides all content creation.
             </p>
 
             <div className="space-y-4 max-h-[50vh] overflow-y-auto thin-scrollbar pr-1">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="mb-1 block text-xs text-zinc-400">Company</label>
+                  <label className="mb-1 block text-xs text-zinc-400">
+                    Company
+                  </label>
                   <input
                     type="text"
                     className={inputClass}
                     value={brand.company}
-                    onChange={(e) => updateBrand('company', e.target.value)}
+                    onChange={e => updateBrand('company', e.target.value)}
                     placeholder="Acme Corp"
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs text-zinc-400">Product</label>
+                  <label className="mb-1 block text-xs text-zinc-400">
+                    Product
+                  </label>
                   <input
                     type="text"
                     className={inputClass}
                     value={brand.product}
-                    onChange={(e) => updateBrand('product', e.target.value)}
+                    onChange={e => updateBrand('product', e.target.value)}
                     placeholder="Acme Platform"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="mb-1 block text-xs text-zinc-400">Voice & Tone</label>
+                <label className="mb-1 block text-xs text-zinc-400">
+                  Voice & Tone
+                </label>
                 <textarea
                   className={`${inputClass} h-16 resize-none`}
                   value={brand.voiceTone}
-                  onChange={(e) => updateBrand('voiceTone', e.target.value)}
+                  onChange={e => updateBrand('voiceTone', e.target.value)}
                   placeholder="Professional but approachable, technically credible, founder voice..."
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-xs text-zinc-400">Target Audience</label>
+                <label className="mb-1 block text-xs text-zinc-400">
+                  Target Audience
+                </label>
                 <input
                   type="text"
                   className={inputClass}
                   value={brand.targetAudience}
-                  onChange={(e) => updateBrand('targetAudience', e.target.value)}
+                  onChange={e => updateBrand('targetAudience', e.target.value)}
                   placeholder="Developers, CTOs, technical founders..."
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="mb-1 block text-xs text-zinc-400">Do (one per line)</label>
+                  <label className="mb-1 block text-xs text-zinc-400">
+                    Do (one per line)
+                  </label>
                   <textarea
                     className={`${inputClass} h-20 resize-none`}
                     value={brand.dos}
-                    onChange={(e) => updateBrand('dos', e.target.value)}
-                    placeholder={"Use concrete examples\nBe specific about technical details\nShare real numbers"}
+                    onChange={e => updateBrand('dos', e.target.value)}
+                    placeholder={
+                      'Use concrete examples\nBe specific about technical details\nShare real numbers'
+                    }
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs text-zinc-400">{"Don't (one per line)"}</label>
+                  <label className="mb-1 block text-xs text-zinc-400">
+                    {"Don't (one per line)"}
+                  </label>
                   <textarea
                     className={`${inputClass} h-20 resize-none`}
                     value={brand.donts}
-                    onChange={(e) => updateBrand('donts', e.target.value)}
+                    onChange={e => updateBrand('donts', e.target.value)}
                     placeholder={"No emojis\nDon't be salesy\nAvoid buzzwords"}
                   />
                 </div>
               </div>
 
               <div>
-                <label className="mb-1 block text-xs text-zinc-400">Example Posts</label>
+                <label className="mb-1 block text-xs text-zinc-400">
+                  Example Posts
+                </label>
                 <textarea
                   className={`${inputClass} h-20 resize-none`}
                   value={brand.examplePosts}
-                  onChange={(e) => updateBrand('examplePosts', e.target.value)}
+                  onChange={e => updateBrand('examplePosts', e.target.value)}
                   placeholder="Paste 1-2 example posts that represent your brand voice..."
                 />
               </div>
@@ -321,33 +376,44 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
         {/* Step 3: API Keys */}
         {step === 3 && (
           <div>
-            <h2 className="mb-2 text-lg font-semibold text-white">Connect Services</h2>
+            <h2 className="mb-2 text-lg font-semibold text-white">
+              Connect Services
+            </h2>
             <p className="mb-6 text-sm text-zinc-400">
-              Optional — add API keys to enable publishing. You can add these later in Settings.
+              Optional — add API keys to enable publishing. You can add these
+              later in Settings.
             </p>
 
             <div className="mb-6 space-y-4">
               <div>
-                <label className="mb-1 block text-xs text-zinc-400">LinkedIn Token</label>
+                <label className="mb-1 block text-xs text-zinc-400">
+                  LinkedIn Token
+                </label>
                 <input
                   type="password"
                   className={inputClass}
                   value={linkedinToken}
-                  onChange={(e) => setLinkedinToken(e.target.value)}
+                  onChange={e => setLinkedinToken(e.target.value)}
                   placeholder="Your LinkedIn access token"
                 />
-                <p className="mt-1 text-[11px] text-zinc-500">Required to publish LinkedIn posts</p>
+                <p className="mt-1 text-[11px] text-zinc-500">
+                  Required to publish LinkedIn posts
+                </p>
               </div>
               <div>
-                <label className="mb-1 block text-xs text-zinc-400">Resend API Key</label>
+                <label className="mb-1 block text-xs text-zinc-400">
+                  Resend API Key
+                </label>
                 <input
                   type="password"
                   className={inputClass}
                   value={resendApiKey}
-                  onChange={(e) => setResendApiKey(e.target.value)}
+                  onChange={e => setResendApiKey(e.target.value)}
                   placeholder="re_..."
                 />
-                <p className="mt-1 text-[11px] text-zinc-500">Required to send newsletters</p>
+                <p className="mt-1 text-[11px] text-zinc-500">
+                  Required to send newsletters
+                </p>
               </div>
             </div>
 
@@ -371,9 +437,12 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
         {/* Step 4: Install Skills */}
         {step === 4 && (
           <div>
-            <h2 className="mb-2 text-lg font-semibold text-white">Install Skills</h2>
+            <h2 className="mb-2 text-lg font-semibold text-white">
+              Install Skills
+            </h2>
             <p className="mb-6 text-sm text-zinc-400">
-              These files will be created in your project. Claude reads them to understand your brand and content structure.
+              These files will be created in your project. Claude reads them to
+              understand your brand and content structure.
             </p>
 
             <div className="mb-6 space-y-3">
@@ -382,8 +451,14 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                   <CodeIcon className="h-4 w-4 text-blue-400" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-zinc-200">content/CLAUDE.md</p>
-                  <p className="mt-0.5 text-xs text-zinc-500">{"Brand guidelines for Claude — voice, audience, dos/don'ts"}</p>
+                  <p className="text-sm font-medium text-zinc-200">
+                    content/CLAUDE.md
+                  </p>
+                  <p className="mt-0.5 text-xs text-zinc-500">
+                    {
+                      "Brand guidelines for Claude — voice, audience, dos/don'ts"
+                    }
+                  </p>
                 </div>
               </div>
 
@@ -392,8 +467,12 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                   <CodeIcon className="h-4 w-4 text-purple-400" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-zinc-200">.claude/commands/linkedin-post.md</p>
-                  <p className="mt-0.5 text-xs text-zinc-500">Slash command: /linkedin-post</p>
+                  <p className="text-sm font-medium text-zinc-200">
+                    .claude/commands/linkedin-post.md
+                  </p>
+                  <p className="mt-0.5 text-xs text-zinc-500">
+                    Slash command: /linkedin-post
+                  </p>
                 </div>
               </div>
 
@@ -402,8 +481,12 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                   <CodeIcon className="h-4 w-4 text-emerald-400" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-zinc-200">content/templates/linkedin-post-preview.html</p>
-                  <p className="mt-0.5 text-xs text-zinc-500">LinkedIn preview template</p>
+                  <p className="text-sm font-medium text-zinc-200">
+                    content/templates/linkedin-post-preview.html
+                  </p>
+                  <p className="mt-0.5 text-xs text-zinc-500">
+                    LinkedIn preview template
+                  </p>
                 </div>
               </div>
             </div>
@@ -426,9 +509,12 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-green-500/10">
               <CheckIcon className="h-7 w-7 text-green-400" />
             </div>
-            <h2 className="mb-2 text-2xl font-semibold text-white">{"You're all set!"}</h2>
+            <h2 className="mb-2 text-2xl font-semibold text-white">
+              {"You're all set!"}
+            </h2>
             <p className="mb-2 text-sm text-zinc-400">
-              Your content pipeline is ready. Brand guidelines, slash commands, and templates are installed.
+              Your content pipeline is ready. Brand guidelines, slash commands,
+              and templates are installed.
             </p>
             <p className="mb-8 text-xs text-zinc-500">
               Tip: Edit your brand guidelines anytime in Settings (Cmd+,)

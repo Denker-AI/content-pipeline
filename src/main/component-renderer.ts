@@ -7,7 +7,7 @@ export type ComponentRenderResult =
 
 export async function renderComponentToHtml(
   filePath: string,
-  projectRoot: string,
+  projectRoot: string
 ): Promise<ComponentRenderResult> {
   const absolutePath = path.isAbsolute(filePath)
     ? filePath
@@ -18,6 +18,10 @@ export async function renderComponentToHtml(
     // Return source so the renderer can send it to Claude for HTML generation
     return { ok: false, source, error: 'source-only' }
   } catch (err) {
-    return { ok: false, source: '', error: `Could not read file: ${String(err)}` }
+    return {
+      ok: false,
+      source: '',
+      error: `Could not read file: ${String(err)}`
+    }
   }
 }

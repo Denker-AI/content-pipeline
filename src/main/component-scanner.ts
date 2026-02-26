@@ -4,19 +4,31 @@ import path from 'path'
 import type { DetectedComponent } from '@/shared/types'
 
 const SKIP_DIRS = new Set([
-  'node_modules', '.next', '.git', 'dist', 'out', 'build',
-  '.worktrees', 'coverage', '.turbo', '.cache',
+  'node_modules',
+  '.next',
+  '.git',
+  'dist',
+  'out',
+  'build',
+  '.worktrees',
+  'coverage',
+  '.turbo',
+  '.cache'
 ])
 
 function toComponentName(filename: string): string {
   return filename
     .replace(/\.(tsx|jsx)$/, '')
     .split(/[-_]/)
-    .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+    .map(p => p.charAt(0).toUpperCase() + p.slice(1))
     .join('')
 }
 
-async function walk(dir: string, results: DetectedComponent[], projectRoot: string) {
+async function walk(
+  dir: string,
+  results: DetectedComponent[],
+  projectRoot: string
+) {
   let entries
   try {
     entries = await fs.readdir(dir, { withFileTypes: true })
@@ -37,14 +49,16 @@ async function walk(dir: string, results: DetectedComponent[], projectRoot: stri
         results.push({
           name,
           path: path.relative(projectRoot, fullPath),
-          description: '',
+          description: ''
         })
       }
     }
   }
 }
 
-export async function scanComponents(projectRoot: string): Promise<DetectedComponent[]> {
+export async function scanComponents(
+  projectRoot: string
+): Promise<DetectedComponent[]> {
   const results: DetectedComponent[] = []
   await walk(projectRoot, results, projectRoot)
   results.sort((a, b) => a.name.localeCompare(b.name))

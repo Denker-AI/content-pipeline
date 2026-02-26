@@ -17,10 +17,10 @@ export function CommentSidebar({
   onResolve,
   onDelete,
   onClearAll,
-  onSendToClaude,
+  onSendToClaude
 }: CommentSidebarProps) {
-  const activeComments = comments.filter((c) => !c.resolved)
-  const resolvedComments = comments.filter((c) => c.resolved)
+  const activeComments = comments.filter(c => !c.resolved)
+  const resolvedComments = comments.filter(c => c.resolved)
 
   return (
     <div className="flex w-64 shrink-0 flex-col border-l border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900">
@@ -47,7 +47,7 @@ export function CommentSidebar({
           </div>
         )}
 
-        {activeComments.map((comment) => (
+        {activeComments.map(comment => (
           <div
             key={comment.id}
             onClick={() => onSelectComment(comment.id)}
@@ -67,12 +67,14 @@ export function CommentSidebar({
                     Near &quot;{comment.nearText}&quot;
                   </p>
                 )}
-                <p className="mt-0.5 text-sm text-zinc-700 dark:text-zinc-200">{comment.text}</p>
+                <p className="mt-0.5 text-sm text-zinc-700 dark:text-zinc-200">
+                  {comment.text}
+                </p>
               </div>
             </div>
             <div className="mt-1.5 flex justify-end gap-1">
               <button
-                onClick={(e) => {
+                onClick={e => {
                   e.stopPropagation()
                   onResolve(comment.id)
                 }}
@@ -82,7 +84,7 @@ export function CommentSidebar({
                 Resolve
               </button>
               <button
-                onClick={(e) => {
+                onClick={e => {
                   e.stopPropagation()
                   onDelete(comment.id)
                 }}
@@ -101,7 +103,7 @@ export function CommentSidebar({
             <div className="px-3 py-1.5 text-xs text-zinc-400 dark:text-zinc-500">
               Resolved ({resolvedComments.length})
             </div>
-            {resolvedComments.map((comment) => (
+            {resolvedComments.map(comment => (
               <div
                 key={comment.id}
                 className="border-b border-zinc-200 dark:border-zinc-800 px-3 py-2 opacity-50"

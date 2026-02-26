@@ -25,13 +25,13 @@ function authHeaders(token: string): Record<string, string> {
   return {
     Authorization: `Bearer ${token}`,
     'LinkedIn-Version': API_VERSION,
-    'X-Restli-Protocol-Version': '2.0.0',
+    'X-Restli-Protocol-Version': '2.0.0'
   }
 }
 
 async function getPersonUrn(token: string): Promise<string> {
   const res = await fetch(`${API_BASE}/v2/userinfo`, {
-    headers: authHeaders(token),
+    headers: authHeaders(token)
   })
   if (!res.ok) {
     const text = await res.text()
@@ -43,23 +43,20 @@ async function getPersonUrn(token: string): Promise<string> {
 
 async function registerImageUpload(
   token: string,
-  personUrn: string,
+  personUrn: string
 ): Promise<{ uploadUrl: string; imageUrn: string }> {
-  const res = await fetch(
-    `${API_BASE}/rest/images?action=initializeUpload`,
-    {
-      method: 'POST',
-      headers: {
-        ...authHeaders(token),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        initializeUploadRequest: {
-          owner: personUrn,
-        },
-      }),
+  const res = await fetch(`${API_BASE}/rest/images?action=initializeUpload`, {
+    method: 'POST',
+    headers: {
+      ...authHeaders(token),
+      'Content-Type': 'application/json'
     },
-  )
+    body: JSON.stringify({
+      initializeUploadRequest: {
+        owner: personUrn
+      }
+    })
+  })
   if (!res.ok) {
     const text = await res.text()
     throw new Error(`Image upload registration failed (${res.status}): ${text}`)
@@ -70,23 +67,23 @@ async function registerImageUpload(
       data.value.uploadMechanism[
         'com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest'
       ].uploadUrl,
-    imageUrn: data.value.image,
+    imageUrn: data.value.image
   }
 }
 
 async function uploadImageBinary(
   uploadUrl: string,
   imagePath: string,
-  token: string,
+  token: string
 ): Promise<void> {
   const imageBuffer = await fs.readFile(imagePath)
   const res = await fetch(uploadUrl, {
     method: 'PUT',
     headers: {
       ...authHeaders(token),
-      'Content-Type': 'application/octet-stream',
+      'Content-Type': 'application/octet-stream'
     },
-    body: imageBuffer,
+    body: imageBuffer
   })
   if (!res.ok) {
     const text = await res.text()
@@ -97,13 +94,13 @@ async function uploadImageBinary(
 async function createTextPost(
   token: string,
   personUrn: string,
-  text: string,
+  text: string
 ): Promise<string> {
   const res = await fetch(`${API_BASE}/rest/posts`, {
     method: 'POST',
     headers: {
       ...authHeaders(token),
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify({
       author: personUrn,
@@ -112,10 +109,10 @@ async function createTextPost(
       distribution: {
         feedDistribution: 'MAIN_FEED',
         targetEntities: [],
-        thirdPartyDistributionChannels: [],
+        thirdPartyDistributionChannels: []
       },
-      lifecycleState: 'PUBLISHED',
-    }),
+      lifecycleState: 'PUBLISHED'
+    })
   })
   if (!res.ok) {
     const text = await res.text()
@@ -130,25 +127,26 @@ async function createImagePost(
   token: string,
   personUrn: string,
   text: string,
-  imageUrns: string[],
+  imageUrns: string[]
 ): Promise<string> {
-  const content: Record<string, unknown> = imageUrns.length === 1
-    ? {
-        media: {
-          id: imageUrns[0],
-        },
-      }
-    : {
-        multiImage: {
-          images: imageUrns.map((urn) => ({ id: urn })),
-        },
-      }
+  const content: Record<string, unknown> =
+    imageUrns.length === 1
+      ? {
+          media: {
+            id: imageUrns[0]
+          }
+        }
+      : {
+          multiImage: {
+            images: imageUrns.map(urn => ({ id: urn }))
+          }
+        }
 
   const res = await fetch(`${API_BASE}/rest/posts`, {
     method: 'POST',
     headers: {
       ...authHeaders(token),
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify({
       author: personUrn,
@@ -157,11 +155,11 @@ async function createImagePost(
       distribution: {
         feedDistribution: 'MAIN_FEED',
         targetEntities: [],
-        thirdPartyDistributionChannels: [],
+        thirdPartyDistributionChannels: []
       },
       lifecycleState: 'PUBLISHED',
-      content,
-    }),
+      content
+    })
   })
   if (!res.ok) {
     const body = await res.text()
@@ -186,9 +184,9 @@ async function findCarouselImages(contentDir: string): Promise<string[]> {
   try {
     const entries = await fs.readdir(carouselDir, { withFileTypes: true })
     return entries
-      .filter((e) => e.isFile() && /\.(png|jpg|jpeg|gif|webp)$/i.test(e.name))
+      .filter(e => e.isFile() && /\.(png|jpg|jpeg|gif|webp)$/i.test(e.name))
       .sort((a, b) => a.name.localeCompare(b.name))
-      .map((e) => path.join(carouselDir, e.name))
+      .map(e => path.join(carouselDir, e.name))
   } catch {
     return []
   }
@@ -206,7 +204,7 @@ function postIdToUrl(postId: string): string {
 
 export async function publishToLinkedIn(
   contentDir: string,
-  token: string,
+  token: string
 ): Promise<LinkedInPublishResult> {
   if (!token) {
     throw new Error('LinkedIn token not configured. Set it in Settings.')
@@ -233,7 +231,10 @@ export async function publishToLinkedIn(
     // Upload all images
     const imageUrns: string[] = []
     for (const imgPath of imagePaths) {
-      const { uploadUrl, imageUrn } = await registerImageUpload(token, personUrn)
+      const { uploadUrl, imageUrn } = await registerImageUpload(
+        token,
+        personUrn
+      )
       await uploadImageBinary(uploadUrl, imgPath, token)
       imageUrns.push(imageUrn)
     }
@@ -249,7 +250,7 @@ export async function publishToLinkedIn(
     linkedin_post_id: postId,
     status: 'published',
     published_at: new Date().toISOString(),
-    url: postUrl,
+    url: postUrl
   }
   await fs.writeFile(postJsonPath, JSON.stringify(postJson, null, 2), 'utf-8')
 

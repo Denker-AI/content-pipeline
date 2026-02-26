@@ -17,7 +17,7 @@ const DEFAULT_USER: UserSettings = {
   braveApiKey: '',
   theme: 'dark',
   repos: [],
-  repoLabels: {},
+  repoLabels: {}
 }
 
 function applyTheme(theme: 'light' | 'dark' | 'auto') {
@@ -125,7 +125,9 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
           </svg>
         </button>
 
-        <h1 className="mb-6 text-lg font-semibold text-zinc-900 dark:text-white">Settings</h1>
+        <h1 className="mb-6 text-lg font-semibold text-zinc-900 dark:text-white">
+          Settings
+        </h1>
 
         {/* User Settings Section */}
         <section className="mb-8">
@@ -142,7 +144,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                 type="text"
                 className={inputClass}
                 value={userSettings.appUrl}
-                onChange={(e) =>
+                onChange={e =>
                   setUserSettings({ ...userSettings, appUrl: e.target.value })
                 }
                 placeholder="http://localhost:3000"
@@ -156,7 +158,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
               <textarea
                 className={`${inputClass} h-20 resize-y font-mono text-xs`}
                 value={cookiesText}
-                onChange={(e) => setCookiesText(e.target.value)}
+                onChange={e => setCookiesText(e.target.value)}
                 placeholder='{"cookie_name": "cookie_value"}'
               />
             </div>
@@ -169,10 +171,10 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                 type="password"
                 className={inputClass}
                 value={userSettings.linkedinToken}
-                onChange={(e) =>
+                onChange={e =>
                   setUserSettings({
                     ...userSettings,
-                    linkedinToken: e.target.value,
+                    linkedinToken: e.target.value
                   })
                 }
                 placeholder="Enter LinkedIn access token"
@@ -187,10 +189,10 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                 type="password"
                 className={inputClass}
                 value={userSettings.resendApiKey}
-                onChange={(e) =>
+                onChange={e =>
                   setUserSettings({
                     ...userSettings,
-                    resendApiKey: e.target.value,
+                    resendApiKey: e.target.value
                   })
                 }
                 placeholder="Enter Resend API key"
@@ -205,10 +207,10 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                 type="text"
                 className={inputClass}
                 value={userSettings.resendFromEmail}
-                onChange={(e) =>
+                onChange={e =>
                   setUserSettings({
                     ...userSettings,
-                    resendFromEmail: e.target.value,
+                    resendFromEmail: e.target.value
                   })
                 }
                 placeholder="newsletter@yourdomain.com"
@@ -226,10 +228,10 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                 type="text"
                 className={inputClass}
                 value={userSettings.blogWebhookUrl}
-                onChange={(e) =>
+                onChange={e =>
                   setUserSettings({
                     ...userSettings,
-                    blogWebhookUrl: e.target.value,
+                    blogWebhookUrl: e.target.value
                   })
                 }
                 placeholder="https://example.com/webhook"
@@ -244,10 +246,10 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                 type="password"
                 className={inputClass}
                 value={userSettings.braveApiKey}
-                onChange={(e) =>
+                onChange={e =>
                   setUserSettings({
                     ...userSettings,
-                    braveApiKey: e.target.value,
+                    braveApiKey: e.target.value
                   })
                 }
                 placeholder="Enter Brave Search API key"
@@ -258,9 +260,11 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
             </div>
 
             <div>
-              <label className="mb-1 block text-xs text-zinc-500 dark:text-zinc-400">Theme</label>
+              <label className="mb-1 block text-xs text-zinc-500 dark:text-zinc-400">
+                Theme
+              </label>
               <div className="flex gap-2">
-                {(['light', 'dark', 'auto'] as const).map((t) => (
+                {(['light', 'dark', 'auto'] as const).map(t => (
                   <button
                     key={t}
                     onClick={() =>
@@ -283,8 +287,11 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                 <input
                   type="checkbox"
                   checked={userSettings.pullBeforeWorktree ?? true}
-                  onChange={(e) =>
-                    setUserSettings({ ...userSettings, pullBeforeWorktree: e.target.checked })
+                  onChange={e =>
+                    setUserSettings({
+                      ...userSettings,
+                      pullBeforeWorktree: e.target.checked
+                    })
                   }
                   className="h-4 w-4 rounded border-zinc-300 dark:border-zinc-600 accent-blue-600"
                 />
@@ -320,12 +327,13 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
             Brand Guidelines
           </h2>
           <p className="mb-3 text-xs text-zinc-400 dark:text-zinc-500">
-            This is your content/CLAUDE.md file. Claude reads this before creating any content.
+            This is your content/CLAUDE.md file. Claude reads this before
+            creating any content.
           </p>
           <textarea
             className={`${inputClass} h-64 resize-y font-mono text-xs leading-relaxed`}
             value={claudeMd}
-            onChange={(e) => setClaudeMd(e.target.value)}
+            onChange={e => setClaudeMd(e.target.value)}
             placeholder="# Brand Guidelines..."
             spellCheck={false}
           />

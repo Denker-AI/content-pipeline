@@ -18,15 +18,15 @@ function setupMenu(mainWindow: BrowserWindow) {
             if (!mainWindow.isDestroyed()) {
               mainWindow.webContents.send('settings:open')
             }
-          },
+          }
         },
         { type: 'separator' as const },
-        { role: 'quit' as const },
-      ],
+        { role: 'quit' as const }
+      ]
     },
     { role: 'editMenu' as const },
     { role: 'viewMenu' as const },
-    { role: 'windowMenu' as const },
+    { role: 'windowMenu' as const }
   ]
   Menu.setApplicationMenu(Menu.buildFromTemplate(template))
 }

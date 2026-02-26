@@ -29,7 +29,7 @@ export function useGitStatus(worktreePath?: string): UseGitStatusResult {
     try {
       const [statusResult, recentResult] = await Promise.all([
         api.status(worktreePath),
-        api.recentFiles(worktreePath, 10),
+        api.recentFiles(worktreePath, 10)
       ])
       setUnstaged(statusResult)
       setCommitted(recentResult)

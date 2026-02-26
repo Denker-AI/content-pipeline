@@ -66,7 +66,10 @@ export function ThreePaneLayout({ left, middle, right }: ThreePaneLayoutProps) {
 
   return (
     <div ref={containerRef} className="flex h-full w-full">
-      <div style={{ width: `${leftPct}%` }} className="h-full shrink-0 overflow-hidden">
+      <div
+        style={{ width: `${leftPct}%` }}
+        className="h-full shrink-0 overflow-hidden"
+      >
         {left}
       </div>
       <div
@@ -76,7 +79,10 @@ export function ThreePaneLayout({ left, middle, right }: ThreePaneLayoutProps) {
         <div className="absolute inset-y-0 -left-px w-px bg-zinc-200 dark:bg-zinc-800 transition-colors group-hover:bg-blue-500" />
         <div className="absolute inset-y-0 -left-1 w-2" />
       </div>
-      <div style={{ width: `${middlePct}%` }} className="h-full overflow-hidden">
+      <div
+        style={{ width: `${middlePct}%` }}
+        className="h-full overflow-hidden"
+      >
         {middle}
       </div>
       <div

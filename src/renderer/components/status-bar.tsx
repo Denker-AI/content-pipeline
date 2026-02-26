@@ -33,7 +33,9 @@ export function StatusBar() {
   return (
     <div className="flex h-6 shrink-0 items-center justify-between border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 px-3 text-[11px] text-zinc-400 dark:text-zinc-500">
       <div className="flex items-center gap-1.5">
-        <span className={`h-1.5 w-1.5 rounded-full ${sessionId ? 'bg-green-500' : 'bg-zinc-400'}`} />
+        <span
+          className={`h-1.5 w-1.5 rounded-full ${sessionId ? 'bg-green-500' : 'bg-zinc-400'}`}
+        />
         <span>Session: {sessionId ?? 'none'}</span>
       </div>
       <div className="flex items-center gap-3">

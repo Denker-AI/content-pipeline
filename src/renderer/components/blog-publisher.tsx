@@ -36,7 +36,7 @@ function extractFrontmatter(raw: string): BlogPreview | null {
 export function BlogPublisher({
   isOpen,
   onClose,
-  contentDir,
+  contentDir
 }: BlogPublisherProps) {
   const [preview, setPreview] = useState<BlogPreview | null>(null)
   const [loading, setLoading] = useState(false)
@@ -75,7 +75,7 @@ export function BlogPublisher({
           try {
             const entries = await api.listDir(contentDir)
             const mdFile = entries.find(
-              (e) => !e.isDirectory && e.name.endsWith('.md'),
+              e => !e.isDirectory && e.name.endsWith('.md')
             )
             if (mdFile) {
               raw = await api.read(mdFile.path)
@@ -89,7 +89,9 @@ export function BlogPublisher({
           const fm = extractFrontmatter(raw)
           setPreview(fm)
           if (!fm) {
-            setError('Could not parse frontmatter. Ensure title and slug are set.')
+            setError(
+              'Could not parse frontmatter. Ensure title and slug are set.'
+            )
           }
         } else {
           setError('No .md file found in content directory')
@@ -151,8 +153,7 @@ export function BlogPublisher({
               <span className="font-mono">{result.slug}</span>
             </div>
             <div>
-              <span className="text-zinc-500">Status:</span>{' '}
-              {result.statusCode}
+              <span className="text-zinc-500">Status:</span> {result.statusCode}
             </div>
           </div>
         </div>
