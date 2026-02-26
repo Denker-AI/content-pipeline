@@ -91,6 +91,21 @@ export async function writeMetadata(
   updates: Partial<ContentMetadata>,
 ): Promise<ContentMetadata> {
   const existing = await readMetadata(metadataPath)
+
+  // If metadata didn't exist on disk (type is still default 'unknown'),
+  // infer type from the directory structure: content/<typeDir>/<slug>/metadata.json
+  if (existing.type === 'unknown') {
+    const parts = metadataPath.split(path.sep)
+    // Find 'content' in path, the next segment is the type directory
+    const contentIdx = parts.lastIndexOf('content')
+    if (contentIdx >= 0 && parts[contentIdx + 1]) {
+      const detected = detectTypeFromDir(parts[contentIdx + 1])
+      if (detected !== 'unknown') {
+        existing.type = detected
+      }
+    }
+  }
+
   const merged: ContentMetadata = {
     ...existing,
     ...updates,
