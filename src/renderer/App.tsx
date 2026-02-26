@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import type { ContentStage, ContentType, PipelineItem, WorktreeInfo } from '@/shared/types'
+import type { ContentType, PipelineItem, WorktreeInfo } from '@/shared/types'
 
 import { BoltIcon, ClaudeIcon, GitBranchIcon } from './components/icons'
 import { OnboardingWizard } from './components/onboarding-wizard'
@@ -14,21 +14,6 @@ import { ThreePaneLayout } from './components/three-pane-layout'
 import { useContent } from './hooks/use-content'
 import { useTheme } from './hooks/use-theme'
 
-
-const TYPE_COLORS: Record<string, string> = {
-  linkedin: 'bg-blue-600/15 text-blue-400',
-  blog: 'bg-green-600/15 text-green-400',
-  newsletter: 'bg-purple-600/15 text-purple-400',
-}
-
-const STAGE_COLORS: Record<ContentStage, string> = {
-  idea: 'bg-zinc-200 text-zinc-600 dark:bg-zinc-600 dark:text-zinc-200',
-  draft: 'bg-yellow-600/20 text-yellow-400',
-  review: 'bg-orange-600/20 text-orange-400',
-  final: 'bg-blue-600/20 text-blue-400',
-  scheduled: 'bg-purple-600/20 text-purple-400',
-  published: 'bg-green-600/20 text-green-400',
-}
 
 const STARTER_PROMPTS: Record<string, string> = {
   linkedin: 'Create a LinkedIn post about ',
@@ -65,12 +50,15 @@ export function App() {
     renderMode,
     versions,
     loading,
+    projectRoot,
     contentDir,
     refreshCount,
     selectFile,
     selectVersion,
     openProject,
   } = useContent(activeContentDir)
+
+  const projectName = projectRoot ? projectRoot.split('/').pop() ?? '' : ''
 
   // Open a tab for a pipeline item (or focus if already open)
   const openTab = useCallback(
@@ -271,26 +259,20 @@ export function App() {
           middle={
             <div className="flex h-full flex-col">
               {/* Top bar — branch name + Claude session buttons, draggable */}
-              <div className="drag-region flex shrink-0 items-center gap-2 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-900 px-3 py-1.5">
+              <div className="drag-region flex h-9 shrink-0 items-center gap-2 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-900 px-3">
                 <div className="no-drag flex items-center gap-1.5 min-w-0 flex-1">
+                  {projectName && (
+                    <span className="shrink-0 text-xs font-medium text-zinc-600 dark:text-zinc-300">
+                      {projectName}
+                    </span>
+                  )}
+                  {projectName && (
+                    <span className="text-zinc-300 dark:text-zinc-600">/</span>
+                  )}
                   <GitBranchIcon className="h-3 w-3 shrink-0 text-zinc-400 dark:text-zinc-500" />
                   <span className="truncate text-xs text-zinc-500 dark:text-zinc-400">
                     {activeItem?.worktreeBranch || 'main'}
                   </span>
-                  {activeItem && (
-                    <>
-                      <span className="text-zinc-300 dark:text-zinc-600">/</span>
-                      <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium capitalize ${TYPE_COLORS[activeItem.type] ?? 'bg-zinc-200 text-zinc-500'}`}>
-                        {activeItem.type}
-                      </span>
-                      <span className="min-w-0 truncate text-xs font-medium text-zinc-700 dark:text-zinc-200">
-                        {activeItem.title}
-                      </span>
-                      <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium capitalize ${STAGE_COLORS[activeItem.stage]}`}>
-                        {activeItem.stage}
-                      </span>
-                    </>
-                  )}
                 </div>
                 {activeTabId && (
                   <div className="no-drag flex items-center gap-1">

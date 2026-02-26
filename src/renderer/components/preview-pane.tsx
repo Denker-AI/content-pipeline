@@ -201,26 +201,8 @@ export function PreviewPane({
 
   return (
     <div className="flex h-full flex-col bg-white dark:bg-zinc-900">
-      {/* Tab bar — draggable for window movement */}
-      <div className="drag-region flex shrink-0 items-center border-b border-zinc-200 dark:border-zinc-700">
-        <div className="no-drag flex flex-1">
-          {tabs.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => {
-                setActiveTab(tab)
-                if (tab !== 'Components') setPreviewComponent(null)
-              }}
-              className={`px-4 py-2 text-sm transition-colors ${
-                activeTab === tab
-                  ? 'border-b-2 border-blue-500 text-zinc-900 dark:text-white'
-                  : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200'
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
+      {/* Top bar — draggable, matches other panes */}
+      <div className="drag-region flex h-9 shrink-0 items-center justify-end border-b border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-900 pr-2">
         <button
           onClick={() => {
             if (activeContentDir) {
@@ -229,24 +211,44 @@ export function PreviewPane({
               openProject()
             }
           }}
-          className="no-drag mr-1 flex shrink-0 items-center justify-center rounded p-1.5 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors"
+          className="no-drag flex h-6 w-6 items-center justify-center rounded text-zinc-400 hover:bg-zinc-200 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors"
           title={activeContentDir ? `Open: ${activeContentDir}` : 'Open project folder'}
         >
-          <FolderOpenIcon className="h-4 w-4" />
+          <FolderOpenIcon className="h-3.5 w-3.5" />
         </button>
         {worktreePath && (
           <button
             onClick={() => setFileSidebarOpen((v) => !v)}
-            className={`mr-2 flex shrink-0 items-center justify-center rounded p-1.5 transition-colors ${
+            className={`no-drag ml-1 flex h-6 w-6 items-center justify-center rounded transition-colors ${
               fileSidebarOpen
                 ? 'bg-blue-500/20 text-blue-400 ring-1 ring-blue-500/40'
-                : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-700 dark:hover:text-zinc-200'
+                : 'text-zinc-400 hover:bg-zinc-200 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300'
             }`}
             title="Toggle file sidebar"
           >
-            <CodeIcon className="h-4 w-4" />
+            <CodeIcon className="h-3.5 w-3.5" />
           </button>
         )}
+      </div>
+
+      {/* Tab bar — Content / Components / SEO */}
+      <div className="flex shrink-0 border-b border-zinc-200 dark:border-zinc-700">
+        {tabs.map((tab) => (
+          <button
+            key={tab}
+            onClick={() => {
+              setActiveTab(tab)
+              if (tab !== 'Components') setPreviewComponent(null)
+            }}
+            className={`px-4 py-1.5 text-xs font-medium transition-colors ${
+              activeTab === tab
+                ? 'border-b-2 border-blue-500 text-zinc-900 dark:text-white'
+                : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200'
+            }`}
+          >
+            {tab}
+          </button>
+        ))}
       </div>
 
       {activeTab === 'Content' && (

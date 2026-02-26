@@ -10,13 +10,13 @@ import {
   ChevronRightIcon,
   FolderIcon,
   FolderOpenIcon,
+  GitBranchIcon,
   PlusIcon,
   SearchIcon,
   SparkleIcon,
   XIcon,
 } from './icons'
 import { PipelineSection } from './pipeline-section'
-import { WorktreeList } from './worktree-list'
 
 const SECTION_TYPES: ContentType[] = ['linkedin', 'blog', 'newsletter']
 
@@ -133,26 +133,18 @@ export function PipelineSidebar({
 
   // Sidebar header — pl-[72px] leaves room for macOS traffic lights
   const sidebarHeader = (
-    <div className="drag-region flex shrink-0 items-center justify-between border-b border-zinc-200 dark:border-zinc-700 pl-[72px] pr-2 py-2">
-      <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">Pipeline</span>
+    <div className="drag-region flex h-9 shrink-0 items-center justify-end bg-zinc-100 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-700 pl-[72px] pr-2">
       <div className="no-drag flex items-center gap-1">
         <button
           onClick={onOpenWizard}
-          className="flex h-6 w-6 items-center justify-center rounded text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors"
+          className="flex h-6 w-6 items-center justify-center rounded text-zinc-400 hover:bg-zinc-200 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors"
           title="Setup wizard"
         >
           <SparkleIcon className="h-3.5 w-3.5" />
         </button>
         <button
-          onClick={onOpenProject}
-          className="flex h-6 w-6 items-center justify-center rounded text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors"
-          title="Open project folder"
-        >
-          <FolderOpenIcon className="h-3.5 w-3.5" />
-        </button>
-        <button
           onClick={onOpenSettings}
-          className="flex h-6 w-6 items-center justify-center rounded text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors"
+          className="flex h-6 w-6 items-center justify-center rounded text-zinc-400 hover:bg-zinc-200 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors"
           title="Settings"
         >
           <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -222,62 +214,56 @@ export function PipelineSidebar({
             </button>
           </div>
 
+          {/* Search (content tab only) */}
           {activeTab === 'content' && (
-            <>
-              {/* Search */}
-              <div className="shrink-0 border-b border-zinc-200 dark:border-zinc-700 p-2">
-                <div className="relative">
-                  <SearchIcon className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-400 dark:text-zinc-500" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search content..."
-                    className="w-full rounded bg-zinc-100 dark:bg-zinc-800 pl-7 pr-2 py-1 text-xs text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-500 outline-none focus:ring-1 focus:ring-blue-500"
-                  />
-                </div>
+            <div className="shrink-0 border-b border-zinc-200 dark:border-zinc-700 p-2">
+              <div className="relative">
+                <SearchIcon className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-400 dark:text-zinc-500" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search content..."
+                  className="w-full rounded bg-zinc-100 dark:bg-zinc-800 pl-7 pr-2 py-1 text-xs text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-500 outline-none focus:ring-1 focus:ring-blue-500"
+                />
               </div>
-
-              {/* Repo sections */}
-              <div className="min-h-0 flex-1 overflow-y-auto thin-scrollbar">
-                {repos.map((repo) => (
-                  <RepoSection
-                    key={repo.path}
-                    repo={repo}
-                    isExpanded={expandedRepos.has(repo.path)}
-                    onToggle={() => toggleRepo(repo.path)}
-                    onRemove={() => handleRemoveRepo(repo.path)}
-                    confirmRemove={confirmRemoveRepo === repo.path}
-                    groupedItems={isMultiRepo ? groupItems(filterItems(repo.items)) : groupedItems}
-                    expandedSections={expandedSections}
-                    activeItemId={activeItemId}
-                    onToggleSection={toggleSection}
-                    onItemSelect={handleSelect}
-                    onCreateNew={handleCreate}
-                    onStageChange={updateStage}
-                    isMultiRepo={isMultiRepo}
-                  />
-                ))}
-              </div>
-
-              {/* Add Repository — fixed at bottom */}
-              <div className="shrink-0 border-t border-zinc-200 dark:border-zinc-700 p-2">
-                <button
-                  onClick={addRepo}
-                  className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-zinc-300 dark:border-zinc-700 py-2 text-xs text-zinc-400 hover:border-zinc-400 hover:text-zinc-600 dark:hover:border-zinc-600 dark:hover:text-zinc-300 transition-colors"
-                >
-                  <PlusIcon className="h-3 w-3" />
-                  Add Repository
-                </button>
-              </div>
-            </>
-          )}
-
-          {activeTab === 'branches' && (
-            <div className="min-h-0 flex-1">
-              <WorktreeList onSelectWorktree={handleBranchClick} />
             </div>
           )}
+
+          {/* Repo sections — shared by both tabs */}
+          <div className="min-h-0 flex-1 overflow-y-auto thin-scrollbar">
+            {repos.map((repo) => (
+              <RepoSection
+                key={repo.path}
+                repo={repo}
+                activeTab={activeTab}
+                isExpanded={expandedRepos.has(repo.path)}
+                onToggle={() => toggleRepo(repo.path)}
+                onRemove={() => handleRemoveRepo(repo.path)}
+                confirmRemove={confirmRemoveRepo === repo.path}
+                groupedItems={isMultiRepo ? groupItems(filterItems(repo.items)) : groupedItems}
+                expandedSections={expandedSections}
+                activeItemId={activeItemId}
+                onToggleSection={toggleSection}
+                onItemSelect={handleSelect}
+                onCreateNew={handleCreate}
+                onStageChange={updateStage}
+                onBranchSelect={handleBranchClick}
+                isMultiRepo={isMultiRepo}
+              />
+            ))}
+          </div>
+
+          {/* Add Repository — fixed at bottom, both tabs */}
+          <div className="shrink-0 border-t border-zinc-200 dark:border-zinc-700 p-2">
+            <button
+              onClick={addRepo}
+              className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-zinc-300 dark:border-zinc-700 py-2 text-xs text-zinc-400 hover:border-zinc-400 hover:text-zinc-600 dark:hover:border-zinc-600 dark:hover:text-zinc-300 transition-colors"
+            >
+              <PlusIcon className="h-3 w-3" />
+              Add Repository
+            </button>
+          </div>
         </>
       )}
     </div>
@@ -288,6 +274,7 @@ export function PipelineSidebar({
 
 interface RepoSectionProps {
   repo: RepoSidebarData
+  activeTab: SidebarTab
   isExpanded: boolean
   onToggle: () => void
   onRemove: () => void
@@ -299,11 +286,13 @@ interface RepoSectionProps {
   onItemSelect: (item: PipelineItem) => void
   onCreateNew: (type: ContentType) => Promise<void>
   onStageChange: (item: PipelineItem, stage: import('@/shared/types').ContentStage) => void
+  onBranchSelect: (worktree: WorktreeInfo) => void
   isMultiRepo: boolean
 }
 
 function RepoSection({
   repo,
+  activeTab,
   isExpanded,
   onToggle,
   onRemove,
@@ -315,39 +304,29 @@ function RepoSection({
   onItemSelect,
   onCreateNew,
   onStageChange,
+  onBranchSelect,
   isMultiRepo,
 }: RepoSectionProps) {
-  // Single repo: show repo name as a static label, no collapse/remove
-  if (!isMultiRepo) {
-    return (
-      <div>
-        <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-zinc-200 dark:border-zinc-700">
-          <FolderIcon className="h-3 w-3 shrink-0 text-zinc-400" />
-          <span className="truncate text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
-            {repo.name}
-          </span>
-        </div>
-        {SECTION_TYPES.map((type) => (
-          <PipelineSection
-            key={type}
-            type={type}
-            items={groupedItems[type] ?? []}
-            isExpanded={expandedSections.has(type)}
-            onToggle={() => onToggleSection(type)}
-            onItemSelect={onItemSelect}
-            onCreateNew={onCreateNew}
-            activeItemId={activeItemId}
-            onStageChange={onStageChange}
-          />
-        ))}
-      </div>
-    )
+  const [confirmDeleteBranch, setConfirmDeleteBranch] = useState<string | null>(null)
+
+  const handleDeleteBranch = async (wt: WorktreeInfo) => {
+    if (confirmDeleteBranch !== wt.path) {
+      setConfirmDeleteBranch(wt.path)
+      return
+    }
+    try {
+      await window.electronAPI?.git.removeWorktree(wt.path)
+      setConfirmDeleteBranch(null)
+    } catch (err) {
+      console.error('Failed to remove worktree:', err)
+    }
   }
 
-  // Multi-repo: collapsible header with repo name
+  const count = activeTab === 'content' ? repo.items.length : repo.worktrees.length
+
   return (
     <div className="border-b border-zinc-200 dark:border-zinc-700">
-      {/* Repo header */}
+      {/* Collapsible repo header */}
       <div className="group flex items-center gap-1 px-2 py-1.5 hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
         <button
           onClick={onToggle}
@@ -363,27 +342,30 @@ function RepoSection({
             {repo.name}
           </span>
           <span className="shrink-0 text-[10px] text-zinc-400 dark:text-zinc-500">
-            {repo.items.length}
+            {count}
           </span>
         </button>
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            onRemove()
-          }}
-          className={`shrink-0 rounded px-1 py-0.5 text-xs transition-opacity ${
-            confirmRemove
-              ? 'bg-red-500/20 text-red-400'
-              : 'text-zinc-400 opacity-0 group-hover:opacity-100 hover:bg-zinc-200 dark:hover:bg-zinc-700'
-          }`}
-          title={confirmRemove ? 'Click again to confirm' : 'Remove repository'}
-        >
-          {confirmRemove ? 'Remove?' : <XIcon className="h-3 w-3" />}
-        </button>
+        {isMultiRepo && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onRemove()
+            }}
+            className={`shrink-0 rounded px-1 py-0.5 text-xs transition-opacity ${
+              confirmRemove
+                ? 'bg-red-500/20 text-red-400'
+                : 'text-zinc-400 opacity-0 group-hover:opacity-100 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+            }`}
+            title={confirmRemove ? 'Click again to confirm' : 'Remove repository'}
+          >
+            {confirmRemove ? 'Remove?' : <XIcon className="h-3 w-3" />}
+          </button>
+        )}
       </div>
 
-      {isExpanded && (
-        <div className="pl-2">
+      {/* Content items */}
+      {isExpanded && activeTab === 'content' && (
+        <div className={isMultiRepo ? 'pl-2' : ''}>
           {SECTION_TYPES.map((type) => (
             <PipelineSection
               key={type}
@@ -397,6 +379,56 @@ function RepoSection({
               onStageChange={onStageChange}
             />
           ))}
+        </div>
+      )}
+
+      {/* Branch items */}
+      {isExpanded && activeTab === 'branches' && (
+        <div className={isMultiRepo ? 'pl-2' : ''}>
+          {repo.worktrees.length === 0 ? (
+            <div className="px-3 py-3 text-center">
+              <p className="text-xs text-zinc-400 dark:text-zinc-500">No branches</p>
+            </div>
+          ) : (
+            repo.worktrees.map((wt) => {
+              const isMain = !wt.branch.startsWith('content/')
+              return (
+                <div
+                  key={wt.path}
+                  className="group flex cursor-pointer items-center gap-2 border-b border-zinc-100 dark:border-zinc-800 px-3 py-2 hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+                  onClick={() => onBranchSelect(wt)}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <GitBranchIcon className="h-3.5 w-3.5 shrink-0 text-zinc-400 dark:text-zinc-500" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-xs font-medium text-zinc-700 dark:text-zinc-200">
+                      {wt.branch}
+                    </p>
+                    <p className="truncate text-[10px] text-zinc-400 dark:text-zinc-500">
+                      {wt.path.split('/').slice(-2).join('/')}
+                    </p>
+                  </div>
+                  {!isMain && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleDeleteBranch(wt)
+                      }}
+                      className={`shrink-0 rounded px-1.5 py-0.5 text-xs transition-opacity ${
+                        confirmDeleteBranch === wt.path
+                          ? 'bg-red-500/20 text-red-400'
+                          : 'text-zinc-400 opacity-0 group-hover:opacity-100 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+                      }`}
+                      title={confirmDeleteBranch === wt.path ? 'Click again to confirm' : 'Delete worktree'}
+                    >
+                      {confirmDeleteBranch === wt.path ? 'Confirm?' : <XIcon className="h-3 w-3" />}
+                    </button>
+                  )}
+                </div>
+              )
+            })
+          )}
         </div>
       )}
     </div>

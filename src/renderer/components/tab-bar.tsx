@@ -32,7 +32,7 @@ export function TabBar({ tabs, activeTabId, onSelect, onClose }: TabBarProps) {
   if (tabs.length === 0) return null
 
   return (
-    <div className="drag-region flex shrink-0 items-center gap-0 overflow-x-auto border-b border-zinc-200 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900">
+    <div className="flex shrink-0 items-center gap-0 overflow-x-auto border-b border-zinc-200 dark:border-zinc-700">
       {tabs.map((tab) => {
         const isActive = tab.id === activeTabId
         const type = tab.pipelineItem.type
