@@ -15,7 +15,10 @@ function setupMenu(mainWindow: BrowserWindow) {
           label: 'Settings',
           accelerator: 'CmdOrCtrl+,',
           click: () => {
-            if (!mainWindow.isDestroyed()) {
+            if (
+              !mainWindow.isDestroyed() &&
+              !mainWindow.webContents.isDestroyed()
+            ) {
               mainWindow.webContents.send('settings:open')
             }
           }

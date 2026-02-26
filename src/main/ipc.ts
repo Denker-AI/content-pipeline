@@ -106,6 +106,13 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
   // Per-tab terminal parsers
   const parsers = new Map<string, TerminalParser>()
 
+  /** Safely send IPC to renderer — guards against disposed window/webContents */
+  function safeSend(channel: string, ...args: unknown[]) {
+    if (!mainWindow.isDestroyed() && !mainWindow.webContents.isDestroyed()) {
+      mainWindow.webContents.send(channel, ...args)
+    }
+  }
+
   // --- Tab lifecycle IPC ---
 
   ipcMain.handle(
@@ -115,41 +122,34 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
       parsers.set(tabId, parser)
 
       parser.onEvent(async event => {
-        if (!mainWindow.isDestroyed()) {
-          mainWindow.webContents.send('terminal:parsed', tabId, event)
-          if (event.type === 'component-found') {
-            mainWindow.webContents.send('terminal:component', event.data)
-          }
-          if (event.type === 'component-preview-html') {
-            mainWindow.webContents.send(
-              'terminal:component-preview-html',
-              event.data.html
-            )
-          }
-          if (event.type === 'cwd-changed') {
-            const newDir = event.data.dir as string
-            if (!newDir || newDir === projectRoot) return
-            try {
-              await fs.access(path.join(newDir, 'content'))
-              projectRoot = newDir
-              stopWatcher()
-              startWatcher(getContentDir())
-              const settings = await loadUserSettings()
-              await saveUserSettings({ ...settings, projectRoot: newDir })
-              mainWindow.webContents.send('content:projectChanged', newDir)
-              mainWindow.webContents.send('pipeline:contentChanged')
-            } catch {
-              // No content/ directory — not a project root, ignore
-            }
+        safeSend('terminal:parsed', tabId, event)
+        if (event.type === 'component-found') {
+          safeSend('terminal:component', event.data)
+        }
+        if (event.type === 'component-preview-html') {
+          safeSend('terminal:component-preview-html', event.data.html)
+        }
+        if (event.type === 'cwd-changed') {
+          const newDir = event.data.dir as string
+          if (!newDir || newDir === projectRoot) return
+          try {
+            await fs.access(path.join(newDir, 'content'))
+            projectRoot = newDir
+            stopWatcher()
+            startWatcher(getContentDir())
+            const settings = await loadUserSettings()
+            await saveUserSettings({ ...settings, projectRoot: newDir })
+            safeSend('content:projectChanged', newDir)
+            safeSend('pipeline:contentChanged')
+          } catch {
+            // No content/ directory — not a project root, ignore
           }
         }
       })
 
       try {
         createPtyForTab(tabId, cwd, (data: string) => {
-          if (!mainWindow.isDestroyed()) {
-            mainWindow.webContents.send('terminal:data', tabId, data)
-          }
+          safeSend('terminal:data', tabId, data)
           parser.feed(data)
         })
       } catch (err) {
@@ -178,9 +178,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
 
   // File watcher — forward events to renderer
   const unsubscribe = onFileChange(event => {
-    if (!mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('file:change', event)
-    }
+    safeSend('file:change', event)
   })
 
   startWatcher(getContentDir())
@@ -295,10 +293,8 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     startWatcher(getContentDir())
     await saveUserSettings({ ...settings, projectRoot: repoPath, repos })
 
-    if (!mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('content:projectChanged', repoPath)
-      mainWindow.webContents.send('pipeline:contentChanged')
-    }
+    safeSend('content:projectChanged', repoPath)
+    safeSend('pipeline:contentChanged')
 
     return repoPath
   })
@@ -363,7 +359,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
 
     // Notify renderer of new content
     if (!mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('pipeline:contentChanged')
+      safeSend('pipeline:contentChanged')
     }
 
     return item
@@ -374,7 +370,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     async (_event, metadataPath: string, stage: ContentStage) => {
       await updateStage(metadataPath, stage)
       if (!mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('pipeline:contentChanged')
+        safeSend('pipeline:contentChanged')
       }
     }
   )
@@ -384,7 +380,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     async (_event, metadataPath: string, updates: Partial<ContentMetadata>) => {
       await writeMetadata(metadataPath, updates)
       if (!mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('pipeline:contentChanged')
+        safeSend('pipeline:contentChanged')
       }
     }
   )
@@ -514,7 +510,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     async (_event, worktreePath: string, deleteRemoteBranch?: boolean) => {
       await removeWorktree(projectRoot, worktreePath, { deleteRemoteBranch })
       if (!mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('pipeline:contentChanged')
+        safeSend('pipeline:contentChanged')
       }
     }
   )
@@ -601,7 +597,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
   ipcMain.handle('project:install', async () => {
     await installProjectConfig(projectRoot)
     if (!mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('pipeline:contentChanged')
+      safeSend('pipeline:contentChanged')
     }
   })
 
@@ -610,7 +606,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     async (_event, brand: BrandConfig) => {
       await installProjectConfigWithBrand(projectRoot, brand)
       if (!mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('pipeline:contentChanged')
+        safeSend('pipeline:contentChanged')
       }
     }
   )
@@ -633,7 +629,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
   // Watch for metadata.json changes and notify renderer
   const unsubscribePipeline = onFileChange(event => {
     if (event.path.endsWith('metadata.json') && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('pipeline:contentChanged')
+      safeSend('pipeline:contentChanged')
     }
   })
 

@@ -7,13 +7,13 @@ export function initAutoUpdater(mainWindow: BrowserWindow) {
   autoUpdater.autoInstallOnAppQuit = true
 
   autoUpdater.on('update-available', info => {
-    if (!mainWindow.isDestroyed()) {
+    if (!mainWindow.isDestroyed() && !mainWindow.webContents.isDestroyed()) {
       mainWindow.webContents.send('updater:available', info.version)
     }
   })
 
   autoUpdater.on('update-downloaded', info => {
-    if (!mainWindow.isDestroyed()) {
+    if (!mainWindow.isDestroyed() && !mainWindow.webContents.isDestroyed()) {
       mainWindow.webContents.send('updater:downloaded', info.version)
     }
   })
