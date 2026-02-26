@@ -19,6 +19,8 @@ export async function createWindow(): Promise<BrowserWindow> {
     height: 800,
     title: 'Content Pipeline',
     backgroundColor: isDark ? '#09090b' : '#fafafa',
+    titleBarStyle: 'hiddenInset',
+    trafficLightPosition: { x: 12, y: 10 },
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,

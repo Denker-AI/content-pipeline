@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import type { ContentStage, ContentType, PipelineItem, WorktreeInfo } from '@/shared/types'
 
+import { BoltIcon, ClaudeIcon, GitBranchIcon } from './components/icons'
 import { OnboardingWizard } from './components/onboarding-wizard'
 import { PipelineSidebar } from './components/pipeline-sidebar'
 import { PreviewPane } from './components/preview-pane'
@@ -264,13 +265,53 @@ export function App() {
               onOpenProject={openProject}
               onOpenSettings={openSettings}
               onOpenWizard={() => setShowWizard(true)}
-              onStartClaude={handleStartClaude}
               hasProject={!!contentDir}
-              hasActiveTab={!!activeTabId}
             />
           }
           middle={
             <div className="flex h-full flex-col">
+              {/* Top bar — branch name + Claude session buttons, draggable */}
+              <div className="drag-region flex shrink-0 items-center gap-2 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-900 px-3 py-1.5">
+                <div className="no-drag flex items-center gap-1.5 min-w-0 flex-1">
+                  <GitBranchIcon className="h-3 w-3 shrink-0 text-zinc-400 dark:text-zinc-500" />
+                  <span className="truncate text-xs text-zinc-500 dark:text-zinc-400">
+                    {activeItem?.worktreeBranch || 'main'}
+                  </span>
+                  {activeItem && (
+                    <>
+                      <span className="text-zinc-300 dark:text-zinc-600">/</span>
+                      <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium capitalize ${TYPE_COLORS[activeItem.type] ?? 'bg-zinc-200 text-zinc-500'}`}>
+                        {activeItem.type}
+                      </span>
+                      <span className="min-w-0 truncate text-xs font-medium text-zinc-700 dark:text-zinc-200">
+                        {activeItem.title}
+                      </span>
+                      <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium capitalize ${STAGE_COLORS[activeItem.stage]}`}>
+                        {activeItem.stage}
+                      </span>
+                    </>
+                  )}
+                </div>
+                {activeTabId && (
+                  <div className="no-drag flex items-center gap-1">
+                    <button
+                      onClick={() => handleStartClaude('normal')}
+                      className="flex h-6 w-6 items-center justify-center rounded text-zinc-400 hover:bg-zinc-200 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors"
+                      title="Start Claude session"
+                    >
+                      <ClaudeIcon className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleStartClaude('yolo')}
+                      className="flex h-6 w-6 items-center justify-center rounded text-amber-500/70 hover:bg-amber-500/10 hover:text-amber-500 dark:hover:bg-amber-500/10 dark:hover:text-amber-400 transition-colors"
+                      title="Start Claude (skip permissions)"
+                    >
+                      <BoltIcon className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                )}
+              </div>
+
               {/* Tab bar */}
               <TabBar
                 tabs={tabs}
@@ -278,27 +319,6 @@ export function App() {
                 onSelect={switchTab}
                 onClose={closeTab}
               />
-
-              {/* Active content context strip */}
-              <div className="flex shrink-0 items-center gap-2 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-900 px-3 py-1.5">
-                {activeItem ? (
-                  <>
-                    <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium capitalize ${TYPE_COLORS[activeItem.type] ?? 'bg-zinc-200 text-zinc-500'}`}>
-                      {activeItem.type}
-                    </span>
-                    <span className="min-w-0 flex-1 truncate text-xs font-medium text-zinc-800 dark:text-zinc-200">
-                      {activeItem.title}
-                    </span>
-                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium capitalize ${STAGE_COLORS[activeItem.stage]}`}>
-                      {activeItem.stage}
-                    </span>
-                  </>
-                ) : (
-                  <span className="text-xs text-zinc-400 dark:text-zinc-500">
-                    No content selected — pick one from the sidebar
-                  </span>
-                )}
-              </div>
 
               {/* Terminal — one per tab, show/hide based on active */}
               <div className="relative min-h-0 flex-1">

@@ -6,10 +6,8 @@ import { usePipeline } from '../hooks/use-pipeline'
 import { useRepos } from '../hooks/use-repos'
 
 import {
-  BoltIcon,
   ChevronDownIcon,
   ChevronRightIcon,
-  ClaudeIcon,
   FolderIcon,
   FolderOpenIcon,
   PlusIcon,
@@ -31,9 +29,7 @@ interface PipelineSidebarProps {
   onOpenProject: () => void
   onOpenSettings: () => void
   onOpenWizard: () => void
-  onStartClaude: (mode: 'normal' | 'yolo') => void
   hasProject: boolean
-  hasActiveTab: boolean
 }
 
 export function PipelineSidebar({
@@ -43,9 +39,7 @@ export function PipelineSidebar({
   onOpenProject,
   onOpenSettings,
   onOpenWizard,
-  onStartClaude,
   hasProject,
-  hasActiveTab,
 }: PipelineSidebarProps) {
   const [activeTab, setActiveTab] = useState<SidebarTab>('content')
   const [searchQuery, setSearchQuery] = useState('')
@@ -137,29 +131,11 @@ export function PipelineSidebar({
 
   const loading = reposLoading || pipelineLoading
 
-  // Sidebar header
+  // Sidebar header — pl-[72px] leaves room for macOS traffic lights
   const sidebarHeader = (
-    <div className="flex shrink-0 items-center justify-between border-b border-zinc-200 dark:border-zinc-700 px-3 py-2">
+    <div className="drag-region flex shrink-0 items-center justify-between border-b border-zinc-200 dark:border-zinc-700 pl-[72px] pr-2 py-2">
       <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">Pipeline</span>
-      <div className="flex items-center gap-1">
-        {hasActiveTab && (
-          <>
-            <button
-              onClick={() => onStartClaude('normal')}
-              className="flex h-6 w-6 items-center justify-center rounded text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors"
-              title="Start Claude session"
-            >
-              <ClaudeIcon className="h-3.5 w-3.5" />
-            </button>
-            <button
-              onClick={() => onStartClaude('yolo')}
-              className="flex h-6 w-6 items-center justify-center rounded text-amber-500/70 hover:bg-amber-500/10 hover:text-amber-500 dark:hover:bg-amber-500/10 dark:hover:text-amber-400 transition-colors"
-              title="Start Claude (skip permissions)"
-            >
-              <BoltIcon className="h-3.5 w-3.5" />
-            </button>
-          </>
-        )}
+      <div className="no-drag flex items-center gap-1">
         <button
           onClick={onOpenWizard}
           className="flex h-6 w-6 items-center justify-center rounded text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors"

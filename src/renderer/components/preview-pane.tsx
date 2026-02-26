@@ -201,9 +201,9 @@ export function PreviewPane({
 
   return (
     <div className="flex h-full flex-col bg-white dark:bg-zinc-900">
-      {/* Tab bar */}
-      <div className="flex shrink-0 items-center border-b border-zinc-200 dark:border-zinc-700">
-        <div className="flex flex-1">
+      {/* Tab bar — draggable for window movement */}
+      <div className="drag-region flex shrink-0 items-center border-b border-zinc-200 dark:border-zinc-700">
+        <div className="no-drag flex flex-1">
           {tabs.map((tab) => (
             <button
               key={tab}
@@ -229,7 +229,7 @@ export function PreviewPane({
               openProject()
             }
           }}
-          className="mr-1 flex shrink-0 items-center justify-center rounded p-1.5 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors"
+          className="no-drag mr-1 flex shrink-0 items-center justify-center rounded p-1.5 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors"
           title={activeContentDir ? `Open: ${activeContentDir}` : 'Open project folder'}
         >
           <FolderOpenIcon className="h-4 w-4" />

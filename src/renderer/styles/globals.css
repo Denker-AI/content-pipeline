@@ -2,6 +2,14 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Draggable title bar region for frameless window */
+.drag-region {
+  -webkit-app-region: drag;
+}
+.no-drag {
+  -webkit-app-region: no-drag;
+}
+
 /* Thin overlay-style scrollbar for xterm viewport */
 .xterm-viewport::-webkit-scrollbar {
   width: 4px;
