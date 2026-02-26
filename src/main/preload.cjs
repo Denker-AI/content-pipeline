@@ -99,6 +99,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.invoke('publish:resend:audiences'),
     resendSend: (request) =>
       ipcRenderer.invoke('publish:resend:send', request),
+    resendSendTest: (request) =>
+      ipcRenderer.invoke('publish:resend:sendTest', request),
     blog: (contentDir) =>
       ipcRenderer.invoke('publish:blog', contentDir),
   },

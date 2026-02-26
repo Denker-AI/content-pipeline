@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import type { ResendAudience, ResendSendResult } from '@/shared/types'
+import type { ResendAudience, ResendSendResult, ResendTestResult } from '@/shared/types'
 
 import { PublishDialog } from './publish-dialog'
 
@@ -19,16 +19,20 @@ export function ResendSender({
   const [selectedAudienceId, setSelectedAudienceId] = useState('')
   const [subject, setSubject] = useState('')
   const [previewText, setPreviewText] = useState('')
+  const [testEmail, setTestEmail] = useState('')
   const [loading, setLoading] = useState(false)
+  const [testLoading, setTestLoading] = useState(false)
   const [loadingAudiences, setLoadingAudiences] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<ResendSendResult | null>(null)
+  const [testResult, setTestResult] = useState<ResendTestResult | null>(null)
 
   // Load audiences when dialog opens
   useEffect(() => {
     if (!isOpen) return
     setError(null)
     setResult(null)
+    setTestResult(null)
     setLoadingAudiences(true)
 
     const load = async () => {
@@ -52,6 +56,32 @@ export function ResendSender({
 
     load()
   }, [isOpen, selectedAudienceId])
+
+  const handleSendTest = useCallback(async () => {
+    if (!testEmail || !subject) return
+
+    setTestLoading(true)
+    setError(null)
+    setTestResult(null)
+
+    try {
+      const sendResult = await window.electronAPI?.publish.resendSendTest({
+        contentDir,
+        to: testEmail,
+        subject,
+        previewText,
+      })
+      if (sendResult) {
+        setTestResult(sendResult)
+      }
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : 'Failed to send test email'
+      setError(message)
+    } finally {
+      setTestLoading(false)
+    }
+  }, [contentDir, testEmail, subject, previewText])
 
   const handleSend = useCallback(async () => {
     if (!selectedAudienceId || !subject) return
@@ -79,6 +109,7 @@ export function ResendSender({
   }, [contentDir, selectedAudienceId, subject, previewText])
 
   const canSend = selectedAudienceId && subject.trim().length > 0
+  const canSendTest = testEmail.trim().length > 0 && subject.trim().length > 0
 
   return (
     <PublishDialog
@@ -86,7 +117,7 @@ export function ResendSender({
       onClose={onClose}
       onConfirm={handleSend}
       title="Send Newsletter"
-      confirmLabel={result ? 'Done' : 'Send'}
+      confirmLabel={result ? 'Done' : 'Send to Audience'}
       confirmDisabled={!canSend || !!result}
       loading={loading}
     >
@@ -106,30 +137,6 @@ export function ResendSender({
         </div>
       ) : (
         <div className="space-y-4">
-          {/* Audience selector */}
-          <div>
-            <label className="mb-1 block text-xs font-medium text-zinc-400">
-              Audience
-            </label>
-            {audiences.length > 0 ? (
-              <select
-                value={selectedAudienceId}
-                onChange={(e) => setSelectedAudienceId(e.target.value)}
-                className="w-full rounded border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-200 outline-none focus:border-blue-500"
-              >
-                {audiences.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.name}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <div className="rounded border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-500">
-                No audiences found. Create one in Resend dashboard.
-              </div>
-            )}
-          </div>
-
           {/* Subject */}
           <div>
             <label className="mb-1 block text-xs font-medium text-zinc-400">
@@ -165,6 +172,67 @@ export function ResendSender({
             </label>
             <div className="rounded border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-300">
               Sending email.html from content directory
+            </div>
+          </div>
+
+          {/* Divider — Send Test Section */}
+          <div className="border-t border-zinc-700 pt-4">
+            <label className="mb-2 block text-xs font-medium text-zinc-300">
+              Send Test Email
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="email"
+                value={testEmail}
+                onChange={(e) => {
+                  setTestEmail(e.target.value)
+                  setTestResult(null)
+                }}
+                placeholder="your@email.com"
+                className="flex-1 rounded border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-200 placeholder-zinc-500 outline-none focus:border-blue-500"
+              />
+              <button
+                onClick={handleSendTest}
+                disabled={!canSendTest || testLoading}
+                className="rounded bg-zinc-700 px-3 py-2 text-xs font-medium text-zinc-200 hover:bg-zinc-600 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {testLoading ? 'Sending...' : 'Send Test'}
+              </button>
+            </div>
+            {testResult && (
+              <div className="mt-2 rounded bg-green-900/30 p-2 text-xs text-green-300">
+                Test sent! Check your inbox. Subject will be prefixed with [TEST].
+              </div>
+            )}
+          </div>
+
+          {/* Divider — Broadcast Section */}
+          <div className="border-t border-zinc-700 pt-4">
+            <label className="mb-2 block text-xs font-medium text-zinc-300">
+              Send to Audience
+            </label>
+            {/* Audience selector */}
+            <div>
+              <label className="mb-1 block text-xs font-medium text-zinc-400">
+                Audience
+              </label>
+              {audiences.length > 0 ? (
+                <select
+                  value={selectedAudienceId}
+                  onChange={(e) => setSelectedAudienceId(e.target.value)}
+                  className="w-full rounded border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-200 outline-none focus:border-blue-500"
+                >
+                  {audiences.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.name}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <div className="rounded border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-500">
+                  No audiences found. Create one in Resend dashboard.
+                </div>
+              )}
             </div>
           </div>
 

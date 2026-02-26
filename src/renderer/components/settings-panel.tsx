@@ -12,6 +12,7 @@ const DEFAULT_USER: UserSettings = {
   authCookies: {},
   linkedinToken: '',
   resendApiKey: '',
+  resendFromEmail: '',
   blogWebhookUrl: '',
   braveApiKey: '',
   theme: 'dark',
@@ -194,6 +195,27 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                 }
                 placeholder="Enter Resend API key"
               />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs text-zinc-500 dark:text-zinc-400">
+                Resend From Email
+              </label>
+              <input
+                type="text"
+                className={inputClass}
+                value={userSettings.resendFromEmail}
+                onChange={(e) =>
+                  setUserSettings({
+                    ...userSettings,
+                    resendFromEmail: e.target.value,
+                  })
+                }
+                placeholder="newsletter@yourdomain.com"
+              />
+              <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
+                Must be a verified sender in your Resend account
+              </p>
             </div>
 
             <div>
