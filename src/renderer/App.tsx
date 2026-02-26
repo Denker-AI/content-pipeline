@@ -211,6 +211,58 @@ export function App() {
     [activeTabId],
   )
 
+  // Save session state when tabs or active tab change (debounced)
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => {
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+    saveTimerRef.current = setTimeout(async () => {
+      const settings = await window.electronAPI?.settings.getUser()
+      if (!settings) return
+      await window.electronAPI?.settings.saveUser({
+        ...settings,
+        lastSession: {
+          openTabIds: tabs.map((t) => t.id),
+          activeTabId,
+        },
+      })
+    }, 500)
+  }, [tabs, activeTabId])
+
+  // Restore session on startup — reopen tabs from last session
+  const didRestoreSession = useRef(false)
+  useEffect(() => {
+    if (didRestoreSession.current) return
+    didRestoreSession.current = true
+
+    const restore = async () => {
+      const settings = await window.electronAPI?.settings.getUser()
+      const session = settings?.lastSession
+      if (!session?.openTabIds?.length) return
+
+      // Fetch all pipeline items to find matching ones
+      const items = await window.electronAPI?.pipeline.listPipelineItems()
+      if (!items?.length) return
+
+      for (const tabId of session.openTabIds) {
+        const item = items.find((i) => i.id === tabId)
+        if (item) {
+          await openTab(item, false)
+        }
+      }
+
+      // Focus the last active tab
+      if (session.activeTabId) {
+        const activeItem = items.find((i) => i.id === session.activeTabId)
+        if (activeItem) {
+          setActiveTabId(session.activeTabId)
+          setActiveItem(activeItem)
+          await window.electronAPI?.pipeline.activateContent(activeItem)
+        }
+      }
+    }
+    restore()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   // Check if onboarding wizard is needed
   useEffect(() => {
     const check = async () => {

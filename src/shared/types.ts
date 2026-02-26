@@ -172,6 +172,10 @@ export interface UserSettings {
   projectRoot?: string
   repos: string[]
   repoLabels: Record<string, string>  // path → custom display name
+  lastSession?: {
+    openTabIds: string[]       // content item IDs that were open
+    activeTabId: string | null // which tab was focused
+  }
 }
 
 // Multi-repo sidebar data
