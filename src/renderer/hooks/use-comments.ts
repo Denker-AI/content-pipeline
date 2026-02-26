@@ -92,7 +92,16 @@ export function useComments() {
       const fullPrompt = screenshotPath
         ? `${prompt}\n\nScreenshot of current preview: ${screenshotPath}`
         : prompt
-      window.electronAPI?.terminal.sendInput(tabId, fullPrompt + '\n')
+
+      // Use bracketed paste mode so multi-line text is treated as a single
+      // paste (prevents each \n from submitting a separate message in Claude CLI).
+      // Then send \n to auto-submit.
+      const PASTE_START = '\x1b[200~'
+      const PASTE_END = '\x1b[201~'
+      window.electronAPI?.terminal.sendInput(
+        tabId,
+        PASTE_START + fullPrompt + PASTE_END + '\n',
+      )
     },
     [buildPrompt],
   )
