@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import type { ContentType, PipelineItem } from '@/shared/types'
+import type { ContentType, PipelineItem, WorktreeInfo } from '@/shared/types'
 
 import { usePipeline } from '../hooks/use-pipeline'
 
@@ -14,6 +14,7 @@ type SidebarTab = 'content' | 'branches'
 interface PipelineSidebarProps {
   onItemSelect: (item: PipelineItem) => void
   onItemCreated: (item: PipelineItem) => void
+  onBranchSelect: (worktree: WorktreeInfo) => void
   onOpenProject: () => void
   hasProject: boolean
 }
@@ -21,6 +22,7 @@ interface PipelineSidebarProps {
 export function PipelineSidebar({
   onItemSelect,
   onItemCreated,
+  onBranchSelect,
   onOpenProject,
   hasProject,
 }: PipelineSidebarProps) {
@@ -41,9 +43,15 @@ export function PipelineSidebar({
     installConfig,
   } = usePipeline()
 
+  // Content tab click: activate content for preview only (no terminal)
   const handleSelect = (item: PipelineItem) => {
     activateItem(item)
     onItemSelect(item)
+  }
+
+  // Branch tab click: open terminal + preview
+  const handleBranchClick = (worktree: WorktreeInfo) => {
+    onBranchSelect(worktree)
   }
 
   const handleCreate = async (type: ContentType) => {
@@ -157,7 +165,7 @@ export function PipelineSidebar({
 
       {activeTab === 'branches' && (
         <div className="min-h-0 flex-1">
-          <WorktreeList />
+          <WorktreeList onSelectWorktree={handleBranchClick} />
         </div>
       )}
     </div>

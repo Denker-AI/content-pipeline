@@ -10,6 +10,7 @@ export function WorktreeList({ onSelectWorktree }: WorktreeListProps) {
   const [worktrees, setWorktrees] = useState<WorktreeInfo[]>([])
   const [loading, setLoading] = useState(true)
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
+  const [filter, setFilter] = useState('content')
 
   const refresh = useCallback(async () => {
     try {
@@ -69,11 +70,43 @@ export function WorktreeList({ onSelectWorktree }: WorktreeListProps) {
     )
   }
 
+  const filtered = filter.trim()
+    ? worktrees.filter((wt) =>
+        wt.branch.toLowerCase().startsWith(filter.trim().toLowerCase()),
+      )
+    : worktrees
+
   return (
     <div className="flex h-full flex-col">
+      {/* Filter bar */}
+      <div className="shrink-0 border-b border-zinc-200 dark:border-zinc-700 p-2">
+        <div className="flex items-center gap-1.5">
+          <input
+            type="text"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            placeholder="Filter branches..."
+            className="min-w-0 flex-1 rounded bg-zinc-100 dark:bg-zinc-800 px-2 py-1 text-xs text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-500 outline-none focus:ring-1 focus:ring-blue-500"
+          />
+          {filter && (
+            <button
+              onClick={() => setFilter('')}
+              className="shrink-0 text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+              title="Clear filter"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+      </div>
       <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-700 px-3 py-1.5">
         <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
-          {worktrees.length} branch{worktrees.length !== 1 ? 'es' : ''}
+          {filtered.length} branch{filtered.length !== 1 ? 'es' : ''}
+          {filter && filtered.length !== worktrees.length && (
+            <span className="font-normal text-zinc-400 dark:text-zinc-500">
+              {' '}of {worktrees.length}
+            </span>
+          )}
         </span>
         <button
           onClick={refresh}
@@ -84,7 +117,7 @@ export function WorktreeList({ onSelectWorktree }: WorktreeListProps) {
         </button>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto">
-        {worktrees.map((wt) => {
+        {filtered.map((wt) => {
           const isMain = !wt.branch.startsWith('content/')
           return (
             <div

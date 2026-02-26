@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import type { ContentStage, ContentType, PipelineItem } from '@/shared/types'
+import type { ContentStage, ContentType, PipelineItem, WorktreeInfo } from '@/shared/types'
 
 import { PipelineSidebar } from './components/pipeline-sidebar'
 import { PreviewPane } from './components/preview-pane'
@@ -38,13 +38,11 @@ export function App() {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [tabs, setTabs] = useState<Tab[]>([])
   const [activeTabId, setActiveTabId] = useState<string | null>(null)
+  // Active content item — independent of terminal tabs (set by content click or tab switch)
+  const [activeItem, setActiveItem] = useState<PipelineItem | null>(null)
 
   // Track which tabs are newly created (need starter prompt)
   const pendingPromptsRef = useRef<Set<string>>(new Set())
-
-  // Derive active item from the active tab
-  const activeTab = tabs.find((t) => t.id === activeTabId) ?? null
-  const activeItem = activeTab?.pipelineItem ?? null
 
   // When content lives in a worktree, read from the worktree's content dir
   const activeContentDir = activeItem
@@ -73,6 +71,8 @@ export function App() {
   // Open a tab for a pipeline item (or focus if already open)
   const openTab = useCallback(
     async (item: PipelineItem, isNew = false) => {
+      setActiveItem(item)
+
       const existingTab = tabs.find((t) => t.id === item.id)
       if (existingTab) {
         // Already open — just focus it
@@ -141,9 +141,11 @@ export function App() {
           const nextIndex = Math.min(tabIndex, remaining.length - 1)
           const nextTab = remaining[nextIndex]
           setActiveTabId(nextTab.id)
+          setActiveItem(nextTab.pipelineItem)
           window.electronAPI?.pipeline.activateContent(nextTab.pipelineItem)
         } else {
           setActiveTabId(null)
+          setActiveItem(null)
         }
       }
     },
@@ -156,24 +158,46 @@ export function App() {
       setActiveTabId(tabId)
       const tab = tabs.find((t) => t.id === tabId)
       if (tab) {
+        setActiveItem(tab.pipelineItem)
         await window.electronAPI?.pipeline.activateContent(tab.pipelineItem)
       }
     },
     [tabs],
   )
 
-  // Sidebar item select — open/focus tab
+  // Content tab click — preview only (no terminal)
   const handleItemSelect = useCallback(
+    async (item: PipelineItem) => {
+      setActiveItem(item)
+      await window.electronAPI?.pipeline.activateContent(item)
+      // If there's already a tab for this item, focus it
+      const existingTab = tabs.find((t) => t.id === item.id)
+      if (existingTab) {
+        setActiveTabId(existingTab.id)
+      }
+    },
+    [tabs],
+  )
+
+  // Sidebar create ("+") — create content and open terminal tab
+  const handleItemCreated = useCallback(
     (item: PipelineItem) => {
-      openTab(item, false)
+      openTab(item, true)
     },
     [openTab],
   )
 
-  // Sidebar create — create content and open tab
-  const handleItemCreated = useCallback(
-    (item: PipelineItem) => {
-      openTab(item, true)
+  // Branch tab click — open terminal + show preview
+  const handleBranchSelect = useCallback(
+    async (worktree: WorktreeInfo) => {
+      // Find the matching pipeline item for this worktree
+      const items = await window.electronAPI?.pipeline.listPipelineItems()
+      const item = items?.find(
+        (i) => i.worktreeBranch === worktree.branch || i.worktreePath === worktree.path,
+      )
+      if (item) {
+        openTab(item, false)
+      }
     },
     [openTab],
   )
@@ -204,6 +228,7 @@ export function App() {
             <PipelineSidebar
               onItemSelect={handleItemSelect}
               onItemCreated={handleItemCreated}
+              onBranchSelect={handleBranchSelect}
               onOpenProject={openProject}
               hasProject={!!contentDir}
             />
