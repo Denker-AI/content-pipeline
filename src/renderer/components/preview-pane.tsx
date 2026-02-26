@@ -183,9 +183,14 @@ export function PreviewPane({
 
   const handleSendToClaude = useCallback(() => {
     if (selectedItem) {
-      sendToTerminal(selectedItem.relativePath, activeTabId)
+      sendToTerminal(
+        selectedItem.relativePath,
+        activeTabId,
+        fileContent || undefined,
+        activeContentDir,
+      )
     }
-  }, [selectedItem, sendToTerminal, activeTabId])
+  }, [selectedItem, sendToTerminal, activeTabId, fileContent, activeContentDir])
 
   const hasComments = comments.length > 0
   const tabs: Tab[] =

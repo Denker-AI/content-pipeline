@@ -61,10 +61,38 @@ export function useComments() {
   )
 
   const sendToTerminal = useCallback(
-    (filePath: string, tabId?: string | null) => {
+    async (
+      filePath: string,
+      tabId?: string | null,
+      htmlContent?: string,
+      contentDir?: string,
+    ) => {
       const prompt = buildPrompt(filePath)
       if (!prompt || !tabId) return
-      window.electronAPI?.terminal.sendInput(tabId, prompt + '\n')
+
+      // Capture a screenshot of the current preview so Claude can see it
+      let screenshotPath = ''
+      if (htmlContent && contentDir) {
+        try {
+          const result = await window.electronAPI?.capture.screenshot({
+            html: htmlContent,
+            width: 800,
+            height: 600,
+            presetName: 'annotation-preview',
+            contentDir,
+          })
+          if (result?.path) {
+            screenshotPath = result.path
+          }
+        } catch {
+          // Screenshot failed — send prompt without image
+        }
+      }
+
+      const fullPrompt = screenshotPath
+        ? `${prompt}\n\nScreenshot of current preview: ${screenshotPath}`
+        : prompt
+      window.electronAPI?.terminal.sendInput(tabId, fullPrompt + '\n')
     },
     [buildPrompt],
   )
