@@ -171,6 +171,7 @@ export interface UserSettings {
   theme: 'light' | 'dark' | 'auto'
   projectRoot?: string
   repos: string[]
+  repoLabels: Record<string, string>  // path → custom display name
 }
 
 // Multi-repo sidebar data

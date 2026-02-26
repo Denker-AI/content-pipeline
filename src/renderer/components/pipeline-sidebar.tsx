@@ -48,7 +48,7 @@ export function PipelineSidebar({
   const [confirmRemoveRepo, setConfirmRemoveRepo] = useState<string | null>(null)
   const didInitialExpand = useRef(false)
 
-  const { repos, loading: reposLoading, addRepo, removeRepo } = useRepos()
+  const { repos, loading: reposLoading, addRepo, removeRepo, renameRepo } = useRepos()
 
   const {
     groupedItems,
@@ -261,6 +261,7 @@ export function PipelineSidebar({
                 onCreateNew={handleCreate}
                 onStageChange={updateStage}
                 onBranchSelect={handleBranchClick}
+                onRename={(name) => renameRepo(repo.path, name)}
                 branchFilter={branchFilter}
                 isMultiRepo={isMultiRepo}
               />
@@ -300,6 +301,7 @@ interface RepoSectionProps {
   onCreateNew: (type: ContentType) => Promise<void>
   onStageChange: (item: PipelineItem, stage: import('@/shared/types').ContentStage) => void
   onBranchSelect: (worktree: WorktreeInfo) => void
+  onRename: (name: string) => void
   branchFilter: string
   isMultiRepo: boolean
 }
@@ -319,10 +321,13 @@ function RepoSection({
   onCreateNew,
   onStageChange,
   onBranchSelect,
+  onRename,
   branchFilter,
   isMultiRepo,
 }: RepoSectionProps) {
   const [confirmDeleteBranch, setConfirmDeleteBranch] = useState<string | null>(null)
+  const [editing, setEditing] = useState(false)
+  const [editName, setEditName] = useState(repo.name)
 
   const handleDeleteBranch = async (wt: WorktreeInfo) => {
     if (confirmDeleteBranch !== wt.path) {
@@ -356,9 +361,45 @@ function RepoSection({
             <ChevronRightIcon className="h-3 w-3 shrink-0 text-zinc-400" />
           )}
           <FolderIcon className="h-3 w-3 shrink-0 text-zinc-400" />
-          <span className="truncate text-xs font-semibold text-zinc-700 dark:text-zinc-200">
-            {repo.name}
-          </span>
+          {editing ? (
+            <input
+              type="text"
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              onBlur={() => {
+                setEditing(false)
+                if (editName.trim() && editName.trim() !== repo.name) {
+                  onRename(editName.trim())
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  setEditing(false)
+                  if (editName.trim() && editName.trim() !== repo.name) {
+                    onRename(editName.trim())
+                  }
+                }
+                if (e.key === 'Escape') {
+                  setEditing(false)
+                  setEditName(repo.name)
+                }
+              }}
+              onClick={(e) => e.stopPropagation()}
+              autoFocus
+              className="min-w-0 flex-1 rounded bg-zinc-100 dark:bg-zinc-800 px-1 py-0 text-xs font-semibold text-zinc-700 dark:text-zinc-200 outline-none ring-1 ring-blue-500"
+            />
+          ) : (
+            <span
+              className="truncate text-xs font-semibold text-zinc-700 dark:text-zinc-200"
+              onDoubleClick={(e) => {
+                e.stopPropagation()
+                setEditName(repo.name)
+                setEditing(true)
+              }}
+            >
+              {repo.name}
+            </span>
+          )}
           <span className="shrink-0 text-[10px] text-zinc-400 dark:text-zinc-500">
             {count}
           </span>

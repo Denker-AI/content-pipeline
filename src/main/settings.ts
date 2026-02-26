@@ -17,6 +17,7 @@ const DEFAULT_USER_SETTINGS: UserSettings = {
   braveApiKey: '',
   theme: 'dark',
   repos: [],
+  repoLabels: {},
 }
 
 const DEFAULT_PROJECT_SETTINGS: ProjectSettings = {

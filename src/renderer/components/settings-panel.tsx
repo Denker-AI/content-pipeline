@@ -16,6 +16,7 @@ const DEFAULT_USER: UserSettings = {
   braveApiKey: '',
   theme: 'dark',
   repos: [],
+  repoLabels: {},
 }
 
 function applyTheme(theme: 'light' | 'dark' | 'auto') {
