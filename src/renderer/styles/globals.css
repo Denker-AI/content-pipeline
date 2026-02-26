@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Thin overlay-style scrollbar for xterm viewport */
 .xterm-viewport::-webkit-scrollbar {
   width: 4px;

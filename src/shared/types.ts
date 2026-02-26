@@ -168,7 +168,7 @@ export interface UserSettings {
   resendApiKey: string
   blogWebhookUrl: string
   braveApiKey: string
-  theme: 'light' | 'dark'
+  theme: 'light' | 'dark' | 'auto'
   projectRoot?: string
   repos: string[]
 }

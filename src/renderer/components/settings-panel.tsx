@@ -18,6 +18,17 @@ const DEFAULT_USER: UserSettings = {
   repos: [],
 }
 
+function applyTheme(theme: 'light' | 'dark' | 'auto') {
+  if (theme === 'dark') {
+    document.documentElement.classList.add('dark')
+  } else if (theme === 'light') {
+    document.documentElement.classList.remove('dark')
+  } else {
+    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    document.documentElement.classList.toggle('dark', isDark)
+  }
+}
+
 export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   const [userSettings, setUserSettings] = useState<UserSettings>(DEFAULT_USER)
   const [userSaved, setUserSaved] = useState(false)
@@ -70,6 +81,10 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
     const updated = { ...userSettings, authCookies: parsedCookies }
     await api.saveUser(updated)
     setUserSettings(updated)
+
+    // Apply theme immediately
+    applyTheme(updated.theme)
+
     setUserSaved(true)
     setTimeout(() => setUserSaved(false), 2000)
   }
@@ -222,30 +237,21 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
             <div>
               <label className="mb-1 block text-xs text-zinc-500 dark:text-zinc-400">Theme</label>
               <div className="flex gap-2">
-                <button
-                  onClick={() =>
-                    setUserSettings({ ...userSettings, theme: 'dark' })
-                  }
-                  className={`rounded px-3 py-1.5 text-sm ${
-                    userSettings.theme === 'dark'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-600'
-                  }`}
-                >
-                  Dark
-                </button>
-                <button
-                  onClick={() =>
-                    setUserSettings({ ...userSettings, theme: 'light' })
-                  }
-                  className={`rounded px-3 py-1.5 text-sm ${
-                    userSettings.theme === 'light'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-600'
-                  }`}
-                >
-                  Light
-                </button>
+                {(['light', 'dark', 'auto'] as const).map((t) => (
+                  <button
+                    key={t}
+                    onClick={() =>
+                      setUserSettings({ ...userSettings, theme: t })
+                    }
+                    className={`rounded px-3 py-1.5 text-sm capitalize ${
+                      userSettings.theme === t
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-600'
+                    }`}
+                  >
+                    {t}
+                  </button>
+                ))}
               </div>
             </div>
 

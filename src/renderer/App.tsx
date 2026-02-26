@@ -11,6 +11,7 @@ import { TabBar } from './components/tab-bar'
 import { TerminalPane } from './components/terminal-pane'
 import { ThreePaneLayout } from './components/three-pane-layout'
 import { useContent } from './hooks/use-content'
+import { useTheme } from './hooks/use-theme'
 
 
 const TYPE_COLORS: Record<string, string> = {
@@ -35,6 +36,7 @@ const STARTER_PROMPTS: Record<string, string> = {
 }
 
 export function App() {
+  useTheme()
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [showWizard, setShowWizard] = useState(false)
   const [tabs, setTabs] = useState<Tab[]>([])
@@ -264,6 +266,7 @@ export function App() {
               onOpenWizard={() => setShowWizard(true)}
               onStartClaude={handleStartClaude}
               hasProject={!!contentDir}
+              hasActiveTab={!!activeTabId}
             />
           }
           middle={

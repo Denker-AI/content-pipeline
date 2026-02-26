@@ -171,6 +171,22 @@ export function TerminalIcon({ className = 'h-4 w-4' }: IconProps) {
   )
 }
 
+export function ClaudeIcon({ className = 'h-4 w-4' }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M16.734 2.573a.621.621 0 00-.858.202l-4.225 6.87-4.225-6.87a.621.621 0 00-1.06.652l4.649 7.56H8.372a.621.621 0 100 1.242h2.78v2.484H8.371a.621.621 0 100 1.242h2.78V20.5a.621.621 0 101.243 0v-4.545h2.78a.621.621 0 100-1.242h-2.78v-2.484h2.78a.621.621 0 100-1.242h-2.643l4.65-7.56a.621.621 0 00-.202-.858z" />
+    </svg>
+  )
+}
+
+export function BoltIcon({ className = 'h-4 w-4' }: IconProps) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+    </svg>
+  )
+}
+
 export function CameraIcon({ className = 'h-4 w-4' }: IconProps) {
   return (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
