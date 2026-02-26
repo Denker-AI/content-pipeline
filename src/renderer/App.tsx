@@ -260,7 +260,7 @@ export function App() {
             <div className="flex h-full flex-col">
               {/* Top bar — branch name + Claude session buttons, draggable */}
               <div className="drag-region flex h-9 shrink-0 items-center gap-2 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-900 px-3">
-                <div className="no-drag flex items-center gap-1.5 min-w-0 flex-1">
+                <div className="flex items-center gap-1.5 min-w-0 flex-1">
                   {projectName && (
                     <span className="shrink-0 text-xs font-medium text-zinc-600 dark:text-zinc-300">
                       {projectName}
