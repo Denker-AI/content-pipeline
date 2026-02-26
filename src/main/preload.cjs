@@ -112,6 +112,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
     isConfigured: () => ipcRenderer.invoke('project:isConfigured'),
     install: () => ipcRenderer.invoke('project:install'),
   },
+  git: {
+    listWorktrees: () => ipcRenderer.invoke('git:listWorktrees'),
+    removeWorktree: (worktreePath) => ipcRenderer.invoke('git:removeWorktree', worktreePath),
+    status: (cwd) => ipcRenderer.invoke('git:status', cwd),
+    recentFiles: (cwd, limit) => ipcRenderer.invoke('git:recentFiles', cwd, limit),
+  },
   pipeline: {
     listPipelineItems: () => ipcRenderer.invoke('pipeline:list'),
     createContent: (type) => ipcRenderer.invoke('pipeline:create', type),

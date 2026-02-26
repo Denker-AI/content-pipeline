@@ -1,10 +1,15 @@
+import { useState } from 'react'
+
 import type { ContentType, PipelineItem } from '@/shared/types'
 
 import { usePipeline } from '../hooks/use-pipeline'
 
 import { PipelineSection } from './pipeline-section'
+import { WorktreeList } from './worktree-list'
 
 const SECTION_TYPES: ContentType[] = ['linkedin', 'blog', 'newsletter']
+
+type SidebarTab = 'content' | 'branches'
 
 interface PipelineSidebarProps {
   onItemSelect: (item: PipelineItem) => void
@@ -19,6 +24,8 @@ export function PipelineSidebar({
   onOpenProject,
   hasProject,
 }: PipelineSidebarProps) {
+  const [activeTab, setActiveTab] = useState<SidebarTab>('content')
+
   const {
     groupedItems,
     activeItemId,
@@ -60,65 +67,99 @@ export function PipelineSidebar({
     )
   }
 
-  if (loading) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <p className="text-xs text-zinc-400 dark:text-zinc-500">Loading...</p>
-      </div>
-    )
-  }
-
   return (
     <div className="flex h-full flex-col">
-      {/* Search */}
-      <div className="shrink-0 border-b border-zinc-200 dark:border-zinc-700 p-2">
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search content..."
-          className="w-full rounded bg-zinc-100 dark:bg-zinc-800 px-2 py-1 text-xs text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-500 outline-none focus:ring-1 focus:ring-blue-500"
-        />
+      {/* Tab bar */}
+      <div className="flex shrink-0 border-b border-zinc-200 dark:border-zinc-700">
+        <button
+          onClick={() => setActiveTab('content')}
+          className={`flex-1 px-3 py-1.5 text-xs font-medium transition-colors ${
+            activeTab === 'content'
+              ? 'border-b-2 border-blue-500 text-zinc-900 dark:text-white'
+              : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200'
+          }`}
+        >
+          Content
+        </button>
+        <button
+          onClick={() => setActiveTab('branches')}
+          className={`flex-1 px-3 py-1.5 text-xs font-medium transition-colors ${
+            activeTab === 'branches'
+              ? 'border-b-2 border-blue-500 text-zinc-900 dark:text-white'
+              : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200'
+          }`}
+        >
+          Branches
+        </button>
       </div>
 
-      {/* Setup banner */}
-      {!isConfigured && (
-        <div className="shrink-0 border-b border-zinc-200 dark:border-zinc-700 p-2">
-          <div className="rounded border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30 p-2 text-xs">
-            <p className="font-medium text-amber-800 dark:text-amber-300">
-              Claude Code not set up
-            </p>
-            <p className="mt-0.5 text-amber-700 dark:text-amber-400">
-              Install slash commands and templates for this project.
-            </p>
-            <div className="mt-2 flex justify-end">
-              <button
-                onClick={installConfig}
-                className="rounded bg-amber-600 px-2 py-1 text-white hover:bg-amber-500 dark:bg-amber-700 dark:hover:bg-amber-600"
-              >
-                Install
-              </button>
+      {activeTab === 'content' && (
+        <>
+          {loading ? (
+            <div className="flex h-full items-center justify-center">
+              <p className="text-xs text-zinc-400 dark:text-zinc-500">Loading...</p>
             </div>
-          </div>
-        </div>
+          ) : (
+            <>
+              {/* Search */}
+              <div className="shrink-0 border-b border-zinc-200 dark:border-zinc-700 p-2">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search content..."
+                  className="w-full rounded bg-zinc-100 dark:bg-zinc-800 px-2 py-1 text-xs text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-500 outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Setup banner */}
+              {!isConfigured && (
+                <div className="shrink-0 border-b border-zinc-200 dark:border-zinc-700 p-2">
+                  <div className="rounded border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30 p-2 text-xs">
+                    <p className="font-medium text-amber-800 dark:text-amber-300">
+                      Claude Code not set up
+                    </p>
+                    <p className="mt-0.5 text-amber-700 dark:text-amber-400">
+                      Install slash commands and templates for this project.
+                    </p>
+                    <div className="mt-2 flex justify-end">
+                      <button
+                        onClick={installConfig}
+                        className="rounded bg-amber-600 px-2 py-1 text-white hover:bg-amber-500 dark:bg-amber-700 dark:hover:bg-amber-600"
+                      >
+                        Install
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Sections */}
+              <div className="min-h-0 flex-1 overflow-y-auto">
+                {SECTION_TYPES.map((type) => (
+                  <PipelineSection
+                    key={type}
+                    type={type}
+                    items={groupedItems[type] ?? []}
+                    isExpanded={expandedSections.has(type)}
+                    onToggle={() => toggleSection(type)}
+                    onItemSelect={handleSelect}
+                    onCreateNew={handleCreate}
+                    activeItemId={activeItemId}
+                    onStageChange={updateStage}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+        </>
       )}
 
-      {/* Sections */}
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        {SECTION_TYPES.map((type) => (
-          <PipelineSection
-            key={type}
-            type={type}
-            items={groupedItems[type] ?? []}
-            isExpanded={expandedSections.has(type)}
-            onToggle={() => toggleSection(type)}
-            onItemSelect={handleSelect}
-            onCreateNew={handleCreate}
-            activeItemId={activeItemId}
-            onStageChange={updateStage}
-          />
-        ))}
-      </div>
+      {activeTab === 'branches' && (
+        <div className="min-h-0 flex-1">
+          <WorktreeList />
+        </div>
+      )}
     </div>
   )
 }

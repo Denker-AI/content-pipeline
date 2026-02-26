@@ -39,6 +39,7 @@ export function LinkedInCompositePreview({
         const text = await api.read(`${contentDir}/post-text.md`)
         setPostText(text.trim())
       } catch {
+        // File doesn't exist yet — leave empty, placeholder will show
         setPostText('')
       }
     }
@@ -100,15 +101,13 @@ export function LinkedInCompositePreview({
     loadContent()
   }, [loadContent])
 
-  // Watch for file changes in content directory
+  // Watch for file changes — reload on any change (watcher is already scoped)
   useEffect(() => {
-    const unsub = window.electronAPI?.files.onFileChange((event) => {
-      if (event.path.startsWith(contentDir)) {
-        loadContent()
-      }
+    const unsub = window.electronAPI?.files.onFileChange(() => {
+      loadContent()
     })
     return unsub
-  }, [contentDir, loadContent])
+  }, [loadContent])
 
   const handlePrev = useCallback(() => {
     setCurrentSlide((s) => Math.max(0, s - 1))

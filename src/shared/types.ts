@@ -314,6 +314,29 @@ export interface AnnotationComment {
   resolved: boolean
 }
 
+// Git file status entry
+export interface GitFileEntry {
+  path: string
+  status: 'new' | 'modified' | 'deleted'
+  staged: boolean
+}
+
+// Git committed file entry
+export interface GitCommitFile {
+  path: string
+  commitMessage: string
+  commitHash: string
+  date: string
+}
+
+// Git API exposed via preload
+export interface GitAPI {
+  listWorktrees: () => Promise<WorktreeInfo[]>
+  removeWorktree: (worktreePath: string) => Promise<void>
+  status: (cwd: string) => Promise<GitFileEntry[]>
+  recentFiles: (cwd: string, limit: number) => Promise<GitCommitFile[]>
+}
+
 // Shell API exposed via preload
 export interface ShellAPI {
   openExternal: (url: string) => Promise<void>
@@ -339,6 +362,7 @@ export interface ElectronAPI {
   seo: SEOAPI
   shell: ShellAPI
   project: ProjectAPI
+  git: GitAPI
 }
 
 declare global {

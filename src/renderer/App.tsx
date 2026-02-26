@@ -46,7 +46,12 @@ export function App() {
   const activeTab = tabs.find((t) => t.id === activeTabId) ?? null
   const activeItem = activeTab?.pipelineItem ?? null
 
-  const activeContentDir = activeItem?.contentDir
+  // When content lives in a worktree, read from the worktree's content dir
+  const activeContentDir = activeItem
+    ? activeItem.worktreePath
+      ? `${activeItem.worktreePath}/content/${activeItem.id}`
+      : activeItem.contentDir
+    : undefined
   const activeContentType = activeItem?.type as ContentType | undefined
 
   const openSettings = useCallback(() => setSettingsOpen(true), [])
@@ -60,6 +65,7 @@ export function App() {
     loading,
     contentDir,
     refreshCount,
+    selectFile,
     selectVersion,
     openProject,
   } = useContent(activeContentDir)
@@ -268,7 +274,9 @@ export function App() {
               loading={loading}
               contentDir={contentDir}
               refreshCount={refreshCount}
+              worktreePath={activeItem?.worktreePath}
               selectVersion={selectVersion}
+              selectFile={selectFile}
               openProject={openProject}
             />
           }

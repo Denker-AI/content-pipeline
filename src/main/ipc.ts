@@ -1,8 +1,12 @@
 import type { BrowserWindow } from 'electron'
 import { dialog, ipcMain, shell } from 'electron'
 
+import { execFile } from 'child_process'
 import fs from 'fs/promises'
 import path from 'path'
+import { promisify } from 'util'
+
+const execFileAsync = promisify(execFile)
 
 import type {
   CaptureScreenshotRequest,
@@ -49,9 +53,22 @@ import {
 } from './settings'
 import { TerminalParser } from './terminal-parser'
 import { publishBlogToWebhook } from './webhook'
-import { createWorktree, isGitRepo } from './worktree'
+import { createWorktree, isGitRepo, listWorktrees, removeWorktree } from './worktree'
 
 let projectRoot: string = process.cwd()
+
+/**
+ * Check if a resolved path is allowed for content reads.
+ * Allows the main content dir AND any active worktree content paths.
+ */
+function isAllowedContentPath(resolved: string): boolean {
+  const contentDir = getContentDir()
+  if (resolved.startsWith(contentDir)) return true
+  // Also allow worktree content paths: <projectRoot>/.worktrees/<id>/content/...
+  const worktreeContentPrefix = path.join(projectRoot, '.worktrees')
+  if (resolved.startsWith(worktreeContentPrefix) && resolved.includes('/content/')) return true
+  return false
+}
 
 export function getProjectRoot(): string {
   return projectRoot
@@ -165,28 +182,30 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
   })
 
   ipcMain.handle('content:listDir', async (_event, dirPath: string) => {
-    const contentDir = getContentDir()
     const resolved = path.resolve(dirPath)
-    if (!resolved.startsWith(contentDir)) {
+    if (!isAllowedContentPath(resolved)) {
       throw new Error('Access denied: directory outside content directory')
     }
-    return listDir(resolved, contentDir)
+    // Compute the content root for relative path computation
+    // For worktree paths, the content root is <worktreePath>/content/<id>/..
+    // We find the "content" segment and use everything up to and including it
+    const contentRoot = resolved.includes('/.worktrees/')
+      ? resolved.slice(0, resolved.indexOf('/content/') + '/content'.length)
+      : getContentDir()
+    return listDir(resolved, contentRoot)
   })
 
   ipcMain.handle('content:read', async (_event, filePath: string) => {
-    // Security: only allow reading from content directory
-    const contentDir = getContentDir()
     const resolved = path.resolve(filePath)
-    if (!resolved.startsWith(contentDir)) {
+    if (!isAllowedContentPath(resolved)) {
       throw new Error('Access denied: file outside content directory')
     }
     return fs.readFile(resolved, 'utf-8')
   })
 
   ipcMain.handle('content:readAsDataUrl', async (_event, filePath: string) => {
-    const contentDir = getContentDir()
     const resolved = path.resolve(filePath)
-    if (!resolved.startsWith(contentDir)) {
+    if (!isAllowedContentPath(resolved)) {
       throw new Error('Access denied: file outside content directory')
     }
     const ext = path.extname(filePath).toLowerCase().slice(1)
@@ -397,6 +416,79 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     return renderComponentToHtml(filePath, projectRoot)
   })
 
+  // Git IPC handlers
+  ipcMain.handle('git:listWorktrees', async () => {
+    return listWorktrees(projectRoot)
+  })
+
+  ipcMain.handle('git:removeWorktree', async (_event, worktreePath: string) => {
+    await removeWorktree(projectRoot, worktreePath)
+    // Also delete the branch (best-effort)
+    try {
+      const branchName = path.basename(path.dirname(worktreePath)) === '.worktrees'
+        ? `content/${path.basename(worktreePath)}`
+        : undefined
+      if (branchName) {
+        await execFileAsync('git', ['branch', '-D', branchName], { cwd: projectRoot })
+      }
+    } catch {
+      // Branch deletion is best-effort
+    }
+    if (!mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('pipeline:contentChanged')
+    }
+  })
+
+  ipcMain.handle('git:status', async (_event, cwd: string) => {
+    try {
+      const { stdout } = await execFileAsync('git', ['status', '--porcelain'], { cwd })
+      const lines = stdout.split('\n').filter((l: string) => l.trim())
+      return lines.map((line: string) => {
+        const xy = line.slice(0, 2)
+        const filePath = line.slice(3)
+        let status: 'new' | 'modified' | 'deleted' = 'modified'
+        if (xy.includes('?') || xy.includes('A')) status = 'new'
+        if (xy.includes('D')) status = 'deleted'
+        const staged = xy[0] !== ' ' && xy[0] !== '?'
+        return { path: filePath, status, staged }
+      })
+    } catch {
+      return []
+    }
+  })
+
+  ipcMain.handle('git:recentFiles', async (_event, cwd: string, limit: number) => {
+    try {
+      const { stdout } = await execFileAsync(
+        'git',
+        ['log', `--max-count=${limit}`, '--name-only', '--pretty=format:%H|%s|%aI'],
+        { cwd },
+      )
+      const results: Array<{ path: string; commitMessage: string; commitHash: string; date: string }> = []
+      let currentHash = ''
+      let currentMsg = ''
+      let currentDate = ''
+      for (const line of stdout.split('\n')) {
+        if (line.includes('|') && line.split('|').length >= 3) {
+          const parts = line.split('|')
+          currentHash = parts[0]
+          currentMsg = parts[1]
+          currentDate = parts[2]
+        } else if (line.trim() && currentHash) {
+          results.push({
+            path: line.trim(),
+            commitMessage: currentMsg,
+            commitHash: currentHash,
+            date: currentDate,
+          })
+        }
+      }
+      return results
+    } catch {
+      return []
+    }
+  })
+
   // Shell IPC handlers
   ipcMain.handle('shell:openExternal', async (_event, url: string) => {
     await shell.openExternal(url)
@@ -468,6 +560,10 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     ipcMain.removeHandler('project:install')
     ipcMain.removeHandler('component:scan')
     ipcMain.removeHandler('component:render')
+    ipcMain.removeHandler('git:listWorktrees')
+    ipcMain.removeHandler('git:removeWorktree')
+    ipcMain.removeHandler('git:status')
+    ipcMain.removeHandler('git:recentFiles')
     ipcMain.removeHandler('shell:openExternal')
     ipcMain.removeHandler('shell:showItemInFolder')
   })

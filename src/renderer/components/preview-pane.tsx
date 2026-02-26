@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ComponentRenderResult, ContentType, ContentVersion, DetectedComponent, RenderMode } from '@/shared/types'
 
 import { useComments } from '../hooks/use-comments'
+import { useGitStatus } from '../hooks/use-git-status'
 
 import { BlogPublisher } from './blog-publisher'
 import { CaptureToolbar } from './capture-toolbar'
@@ -11,6 +12,7 @@ import { CommentSidebar } from './comment-sidebar'
 import { ComponentBrowser } from './component-browser'
 import { ComponentPreview } from './component-preview'
 import { ContentRenderer } from './content-renderer'
+import { FileSidebar } from './file-sidebar'
 import { LinkedInPublisher } from './linkedin-publisher'
 import { ResendSender } from './resend-sender'
 import { SeoPanel } from './seo-panel'
@@ -35,7 +37,9 @@ interface PreviewPaneProps {
   loading: boolean
   contentDir: string
   refreshCount: number
+  worktreePath?: string
   selectVersion: (version: ContentVersion) => void
+  selectFile: (path: string, relativePath: string, contentType: ContentType) => void
   openProject: () => void
 }
 
@@ -50,7 +54,9 @@ export function PreviewPane({
   loading,
   contentDir,
   refreshCount,
+  worktreePath,
   selectVersion,
+  selectFile,
   openProject,
 }: PreviewPaneProps) {
   const [activeTab, setActiveTab] = useState<Tab>('Content')
@@ -63,6 +69,14 @@ export function PreviewPane({
   const [blogPublishOpen, setBlogPublishOpen] = useState(false)
   const [activePostText, setActivePostText] = useState('')
   const activePostTextRef = useRef('')
+  const [fileSidebarOpen, setFileSidebarOpen] = useState(false)
+
+  const {
+    unstaged,
+    committed,
+    loading: gitLoading,
+    refresh: refreshGit,
+  } = useGitStatus(worktreePath)
 
   const {
     comments,
@@ -202,12 +216,31 @@ export function PreviewPane({
           ))}
         </div>
         <button
-          onClick={openProject}
+          onClick={() => {
+            if (activeContentDir) {
+              window.electronAPI?.shell.showItemInFolder(activeContentDir)
+            } else {
+              openProject()
+            }
+          }}
           className="mr-2 shrink-0 rounded bg-zinc-200 dark:bg-zinc-700 px-2 py-1 text-xs text-zinc-600 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600"
-          title={contentDir ? `Project: ${contentDir}` : 'Open project folder'}
+          title={activeContentDir ? `Open: ${activeContentDir}` : 'Open project folder'}
         >
           Open
         </button>
+        {worktreePath && (
+          <button
+            onClick={() => setFileSidebarOpen((v) => !v)}
+            className={`mr-2 shrink-0 rounded px-2 py-1 text-xs transition-colors ${
+              fileSidebarOpen
+                ? 'bg-blue-500/20 text-blue-400 ring-1 ring-blue-500/40'
+                : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600'
+            }`}
+            title="Toggle file sidebar"
+          >
+            Files
+          </button>
+        )}
       </div>
 
       {activeTab === 'Content' && (
@@ -318,6 +351,18 @@ export function PreviewPane({
               onDelete={deleteComment}
               onClearAll={clearAll}
               onSendToClaude={handleSendToClaude}
+            />
+          )}
+
+          {/* Right: file sidebar */}
+          {fileSidebarOpen && worktreePath && (
+            <FileSidebar
+              unstaged={unstaged}
+              committed={committed}
+              loading={gitLoading}
+              onRefresh={refreshGit}
+              onFileSelect={selectFile}
+              worktreePath={worktreePath}
             />
           )}
         </div>

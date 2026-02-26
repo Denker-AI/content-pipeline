@@ -13,7 +13,7 @@ interface SelectedFile {
   contentType: ContentType
 }
 
-function detectRenderMode(relativePath: string): RenderMode {
+export function detectRenderMode(relativePath: string): RenderMode {
   const name = relativePath.split('/').pop() ?? ''
 
   if (/email\.html$/i.test(name) || /browser\.html$/i.test(name))
@@ -137,12 +137,13 @@ export function useContent(activeContentDir?: string) {
     [selectedItem],
   )
 
-  // Listen for file changes — auto-refresh current preview
+  // Listen for file changes — auto-refresh current preview + discover new files
   useEffect(() => {
     const api = window.electronAPI?.files
     if (!api) return
 
     const cleanup = api.onFileChange((event: FileEvent) => {
+      // Refresh currently selected file on modification
       if (selectedItem && selectedItem.relativePath === event.path) {
         refreshCountRef.current += 1
         const contentApi = window.electronAPI?.content
@@ -153,10 +154,25 @@ export function useContent(activeContentDir?: string) {
             .catch(() => {})
         }
       }
+
+      // On file creation, re-list directory and auto-select the new file
+      if (event.type === 'created' && activeContentDir) {
+        const contentApi = window.electronAPI?.content
+        if (contentApi) {
+          contentApi.listDir(activeContentDir).then((entries) => {
+            const newFile = entries.find(
+              (e) => !e.isDirectory && e.name !== 'metadata.json',
+            )
+            if (newFile && (!selectedItem || selectedItem.path !== newFile.path)) {
+              selectFile(newFile.path, newFile.relativePath, newFile.contentType)
+            }
+          }).catch(() => {})
+        }
+      }
     })
 
     return cleanup
-  }, [selectedItem])
+  }, [selectedItem, activeContentDir]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const openProject = useCallback(async () => {
     const api = window.electronAPI?.content
