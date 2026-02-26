@@ -43,6 +43,7 @@ export function PipelineSidebar({
 }: PipelineSidebarProps) {
   const [activeTab, setActiveTab] = useState<SidebarTab>('content')
   const [searchQuery, setSearchQuery] = useState('')
+  const [branchFilter, setBranchFilter] = useState('content')
   const [expandedRepos, setExpandedRepos] = useState<Set<string>>(() => new Set())
   const [confirmRemoveRepo, setConfirmRemoveRepo] = useState<string | null>(null)
   const didInitialExpand = useRef(false)
@@ -217,10 +218,11 @@ export function PipelineSidebar({
           </div>
 
           {/* Search (content tab only) */}
-          {activeTab === 'content' && (
-            <div className="shrink-0 border-b border-zinc-200 dark:border-zinc-700 p-2">
-              <div className="relative">
-                <SearchIcon className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-400 dark:text-zinc-500" />
+          {/* Search / filter bar */}
+          <div className="shrink-0 border-b border-zinc-200 dark:border-zinc-700 p-2">
+            <div className="relative">
+              <SearchIcon className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-400 dark:text-zinc-500" />
+              {activeTab === 'content' ? (
                 <input
                   type="text"
                   value={searchQuery}
@@ -228,9 +230,17 @@ export function PipelineSidebar({
                   placeholder="Search content..."
                   className="w-full rounded bg-zinc-100 dark:bg-zinc-800 pl-7 pr-2 py-1 text-xs text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-500 outline-none focus:ring-1 focus:ring-blue-500"
                 />
-              </div>
+              ) : (
+                <input
+                  type="text"
+                  value={branchFilter}
+                  onChange={(e) => setBranchFilter(e.target.value)}
+                  placeholder="Filter branches..."
+                  className="w-full rounded bg-zinc-100 dark:bg-zinc-800 pl-7 pr-2 py-1 text-xs text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-500 outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              )}
             </div>
-          )}
+          </div>
 
           {/* Repo sections — shared by both tabs */}
           <div className="min-h-0 flex-1 overflow-y-auto thin-scrollbar">
@@ -251,6 +261,7 @@ export function PipelineSidebar({
                 onCreateNew={handleCreate}
                 onStageChange={updateStage}
                 onBranchSelect={handleBranchClick}
+                branchFilter={branchFilter}
                 isMultiRepo={isMultiRepo}
               />
             ))}
@@ -289,6 +300,7 @@ interface RepoSectionProps {
   onCreateNew: (type: ContentType) => Promise<void>
   onStageChange: (item: PipelineItem, stage: import('@/shared/types').ContentStage) => void
   onBranchSelect: (worktree: WorktreeInfo) => void
+  branchFilter: string
   isMultiRepo: boolean
 }
 
@@ -307,6 +319,7 @@ function RepoSection({
   onCreateNew,
   onStageChange,
   onBranchSelect,
+  branchFilter,
   isMultiRepo,
 }: RepoSectionProps) {
   const [confirmDeleteBranch, setConfirmDeleteBranch] = useState<string | null>(null)
@@ -324,8 +337,10 @@ function RepoSection({
     }
   }
 
-  const contentBranches = repo.worktrees.filter((wt) => wt.branch.startsWith('content/'))
-  const count = activeTab === 'content' ? repo.items.length : contentBranches.length
+  const filteredBranches = branchFilter.trim()
+    ? repo.worktrees.filter((wt) => wt.branch.toLowerCase().startsWith(branchFilter.trim().toLowerCase()))
+    : repo.worktrees
+  const count = activeTab === 'content' ? repo.items.length : filteredBranches.length
 
   return (
     <div className="border-b border-zinc-200 dark:border-zinc-700">
@@ -385,16 +400,15 @@ function RepoSection({
         </div>
       )}
 
-      {/* Branch items — only content/ branches */}
+      {/* Branch items */}
       {isExpanded && activeTab === 'branches' && (
         <div className={isMultiRepo ? 'pl-2' : ''}>
-          {contentBranches.length === 0 ? (
+          {filteredBranches.length === 0 ? (
             <div className="px-3 py-3 text-center">
-              <p className="text-xs text-zinc-400 dark:text-zinc-500">No content branches</p>
-              <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-600">Create content to auto-create a branch</p>
+              <p className="text-xs text-zinc-400 dark:text-zinc-500">No matching branches</p>
             </div>
           ) : (
-            contentBranches.map((wt) => (
+            filteredBranches.map((wt) => (
                 <div
                   key={wt.path}
                   className="group flex cursor-pointer items-center gap-2 border-b border-zinc-100 dark:border-zinc-800 px-3 py-2 hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
