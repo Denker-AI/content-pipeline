@@ -14,9 +14,9 @@ interface SelectedFile {
 }
 
 /**
- * Rewrite relative image src attributes in HTML to data URLs.
- * This fixes broken images when rendering HTML in iframes via doc.write()
- * (which has no base URL for resolving relative paths).
+ * Rewrite image src attributes in HTML to data URLs.
+ * Handles both relative paths and known absolute URLs (e.g. newsletter.denker.ai)
+ * that map to local assets in the content directory.
  */
 async function inlineImages(html: string, htmlFilePath: string): Promise<string> {
   const api = window.electronAPI?.content
@@ -25,28 +25,45 @@ async function inlineImages(html: string, htmlFilePath: string): Promise<string>
   // Extract directory of the HTML file to resolve relative paths
   const dir = htmlFilePath.replace(/\/[^/]+$/, '')
 
-  // Find all img src attributes with relative paths (not http/https/data)
+  // Find all img src attributes
   const imgRegex = /<img\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/gi
   const matches = [...html.matchAll(imgRegex)]
 
   let result = html
   for (const match of matches) {
     const src = match[1]
-    // Skip absolute URLs and data URLs
-    if (/^(https?:|data:|\/\/)/.test(src)) continue
 
-    // Resolve relative path from HTML file's directory
-    const parts = [...dir.split('/'), ...src.split('/')]
-    const resolved: string[] = []
-    for (const part of parts) {
-      if (part === '..') resolved.pop()
-      else if (part !== '.') resolved.push(part)
+    // Skip data URLs
+    if (src.startsWith('data:')) continue
+
+    let absolutePath: string | null = null
+
+    if (/^https?:\/\//.test(src)) {
+      // Absolute URL — try to map known domains to local assets
+      // e.g. https://newsletter.denker.ai/assets/2026-02-19/header-hero.png?v=2
+      //   → <dir>/assets/header-hero.png
+      const urlMatch = src.match(
+        /^https?:\/\/[^/]+\/assets\/[^/]+\/([^?]+)/,
+      )
+      if (urlMatch) {
+        absolutePath = `${dir}/assets/${urlMatch[1]}`
+      } else {
+        continue // Unknown absolute URL — leave as-is
+      }
+    } else {
+      // Relative path — resolve from HTML file's directory
+      const parts = [...dir.split('/'), ...src.split('/')]
+      const resolved: string[] = []
+      for (const part of parts) {
+        if (part === '..') resolved.pop()
+        else if (part !== '.') resolved.push(part)
+      }
+      absolutePath = resolved.join('/')
     }
-    const absolutePath = resolved.join('/')
 
     try {
       const dataUrl = await api.readAsDataUrl(absolutePath)
-      result = result.replace(src, dataUrl)
+      result = result.replaceAll(src, dataUrl)
     } catch {
       // Image not found — leave as-is
     }
