@@ -111,6 +111,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   project: {
     isConfigured: () => ipcRenderer.invoke('project:isConfigured'),
     install: () => ipcRenderer.invoke('project:install'),
+    installWithBrand: (brand) => ipcRenderer.invoke('project:installWithBrand', brand),
+    readClaudeMd: () => ipcRenderer.invoke('project:readClaudeMd'),
+    writeClaudeMd: (content) => ipcRenderer.invoke('project:writeClaudeMd', content),
   },
   git: {
     listWorktrees: () => ipcRenderer.invoke('git:listWorktrees'),

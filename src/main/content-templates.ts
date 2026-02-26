@@ -524,6 +524,66 @@ Required: \`post.md\`
 Always create ALL required files. Never skip preview.html for LinkedIn content.
 `
 
+import type { BrandConfig } from '@/shared/types'
+
+export function generateBrandClaudeMd(brand: BrandConfig): string {
+  const sections: string[] = []
+
+  sections.push('# Content Pipeline — Brand Guidelines')
+  sections.push('')
+
+  if (brand.company || brand.product) {
+    sections.push('## Brand Identity')
+    if (brand.company) sections.push(`- **Company**: ${brand.company}`)
+    if (brand.product) sections.push(`- **Product**: ${brand.product}`)
+    sections.push('')
+  }
+
+  if (brand.voiceTone) {
+    sections.push('## Voice & Tone')
+    sections.push(brand.voiceTone)
+    sections.push('')
+  }
+
+  if (brand.targetAudience) {
+    sections.push('## Target Audience')
+    sections.push(brand.targetAudience)
+    sections.push('')
+  }
+
+  if (brand.dos) {
+    sections.push('## Do')
+    const doLines = brand.dos.split('\n').filter((l) => l.trim())
+    for (const line of doLines) {
+      sections.push(`- ${line.trim()}`)
+    }
+    sections.push('')
+  }
+
+  if (brand.donts) {
+    sections.push("## Don't")
+    const dontLines = brand.donts.split('\n').filter((l) => l.trim())
+    for (const line of dontLines) {
+      sections.push(`- ${line.trim()}`)
+    }
+    sections.push('')
+  }
+
+  if (brand.examplePosts) {
+    sections.push('## Example Posts')
+    sections.push('Use these as reference for voice and style:')
+    sections.push('')
+    sections.push(brand.examplePosts)
+    sections.push('')
+  }
+
+  sections.push('---')
+  sections.push('')
+  sections.push(CONTENT_CLAUDE_MD)
+
+  return sections.join('\n')
+}
+
 export const LINKEDIN_POST_COMMAND = `Create a LinkedIn post about: $ARGUMENTS
 
 1. Create directory: content/linkedin/YYYY-MM-DD-[kebab-slug]/

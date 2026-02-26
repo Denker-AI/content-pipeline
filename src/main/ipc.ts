@@ -9,6 +9,7 @@ import { promisify } from 'util'
 const execFileAsync = promisify(execFile)
 
 import type {
+  BrandConfig,
   CaptureScreenshotRequest,
   CaptureVideoRequest,
   ContentMetadata,
@@ -26,7 +27,7 @@ import { scanComponents } from './component-scanner'
 import { listContent, listDir, listVersions } from './content'
 import { onFileChange, startWatcher, stopWatcher } from './file-watcher'
 import { publishToLinkedIn } from './linkedin'
-import { installProjectConfig, isProjectConfigured } from './onboarding'
+import { installProjectConfig, installProjectConfigWithBrand, isProjectConfigured } from './onboarding'
 import {
   createContentPiece,
   getActiveContent,
@@ -517,6 +518,28 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     }
   })
 
+  ipcMain.handle('project:installWithBrand', async (_event, brand: BrandConfig) => {
+    await installProjectConfigWithBrand(projectRoot, brand)
+    if (!mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('pipeline:contentChanged')
+    }
+  })
+
+  ipcMain.handle('project:readClaudeMd', async () => {
+    const claudeMdPath = path.join(projectRoot, 'content', 'CLAUDE.md')
+    try {
+      return await fs.readFile(claudeMdPath, 'utf-8')
+    } catch {
+      return ''
+    }
+  })
+
+  ipcMain.handle('project:writeClaudeMd', async (_event, content: string) => {
+    const claudeMdPath = path.join(projectRoot, 'content', 'CLAUDE.md')
+    await fs.mkdir(path.dirname(claudeMdPath), { recursive: true })
+    await fs.writeFile(claudeMdPath, content, 'utf-8')
+  })
+
   // Watch for metadata.json changes and notify renderer
   const unsubscribePipeline = onFileChange((event) => {
     if (
@@ -565,6 +588,9 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     ipcMain.removeHandler('seo:analyze')
     ipcMain.removeHandler('project:isConfigured')
     ipcMain.removeHandler('project:install')
+    ipcMain.removeHandler('project:installWithBrand')
+    ipcMain.removeHandler('project:readClaudeMd')
+    ipcMain.removeHandler('project:writeClaudeMd')
     ipcMain.removeHandler('component:scan')
     ipcMain.removeHandler('component:render')
     ipcMain.removeHandler('git:listWorktrees')

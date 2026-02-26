@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import type { ProjectSettings, UserSettings } from '@/shared/types'
+import type { UserSettings } from '@/shared/types'
 
 interface SettingsPanelProps {
   isOpen: boolean
@@ -17,22 +17,12 @@ const DEFAULT_USER: UserSettings = {
   theme: 'dark',
 }
 
-const DEFAULT_PROJECT: ProjectSettings = {
-  persona: {
-    company: '',
-    product: '',
-    tone: '',
-    audience: '',
-  },
-}
-
 export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   const [userSettings, setUserSettings] = useState<UserSettings>(DEFAULT_USER)
-  const [projectSettings, setProjectSettings] =
-    useState<ProjectSettings>(DEFAULT_PROJECT)
   const [userSaved, setUserSaved] = useState(false)
-  const [projectSaved, setProjectSaved] = useState(false)
   const [cookiesText, setCookiesText] = useState('{}')
+  const [claudeMd, setClaudeMd] = useState('')
+  const [claudeMdSaved, setClaudeMdSaved] = useState(false)
 
   const loadSettings = useCallback(async () => {
     const api = window.electronAPI?.settings
@@ -42,15 +32,15 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
     setUserSettings(user)
     setCookiesText(JSON.stringify(user.authCookies, null, 2))
 
-    const project = await api.getProject()
-    setProjectSettings(project)
+    const claudeContent = await window.electronAPI?.project.readClaudeMd()
+    setClaudeMd(claudeContent ?? '')
   }, [])
 
   useEffect(() => {
     if (isOpen) {
       loadSettings()
       setUserSaved(false)
-      setProjectSaved(false)
+      setClaudeMdSaved(false)
     }
   }, [isOpen, loadSettings])
 
@@ -83,13 +73,10 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
     setTimeout(() => setUserSaved(false), 2000)
   }
 
-  const handleSaveProject = async () => {
-    const api = window.electronAPI?.settings
-    if (!api) return
-
-    await api.saveProject(projectSettings)
-    setProjectSaved(true)
-    setTimeout(() => setProjectSaved(false), 2000)
+  const handleSaveClaudeMd = async () => {
+    await window.electronAPI?.project.writeClaudeMd(claudeMd)
+    setClaudeMdSaved(true)
+    setTimeout(() => setClaudeMdSaved(false), 2000)
   }
 
   if (!isOpen) return null
@@ -99,7 +86,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-      <div className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-6 shadow-xl">
+      <div className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto thin-scrollbar rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-6 shadow-xl">
         {/* Close button */}
         <button
           onClick={onClose}
@@ -278,106 +265,31 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
         {/* Divider */}
         <div className="mb-8 border-t border-zinc-200 dark:border-zinc-700" />
 
-        {/* Project Settings Section */}
+        {/* Brand Guidelines Section */}
         <section>
-          <h2 className="mb-4 text-sm font-medium text-zinc-600 dark:text-zinc-300">
-            Project Settings
+          <h2 className="mb-2 text-sm font-medium text-zinc-600 dark:text-zinc-300">
+            Brand Guidelines
           </h2>
-
-          <div className="space-y-4">
-            <div>
-              <label className="mb-1 block text-xs text-zinc-500 dark:text-zinc-400">
-                Company
-              </label>
-              <input
-                type="text"
-                className={inputClass}
-                value={projectSettings.persona.company}
-                onChange={(e) =>
-                  setProjectSettings({
-                    ...projectSettings,
-                    persona: {
-                      ...projectSettings.persona,
-                      company: e.target.value,
-                    },
-                  })
-                }
-                placeholder="Company name"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-xs text-zinc-500 dark:text-zinc-400">
-                Product
-              </label>
-              <input
-                type="text"
-                className={inputClass}
-                value={projectSettings.persona.product}
-                onChange={(e) =>
-                  setProjectSettings({
-                    ...projectSettings,
-                    persona: {
-                      ...projectSettings.persona,
-                      product: e.target.value,
-                    },
-                  })
-                }
-                placeholder="Product name"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-xs text-zinc-500 dark:text-zinc-400">Tone</label>
-              <input
-                type="text"
-                className={inputClass}
-                value={projectSettings.persona.tone}
-                onChange={(e) =>
-                  setProjectSettings({
-                    ...projectSettings,
-                    persona: {
-                      ...projectSettings.persona,
-                      tone: e.target.value,
-                    },
-                  })
-                }
-                placeholder="e.g. Professional, casual, technical"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-xs text-zinc-500 dark:text-zinc-400">
-                Audience
-              </label>
-              <input
-                type="text"
-                className={inputClass}
-                value={projectSettings.persona.audience}
-                onChange={(e) =>
-                  setProjectSettings({
-                    ...projectSettings,
-                    persona: {
-                      ...projectSettings.persona,
-                      audience: e.target.value,
-                    },
-                  })
-                }
-                placeholder="e.g. Developers, marketers, founders"
-              />
-            </div>
-
-            <div className="flex items-center gap-3">
-              <button
-                onClick={handleSaveProject}
-                className="rounded bg-blue-600 px-4 py-1.5 text-sm text-white hover:bg-blue-500"
-              >
-                Save Project Settings
-              </button>
-              {projectSaved && (
-                <span className="text-xs text-green-400">Saved</span>
-              )}
-            </div>
+          <p className="mb-3 text-xs text-zinc-400 dark:text-zinc-500">
+            This is your content/CLAUDE.md file. Claude reads this before creating any content.
+          </p>
+          <textarea
+            className={`${inputClass} h-64 resize-y font-mono text-xs leading-relaxed`}
+            value={claudeMd}
+            onChange={(e) => setClaudeMd(e.target.value)}
+            placeholder="# Brand Guidelines..."
+            spellCheck={false}
+          />
+          <div className="mt-3 flex items-center gap-3">
+            <button
+              onClick={handleSaveClaudeMd}
+              className="rounded bg-blue-600 px-4 py-1.5 text-sm text-white hover:bg-blue-500"
+            >
+              Save Brand Guidelines
+            </button>
+            {claudeMdSaved && (
+              <span className="text-xs text-green-400">Saved</span>
+            )}
           </div>
         </section>
       </div>

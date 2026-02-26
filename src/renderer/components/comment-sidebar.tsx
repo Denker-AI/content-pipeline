@@ -40,7 +40,7 @@ export function CommentSidebar({
       </div>
 
       {/* Comment list */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto thin-scrollbar">
         {activeComments.length === 0 && resolvedComments.length === 0 && (
           <div className="p-4 text-center text-xs text-zinc-400 dark:text-zinc-500">
             Click on the preview to add comments

@@ -14,3 +14,18 @@
 .xterm-viewport::-webkit-scrollbar-thumb:hover {
   background: rgba(127, 127, 127, 0.5);
 }
+
+/* Thin scrollbars for sidebar/panel scrollable areas */
+.thin-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.thin-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(127, 127, 127, 0.2);
+  border-radius: 2px;
+}
+.thin-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(127, 127, 127, 0.4);
+}

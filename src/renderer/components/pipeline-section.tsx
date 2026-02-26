@@ -1,5 +1,6 @@
 import type { ContentStage, ContentType, PipelineItem } from '@/shared/types'
 
+import { BlogIcon, ChevronDownIcon, ChevronRightIcon, FileIcon, LinkedInIcon, NewsletterIcon, PlusIcon } from './icons'
 import { PipelineCard } from './pipeline-card'
 
 const TYPE_LABELS: Record<ContentType, string> = {
@@ -10,12 +11,12 @@ const TYPE_LABELS: Record<ContentType, string> = {
   unknown: 'Other',
 }
 
-const TYPE_ICONS: Record<ContentType, string> = {
-  linkedin: 'in',
-  blog: 'B',
-  newsletter: 'N',
-  asset: 'A',
-  unknown: '?',
+const TYPE_ICON_COMPONENTS: Record<ContentType, React.FC<{ className?: string }>> = {
+  linkedin: LinkedInIcon,
+  blog: BlogIcon,
+  newsletter: NewsletterIcon,
+  asset: FileIcon,
+  unknown: FileIcon,
 }
 
 interface PipelineSectionProps {
@@ -47,15 +48,13 @@ export function PipelineSection({
           onClick={onToggle}
           className="flex flex-1 items-center gap-2 text-left"
         >
-          <span
-            className={`text-[10px] text-zinc-400 dark:text-zinc-500 transition-transform ${
-              isExpanded ? 'rotate-90' : ''
-            }`}
-          >
-            &#9654;
-          </span>
-          <span className="flex h-4 w-4 items-center justify-center rounded bg-zinc-200 dark:bg-zinc-700 text-[9px] font-bold text-zinc-600 dark:text-zinc-300">
-            {TYPE_ICONS[type]}
+          {isExpanded ? (
+            <ChevronDownIcon className="h-3 w-3 text-zinc-400 dark:text-zinc-500" />
+          ) : (
+            <ChevronRightIcon className="h-3 w-3 text-zinc-400 dark:text-zinc-500" />
+          )}
+          <span className="flex h-4 w-4 items-center justify-center rounded bg-zinc-200 dark:bg-zinc-700">
+            {(() => { const Icon = TYPE_ICON_COMPONENTS[type]; return <Icon className="h-3 w-3 text-zinc-500 dark:text-zinc-400" /> })()}
           </span>
           <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300">
             {TYPE_LABELS[type]}
@@ -70,7 +69,7 @@ export function PipelineSection({
           className="flex h-5 w-5 items-center justify-center rounded text-zinc-400 dark:text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-700 hover:text-zinc-600 dark:hover:text-zinc-300"
           title={`New ${TYPE_LABELS[type]}`}
         >
-          <span className="text-sm leading-none">+</span>
+          <PlusIcon className="h-3.5 w-3.5" />
         </button>
       </div>
 
@@ -88,9 +87,14 @@ export function PipelineSection({
               />
             ))
           ) : (
-            <p className="px-3 py-2 text-[10px] text-zinc-400 dark:text-zinc-600">
-              No items yet
-            </p>
+            <div className="flex items-center gap-2 px-3 py-3">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
+                <PlusIcon className="h-4 w-4 text-zinc-300 dark:text-zinc-600" />
+              </div>
+              <p className="text-[11px] text-zinc-400 dark:text-zinc-600">
+                No items yet. Click + to create one.
+              </p>
+            </div>
           )}
         </div>
       )}

@@ -1,8 +1,11 @@
 import fs from 'fs/promises'
 import path from 'path'
 
+import type { BrandConfig } from '@/shared/types'
+
 import {
   CONTENT_CLAUDE_MD,
+  generateBrandClaudeMd,
   LINKEDIN_POST_COMMAND,
   LINKEDIN_PREVIEW_TEMPLATE,
 } from './content-templates'
@@ -47,6 +50,38 @@ export async function installProjectConfig(projectRoot: string): Promise<void> {
     } catch {
       // File doesn't exist — write it
     }
+    await fs.mkdir(path.dirname(filePath), { recursive: true })
+    await fs.writeFile(filePath, content, 'utf-8')
+  }
+}
+
+export async function installProjectConfigWithBrand(
+  projectRoot: string,
+  brand: BrandConfig,
+): Promise<void> {
+  const claudeMd = generateBrandClaudeMd(brand)
+
+  const files: { filePath: string; content: string }[] = [
+    {
+      filePath: path.join(projectRoot, 'content', 'CLAUDE.md'),
+      content: claudeMd,
+    },
+    {
+      filePath: path.join(
+        projectRoot,
+        'content',
+        'templates',
+        'linkedin-post-preview.html',
+      ),
+      content: LINKEDIN_PREVIEW_TEMPLATE,
+    },
+    {
+      filePath: path.join(projectRoot, CANARY_FILE),
+      content: LINKEDIN_POST_COMMAND,
+    },
+  ]
+
+  for (const { filePath, content } of files) {
     await fs.mkdir(path.dirname(filePath), { recursive: true })
     await fs.writeFile(filePath, content, 'utf-8')
   }

@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react'
 
 import type { WorktreeInfo } from '@/shared/types'
 
+import { GitBranchIcon, RefreshIcon, XIcon } from './icons'
+
 interface WorktreeListProps {
   onSelectWorktree?: (worktree: WorktreeInfo) => void
 }
@@ -113,10 +115,10 @@ export function WorktreeList({ onSelectWorktree }: WorktreeListProps) {
           className="text-xs text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
           title="Refresh"
         >
-          Refresh
+          <RefreshIcon className="h-3.5 w-3.5" />
         </button>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div className="min-h-0 flex-1 overflow-y-auto thin-scrollbar">
         {filtered.map((wt) => {
           const isMain = !wt.branch.startsWith('content/')
           return (
@@ -127,10 +129,7 @@ export function WorktreeList({ onSelectWorktree }: WorktreeListProps) {
               role="button"
               tabIndex={0}
             >
-              {/* Git branch icon */}
-              <svg className="h-3.5 w-3.5 shrink-0 text-zinc-400 dark:text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 3v12M18 9a3 3 0 11-6 0 3 3 0 016 0zM6 21a3 3 0 110-6 3 3 0 010 6zM15 6l-3.5 3.5" />
-              </svg>
+              <GitBranchIcon className="h-3.5 w-3.5 shrink-0 text-zinc-400 dark:text-zinc-500" />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-xs font-medium text-zinc-700 dark:text-zinc-200">
                   {wt.branch}
@@ -152,7 +151,7 @@ export function WorktreeList({ onSelectWorktree }: WorktreeListProps) {
                   }`}
                   title={confirmDelete === wt.path ? 'Click again to confirm' : 'Delete worktree'}
                 >
-                  {confirmDelete === wt.path ? 'Confirm?' : '×'}
+                  {confirmDelete === wt.path ? 'Confirm?' : <XIcon className="h-3 w-3" />}
                 </button>
               )}
             </div>

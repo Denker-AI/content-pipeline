@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import type { ContentStage, ContentType, PipelineItem, WorktreeInfo } from '@/shared/types'
 
+import { OnboardingWizard } from './components/onboarding-wizard'
 import { PipelineSidebar } from './components/pipeline-sidebar'
 import { PreviewPane } from './components/preview-pane'
 import { SettingsPanel } from './components/settings-panel'
@@ -36,6 +37,7 @@ const STARTER_PROMPTS: Record<string, string> = {
 
 export function App() {
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [showWizard, setShowWizard] = useState(false)
   const [tabs, setTabs] = useState<Tab[]>([])
   const [activeTabId, setActiveTabId] = useState<string | null>(null)
   // Active content item — independent of terminal tabs (set by content click or tab switch)
@@ -209,6 +211,17 @@ export function App() {
     [openTab],
   )
 
+  // Check if onboarding wizard is needed
+  useEffect(() => {
+    const check = async () => {
+      const configured = await window.electronAPI?.project.isConfigured()
+      if (!configured) {
+        setShowWizard(true)
+      }
+    }
+    check()
+  }, [])
+
   // Listen for settings:open from the application menu
   useEffect(() => {
     const cleanup = window.electronAPI?.settings?.onOpen(openSettings)
@@ -229,6 +242,7 @@ export function App() {
 
   return (
     <div className="flex h-screen flex-col bg-zinc-50 dark:bg-zinc-950">
+      {showWizard && <OnboardingWizard onComplete={() => setShowWizard(false)} />}
       <div className="flex-1 overflow-hidden">
         <ThreePaneLayout
           left={

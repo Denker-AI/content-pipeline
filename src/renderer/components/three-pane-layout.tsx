@@ -71,15 +71,21 @@ export function ThreePaneLayout({ left, middle, right }: ThreePaneLayoutProps) {
       </div>
       <div
         onMouseDown={handleLeftDivider}
-        className="w-1 shrink-0 cursor-col-resize bg-zinc-200 dark:bg-zinc-700 transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-500"
-      />
+        className="group relative w-0 shrink-0 cursor-col-resize"
+      >
+        <div className="absolute inset-y-0 -left-px w-px bg-zinc-200 dark:bg-zinc-800 transition-colors group-hover:bg-blue-500" />
+        <div className="absolute inset-y-0 -left-1 w-2" />
+      </div>
       <div style={{ width: `${middlePct}%` }} className="h-full overflow-hidden">
         {middle}
       </div>
       <div
         onMouseDown={handleRightDivider}
-        className="w-1 shrink-0 cursor-col-resize bg-zinc-200 dark:bg-zinc-700 transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-500"
-      />
+        className="group relative w-0 shrink-0 cursor-col-resize"
+      >
+        <div className="absolute inset-y-0 -left-px w-px bg-zinc-200 dark:bg-zinc-800 transition-colors group-hover:bg-blue-500" />
+        <div className="absolute inset-y-0 -left-1 w-2" />
+      </div>
       <div style={{ width: `${rightPct}%` }} className="h-full overflow-hidden">
         {right}
       </div>

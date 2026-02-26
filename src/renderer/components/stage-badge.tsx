@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 
 import type { ContentStage } from '@/shared/types'
 
+import { CheckIcon } from './icons'
+
 const STAGE_COLORS: Record<ContentStage, string> = {
   idea: 'bg-zinc-200 text-zinc-600 dark:bg-zinc-600 dark:text-zinc-200',
   draft: 'bg-yellow-600/20 text-yellow-400',
@@ -66,7 +68,7 @@ export function StageBadge({ stage, onChange }: StageBadgeProps) {
                 s === stage ? 'text-zinc-900 dark:text-white' : 'text-zinc-500 dark:text-zinc-400'
               }`}
             >
-              {s === stage && <span className="text-blue-400">&#10003;</span>}
+              {s === stage && <CheckIcon className="h-3 w-3 text-blue-400" />}
               <span className={s === stage ? '' : 'ml-5'}>{s}</span>
             </button>
           ))}

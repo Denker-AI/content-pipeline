@@ -13,6 +13,7 @@ import { ComponentBrowser } from './component-browser'
 import { ComponentPreview } from './component-preview'
 import { ContentRenderer } from './content-renderer'
 import { FileSidebar } from './file-sidebar'
+import { CodeIcon, FileIcon, FolderOpenIcon } from './icons'
 import { LinkedInPublisher } from './linkedin-publisher'
 import { ResendSender } from './resend-sender'
 import { SeoPanel } from './seo-panel'
@@ -228,22 +229,22 @@ export function PreviewPane({
               openProject()
             }
           }}
-          className="mr-2 shrink-0 rounded bg-zinc-200 dark:bg-zinc-700 px-2 py-1 text-xs text-zinc-600 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600"
+          className="mr-1 flex shrink-0 items-center justify-center rounded p-1.5 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors"
           title={activeContentDir ? `Open: ${activeContentDir}` : 'Open project folder'}
         >
-          Open
+          <FolderOpenIcon className="h-4 w-4" />
         </button>
         {worktreePath && (
           <button
             onClick={() => setFileSidebarOpen((v) => !v)}
-            className={`mr-2 shrink-0 rounded px-2 py-1 text-xs transition-colors ${
+            className={`mr-2 flex shrink-0 items-center justify-center rounded p-1.5 transition-colors ${
               fileSidebarOpen
                 ? 'bg-blue-500/20 text-blue-400 ring-1 ring-blue-500/40'
-                : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600'
+                : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-700 dark:hover:text-zinc-200'
             }`}
             title="Toggle file sidebar"
           >
-            Code
+            <CodeIcon className="h-4 w-4" />
           </button>
         )}
       </div>
@@ -319,7 +320,7 @@ export function PreviewPane({
                   selectedCommentId={selectedCommentId}
                   onSelectComment={setSelectedCommentId}
                 >
-                  <div className="h-full overflow-auto">
+                  <div className="h-full overflow-auto thin-scrollbar">
                     <ContentRenderer
                       content={fileContent}
                       renderMode={renderMode}
@@ -330,8 +331,12 @@ export function PreviewPane({
                   </div>
                 </CommentOverlay>
               ) : (
-                <div className="flex h-full items-center justify-center text-zinc-400 dark:text-zinc-500">
-                  <p className="text-sm">Select content to preview</p>
+                <div className="flex h-full flex-col items-center justify-center text-zinc-400 dark:text-zinc-500">
+                  <FileIcon className="mb-3 h-10 w-10 text-zinc-300 dark:text-zinc-700" />
+                  <p className="text-sm font-medium">No content selected</p>
+                  <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-600">
+                    Pick something from the sidebar to preview
+                  </p>
                 </div>
               )}
             </div>

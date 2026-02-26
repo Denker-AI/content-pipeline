@@ -343,10 +343,24 @@ export interface ShellAPI {
   showItemInFolder: (filePath: string) => Promise<void>
 }
 
+// Brand configuration for CLAUDE.md generation
+export interface BrandConfig {
+  company: string
+  product: string
+  voiceTone: string
+  targetAudience: string
+  dos: string
+  donts: string
+  examplePosts: string
+}
+
 // Project onboarding API exposed via preload
 export interface ProjectAPI {
   isConfigured: () => Promise<boolean>
   install: () => Promise<void>
+  installWithBrand: (brand: BrandConfig) => Promise<void>
+  readClaudeMd: () => Promise<string>
+  writeClaudeMd: (content: string) => Promise<void>
 }
 
 // Global window type augmentation
