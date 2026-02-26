@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 
 import type { AnnotationComment } from '@/shared/types'
 
@@ -7,6 +7,7 @@ let nextId = 1
 export function useComments() {
   const [comments, setComments] = useState<AnnotationComment[]>([])
   const [annotating, setAnnotating] = useState(false)
+  const sendingRef = useRef(false)
 
   const toggleAnnotating = useCallback(() => {
     setAnnotating((prev) => !prev)
@@ -68,7 +69,8 @@ export function useComments() {
       contentDir?: string,
     ) => {
       const prompt = buildPrompt(filePath)
-      if (!prompt || !tabId) return
+      if (!prompt || !tabId || sendingRef.current) return
+      sendingRef.current = true
 
       // Capture a screenshot of the current preview so Claude can see it
       let screenshotPath = ''
@@ -95,13 +97,15 @@ export function useComments() {
 
       // Use bracketed paste mode so multi-line text is treated as a single
       // paste (prevents each \n from submitting a separate message in Claude CLI).
-      // Then send \n to auto-submit.
+      // No trailing \n — let the user review and press Enter to send.
       const PASTE_START = '\x1b[200~'
       const PASTE_END = '\x1b[201~'
       window.electronAPI?.terminal.sendInput(
         tabId,
-        PASTE_START + fullPrompt + PASTE_END + '\n',
+        PASTE_START + fullPrompt + PASTE_END,
       )
+      // Reset after a short delay to prevent rapid double-clicks
+      setTimeout(() => { sendingRef.current = false }, 1000)
     },
     [buildPrompt],
   )

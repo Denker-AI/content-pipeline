@@ -322,15 +322,13 @@ export function PreviewPane({
                   selectedCommentId={selectedCommentId}
                   onSelectComment={setSelectedCommentId}
                 >
-                  <div className="h-full overflow-auto thin-scrollbar">
-                    <ContentRenderer
-                      content={fileContent}
-                      renderMode={renderMode}
-                      refreshCount={refreshCount}
-                      contentDir={activeContentDir}
-                      activeTabId={activeTabId}
-                    />
-                  </div>
+                  <ContentRenderer
+                    content={fileContent}
+                    renderMode={renderMode}
+                    refreshCount={refreshCount}
+                    contentDir={activeContentDir}
+                    activeTabId={activeTabId}
+                  />
                 </CommentOverlay>
               ) : (
                 <div className="flex h-full flex-col items-center justify-center text-zinc-400 dark:text-zinc-500">
