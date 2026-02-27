@@ -130,7 +130,7 @@ export function PreviewPane({
       })
   }, [activeContentDir, activeContentType])
 
-  // Subscribe to Claude-generated HTML previews (fallback if esbuild fails)
+  // Subscribe to Claude-generated HTML previews via terminal markers (legacy)
   useEffect(() => {
     const api = window.electronAPI?.components
     if (!api) return
@@ -139,6 +139,41 @@ export function PreviewPane({
       setPreviewError(null)
     })
   }, [])
+
+  // Watch for component preview files written by Claude
+  useEffect(() => {
+    if (!previewComponent) return
+    const api = window.electronAPI?.files
+    if (!api) return
+
+    const previewSuffix = '-preview.html'
+    const demoSuffix = '-demo.html'
+    const name = previewComponent.name
+
+    return api.onFileChange(event => {
+      if (event.type === 'deleted') return
+      const fileName = event.path.split('/').pop() || ''
+      if (
+        fileName === `${name}${previewSuffix}` ||
+        fileName === `${name}${demoSuffix}`
+      ) {
+        // Determine the full path from activeContentDir
+        const dir = activeContentDir || ''
+        const fullPath = dir ? `${dir}/${fileName}` : event.path
+        window.electronAPI?.content
+          .read(fullPath)
+          .then(html => {
+            if (html) {
+              setPreviewHtml(html)
+              setPreviewError(null)
+            }
+          })
+          .catch(() => {
+            // ignore read errors
+          })
+      }
+    })
+  }, [previewComponent, activeContentDir])
 
   // Build an enhanced demo prompt from component analysis
   const buildDemoPrompt = useCallback(
@@ -264,10 +299,6 @@ export function PreviewPane({
         )
       }
 
-      parts.push(
-        'Output the complete HTML between these exact marker lines on their own lines: ===HTML_PREVIEW_START=== and ===HTML_PREVIEW_END==='
-      )
-
       return parts.join('\n')
     },
     []
@@ -316,11 +347,19 @@ export function PreviewPane({
     setDemoMode(prev => !prev)
   }, [])
 
-  // Send generate prompt to Claude — only called by explicit user action
+  // Send generate prompt to Claude — only called by explicit user action.
+  // Claude writes the HTML to a file; the file watcher picks it up.
   const handleGenerate = useCallback(() => {
     if (!previewComponent || !activeTabId) return
     setPreviewHtml(null)
     setPreviewError('generating')
+
+    // Determine output path: inside active content dir, or fallback to project root
+    const outputDir = activeContentDir || 'content'
+    const filename = demoMode
+      ? `${previewComponent.name}-demo.html`
+      : `${previewComponent.name}-preview.html`
+    const outputPath = `${outputDir}/${filename}`
 
     window.electronAPI?.components
       .render(previewComponent.path)
@@ -339,12 +378,14 @@ export function PreviewPane({
           const contextPrefix = activePostTextRef.current
             ? `Context: This component will be used as a LinkedIn carousel visual for a post with this text:\n\n${activePostTextRef.current}\n\n`
             : ''
-          prompt = `${contextPrefix}Here is the source code for the ${previewComponent.name} component:\n\n\`\`\`tsx\n${result.source}\n\`\`\`\n\nCreate a self-contained HTML preview with realistic mock data that accurately represents how this component looks and functions. Use only vanilla HTML, CSS, and JS (no external dependencies). Output the complete HTML between these exact marker lines on their own lines: ===HTML_PREVIEW_START=== and ===HTML_PREVIEW_END===`
+          prompt = `${contextPrefix}Here is the source code for the ${previewComponent.name} component:\n\n\`\`\`tsx\n${result.source}\n\`\`\`\n\nCreate a self-contained HTML preview with realistic mock data that accurately represents how this component looks and functions. Use only vanilla HTML, CSS, and JS (no external dependencies).`
         }
+
+        prompt += `\n\nWrite the complete HTML to the file: ${outputPath}`
 
         window.electronAPI?.terminal.sendInput(activeTabId, prompt + '\n')
       })
-  }, [previewComponent, activeTabId, demoMode, buildDemoPrompt])
+  }, [previewComponent, activeTabId, demoMode, buildDemoPrompt, activeContentDir])
 
   const handlePreview = useCallback((component: DetectedComponent) => {
     setPreviewHtml(null)
