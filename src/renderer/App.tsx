@@ -58,6 +58,7 @@ export function App() {
   } = useContent(activeContentDir)
 
   // Derive project name from the active item's content path (works across repos)
+  // Falls back to app name when no item is active
   const projectName = (() => {
     if (activeItem?.contentDir) {
       const contentIdx = activeItem.contentDir.indexOf('/content/')
@@ -66,7 +67,7 @@ export function App() {
         return repoPath.split('/').pop() ?? ''
       }
     }
-    return projectRoot ? (projectRoot.split('/').pop() ?? '') : ''
+    return 'Content Pipeline'
   })()
 
   // Open a tab for a pipeline item (or focus if already open)
