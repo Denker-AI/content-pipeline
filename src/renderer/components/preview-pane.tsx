@@ -277,7 +277,8 @@ export function PreviewPane({
   const activePathRef = useRef<string | null>(null)
   const promptTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Render component when selection changes; debounce Claude prompt to avoid spam
+  // When a component is selected, fetch its source + analysis but do NOT auto-send to Claude.
+  // The user must explicitly click "Generate" to send a prompt.
   useEffect(() => {
     if (!previewComponent) return
 
@@ -295,54 +296,28 @@ export function PreviewPane({
     window.electronAPI?.components
       .render(thisPath)
       .then((result: ComponentRenderResult) => {
-        // Ignore if user already switched to another component
         if (activePathRef.current !== thisPath) return
 
         if (result.ok) {
           setPreviewHtml(result.html)
         } else {
-          // Store analysis for later use by demo prompt regeneration
-          if (!result.ok) {
-            componentAnalysisRef.current = result.analysis
-          }
-
-          setPreviewError('generating')
-          // Debounce: only send to Claude if user stays on this component for 500ms
-          promptTimerRef.current = setTimeout(() => {
-            if (activePathRef.current !== thisPath) return
-
-            let prompt: string
-            if (demoMode && !result.ok) {
-              prompt = buildDemoPrompt(
-                previewComponent.name,
-                result.source,
-                result.analysis,
-                activePostTextRef.current
-              )
-            } else {
-              const contextPrefix = activePostTextRef.current
-                ? `Context: This component will be used as a LinkedIn carousel visual for a post with this text:\n\n${activePostTextRef.current}\n\n`
-                : ''
-              prompt = `${contextPrefix}Here is the source code for the ${previewComponent.name} component:\n\n\`\`\`tsx\n${result.source}\n\`\`\`\n\nCreate a self-contained HTML preview with realistic mock data that accurately represents how this component looks and functions. Use only vanilla HTML, CSS, and JS (no external dependencies). Output the complete HTML between these exact marker lines on their own lines: ===HTML_PREVIEW_START=== and ===HTML_PREVIEW_END===`
-            }
-
-            if (activeTabId) {
-              window.electronAPI?.terminal.sendInput(activeTabId, prompt + '\n')
-            }
-          }, 500)
+          componentAnalysisRef.current = result.analysis
+          // Show "ready to generate" state — user clicks Generate button
+          setPreviewError('ready')
         }
       })
       .catch(() => {
         if (activePathRef.current !== thisPath) return
         setPreviewError('failed')
       })
-  }, [previewComponent, activeTabId, demoMode, buildDemoPrompt])
+  }, [previewComponent])
 
   const handleToggleDemoMode = useCallback(() => {
     setDemoMode(prev => !prev)
   }, [])
 
-  const handleRegenerateDemo = useCallback(() => {
+  // Send generate prompt to Claude — only called by explicit user action
+  const handleGenerate = useCallback(() => {
     if (!previewComponent || !activeTabId) return
     setPreviewHtml(null)
     setPreviewError('generating')
@@ -364,7 +339,7 @@ export function PreviewPane({
           const contextPrefix = activePostTextRef.current
             ? `Context: This component will be used as a LinkedIn carousel visual for a post with this text:\n\n${activePostTextRef.current}\n\n`
             : ''
-          prompt = `${contextPrefix}Create a self-contained HTML preview for ${previewComponent.name} at ${previewComponent.path} with realistic mock data. Use only vanilla HTML, CSS, and JS (no external dependencies). Output the complete HTML between these exact marker lines on their own lines: ===HTML_PREVIEW_START=== and ===HTML_PREVIEW_END===`
+          prompt = `${contextPrefix}Here is the source code for the ${previewComponent.name} component:\n\n\`\`\`tsx\n${result.source}\n\`\`\`\n\nCreate a self-contained HTML preview with realistic mock data that accurately represents how this component looks and functions. Use only vanilla HTML, CSS, and JS (no external dependencies). Output the complete HTML between these exact marker lines on their own lines: ===HTML_PREVIEW_START=== and ===HTML_PREVIEW_END===`
         }
 
         window.electronAPI?.terminal.sendInput(activeTabId, prompt + '\n')
@@ -604,11 +579,10 @@ export function PreviewPane({
                 onBack={handleBackFromPreview}
                 activeContentDir={activeContentDir}
                 activeContentType={activeContentType}
-                activePostText={activePostText}
                 activeTabId={activeTabId}
                 demoMode={demoMode}
                 onToggleDemoMode={handleToggleDemoMode}
-                onRegenerateDemo={handleRegenerateDemo}
+                onRegenerateDemo={handleGenerate}
               />
               {contentDir && (
                 <CaptureToolbar
