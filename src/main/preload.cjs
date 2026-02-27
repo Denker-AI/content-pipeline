@@ -22,6 +22,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     resize: (tabId, cols, rows) => {
       ipcRenderer.send('terminal:resize', tabId, cols, rows)
     },
+    ready: (tabId) => {
+      ipcRenderer.send('terminal:ready', tabId)
+    },
     createTab: (tabId, cwd) =>
       ipcRenderer.invoke('terminal:createTab', tabId, cwd),
     closeTab: (tabId) =>

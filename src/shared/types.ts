@@ -146,6 +146,7 @@ export interface TerminalAPI {
   ) => () => void
   sendInput: (tabId: string, data: string) => void
   resize: (tabId: string, cols: number, rows: number) => void
+  ready: (tabId: string) => void
   createTab: (tabId: string, cwd: string) => Promise<void>
   closeTab: (tabId: string) => Promise<void>
 }

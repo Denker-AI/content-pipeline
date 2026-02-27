@@ -117,6 +117,9 @@ export function useTerminal(
           api.sendInput(tabId, data)
         })
 
+        // Signal main process that we're ready — flushes any buffered PTY output
+        api.ready(tabId)
+
         api.resize(tabId, terminal.cols, terminal.rows)
       }
     })

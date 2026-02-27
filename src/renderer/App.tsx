@@ -89,10 +89,9 @@ export function App() {
       setTabs(prev => [...prev, newTab])
       setActiveTabId(newTab.id)
 
-      // Create PTY for this tab
-      const cwd =
-        item.worktreePath || item.contentDir || process.env.HOME || '/'
-      await window.electronAPI?.terminal.createTab(newTab.id, cwd)
+      // Create PTY — prefer worktree path, fall back to content dir or project root
+      const cwd = item.worktreePath || item.contentDir
+      await window.electronAPI?.terminal.createTab(newTab.id, cwd || '/')
 
       // Activate content for file watcher
       await window.electronAPI?.pipeline.activateContent(item)
@@ -128,11 +127,11 @@ export function App() {
 
   // Close a tab
   const closeTab = useCallback(
-    (tabId: string) => {
+    async (tabId: string) => {
       const tabIndex = tabs.findIndex(t => t.id === tabId)
 
-      // Destroy PTY
-      window.electronAPI?.terminal.closeTab(tabId)
+      // Destroy PTY (await to ensure cleanup completes before state updates)
+      await window.electronAPI?.terminal.closeTab(tabId)
 
       setTabs(prev => prev.filter(t => t.id !== tabId))
 
@@ -144,7 +143,7 @@ export function App() {
           const nextTab = remaining[nextIndex]
           setActiveTabId(nextTab.id)
           setActiveItem(nextTab.pipelineItem)
-          window.electronAPI?.pipeline.activateContent(nextTab.pipelineItem)
+          await window.electronAPI?.pipeline.activateContent(nextTab.pipelineItem)
         } else {
           setActiveTabId(null)
           setActiveItem(null)

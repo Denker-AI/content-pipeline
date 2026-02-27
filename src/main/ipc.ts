@@ -46,6 +46,7 @@ import {
   createPtyForTab,
   destroyAllPtys,
   destroyPtyForTab,
+  flushPtyBuffer,
   resizePtyForTab,
   writePtyForTab
 } from './pty'
@@ -183,6 +184,11 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
       resizePtyForTab(tabId, cols, rows)
     }
   )
+
+  // Renderer signals it's ready to receive PTY data — flush buffered output
+  ipcMain.on('terminal:ready', (_event, tabId: string) => {
+    flushPtyBuffer(tabId)
+  })
 
   // File watcher — forward events to renderer
   const unsubscribe = onFileChange(event => {
@@ -663,6 +669,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     stopWatcher()
     ipcMain.removeAllListeners('terminal:input')
     ipcMain.removeAllListeners('terminal:resize')
+    ipcMain.removeAllListeners('terminal:ready')
     ipcMain.removeHandler('terminal:createTab')
     ipcMain.removeHandler('terminal:closeTab')
     ipcMain.removeHandler('content:list')
