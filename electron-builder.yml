@@ -3,13 +3,13 @@ productName: Content Pipeline
 directories:
   output: release
   buildResources: resources
-files:
-  - dist/**/*
-  - package.json
+npmRebuild: false
+asarUnpack:
+  - node_modules/node-pty/**/*
 
 publish:
   provider: github
-  owner: denkerapp
+  owner: Denker-AI
   repo: content-pipeline
 
 mac:

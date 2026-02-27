@@ -70,15 +70,23 @@ let projectRoot: string = process.cwd()
 
 /**
  * Check if a resolved path is allowed for content reads.
- * Allows the main content dir AND any active worktree content paths.
+ * Allows the main content dir, any registered repo's content dir,
+ * and any worktree content paths.
  */
-function isAllowedContentPath(resolved: string): boolean {
+async function isAllowedContentPath(resolved: string): Promise<boolean> {
   const contentDir = getContentDir()
   if (resolved.startsWith(contentDir)) return true
-  // Allow worktree content paths: any /.worktrees/...content/... path is safe
-  // (these paths come from our own metadata, not user input)
+  // Allow worktree content paths
   if (resolved.includes('/.worktrees/') && resolved.includes('/content/'))
     return true
+  // Allow any registered repo's content dir
+  const settings = await loadUserSettings()
+  const repos = settings.repos ?? []
+  for (const repo of repos) {
+    if (resolved.startsWith(path.join(repo, 'content'))) return true
+    // Also allow worktrees within registered repos
+    if (resolved.startsWith(path.join(repo, '.worktrees'))) return true
+  }
   return false
 }
 
@@ -190,21 +198,21 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
 
   ipcMain.handle('content:listDir', async (_event, dirPath: string) => {
     const resolved = path.resolve(dirPath)
-    if (!isAllowedContentPath(resolved)) {
+    if (!(await isAllowedContentPath(resolved))) {
       throw new Error('Access denied: directory outside content directory')
     }
     // Compute the content root for relative path computation
-    // For worktree paths, the content root is <worktreePath>/content/<id>/..
-    // We find the "content" segment and use everything up to and including it
-    const contentRoot = resolved.includes('/.worktrees/')
-      ? resolved.slice(0, resolved.indexOf('/content/') + '/content'.length)
+    // Find the "/content/" segment in the path and use everything up to it
+    const contentIdx = resolved.indexOf('/content/')
+    const contentRoot = contentIdx >= 0
+      ? resolved.slice(0, contentIdx + '/content'.length)
       : getContentDir()
     return listDir(resolved, contentRoot)
   })
 
   ipcMain.handle('content:read', async (_event, filePath: string) => {
     const resolved = path.resolve(filePath)
-    if (!isAllowedContentPath(resolved)) {
+    if (!(await isAllowedContentPath(resolved))) {
       throw new Error('Access denied: file outside content directory')
     }
     try {
@@ -219,7 +227,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
 
   ipcMain.handle('content:readAsDataUrl', async (_event, filePath: string) => {
     const resolved = path.resolve(filePath)
-    if (!isAllowedContentPath(resolved)) {
+    if (!(await isAllowedContentPath(resolved))) {
       throw new Error('Access denied: file outside content directory')
     }
     const ext = path.extname(filePath).toLowerCase().slice(1)

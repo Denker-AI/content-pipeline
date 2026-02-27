@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <!-- Background gradient -->
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b28cc"/>
+      <stop offset="100%" stop-color="#1a0a4a"/>
+    </linearGradient>
+    <!-- Flow line gradient -->
+    <linearGradient id="flow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60a5fa"/>
+      <stop offset="100%" stop-color="#c084fc"/>
+    </linearGradient>
+    <!-- Node fills -->
+    <linearGradient id="node1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#6366f1"/>
+    </linearGradient>
+    <linearGradient id="node2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
+    </linearGradient>
+    <linearGradient id="node3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="16" result="blur"/>
+      <feFlood flood-color="#60a5fa" flood-opacity="0.4"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="line-glow">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feFlood flood-color="#818cf8" flood-opacity="0.6"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Rounded square background -->
+  <rect x="0" y="0" width="1024" height="1024" rx="220" ry="220" fill="url(#bg)"/>
+
+  <!-- Subtle radial highlight in center -->
+  <radialGradient id="center-light" cx="50%" cy="45%" r="50%">
+    <stop offset="0%" stop-color="#6366f1" stop-opacity="0.15"/>
+    <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+  </radialGradient>
+  <rect x="0" y="0" width="1024" height="1024" rx="220" ry="220" fill="url(#center-light)"/>
+
+  <!-- Pipeline flow paths (thick glowing lines) -->
+  <g fill="none" stroke="url(#flow)" stroke-linecap="round" stroke-linejoin="round" filter="url(#line-glow)">
+    <!-- Main path: top-left to center to bottom-right -->
+    <path d="M 270 310 C 390 310, 430 500, 512 500" stroke-width="32"/>
+    <path d="M 512 500 C 594 500, 634 700, 754 700" stroke-width="32"/>
+    <!-- Branch path: center up to top-right -->
+    <path d="M 512 500 C 594 500, 634 360, 754 360" stroke-width="22" opacity="0.6"/>
+  </g>
+
+  <!-- Pipeline nodes -->
+  <g filter="url(#glow)">
+    <!-- Node 1: Input (document) -->
+    <circle cx="270" cy="310" r="62" fill="url(#node1)"/>
+    <!-- Document icon -->
+    <rect x="247" y="286" width="46" height="52" rx="6" fill="white" opacity="0.9"/>
+    <rect x="247" y="286" width="46" height="16" rx="6" fill="white" opacity="0.5"/>
+    <line x1="258" y1="310" x2="282" y2="310" stroke="#3b82f6" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="258" y1="320" x2="278" y2="320" stroke="#3b82f6" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="258" y1="330" x2="275" y2="330" stroke="#3b82f6" stroke-width="3.5" stroke-linecap="round"/>
+
+    <!-- Node 2: Center (gear/process) -->
+    <circle cx="512" cy="500" r="80" fill="url(#node2)"/>
+    <!-- Gear icon (simplified) -->
+    <g transform="translate(512,500)">
+      <!-- Outer gear teeth -->
+      <rect x="-10" y="-42" width="20" height="14" rx="3" fill="white" opacity="0.9"/>
+      <rect x="-10" y="28" width="20" height="14" rx="3" fill="white" opacity="0.9"/>
+      <rect x="-42" y="-10" width="14" height="20" rx="3" fill="white" opacity="0.9"/>
+      <rect x="28" y="-10" width="14" height="20" rx="3" fill="white" opacity="0.9"/>
+      <!-- Diagonal teeth -->
+      <rect x="-10" y="-42" width="20" height="14" rx="3" fill="white" opacity="0.9" transform="rotate(45)"/>
+      <rect x="-10" y="28" width="20" height="14" rx="3" fill="white" opacity="0.9" transform="rotate(45)"/>
+      <rect x="-42" y="-10" width="14" height="20" rx="3" fill="white" opacity="0.9" transform="rotate(45)"/>
+      <rect x="28" y="-10" width="14" height="20" rx="3" fill="white" opacity="0.9" transform="rotate(45)"/>
+      <!-- Gear body -->
+      <circle cx="0" cy="0" r="26" fill="white" opacity="0.9"/>
+      <circle cx="0" cy="0" r="12" fill="#6366f1"/>
+    </g>
+
+    <!-- Node 3: Output (rocket/send) -->
+    <circle cx="754" cy="700" r="62" fill="url(#node3)"/>
+    <!-- Play/send arrow -->
+    <polygon points="736,676 736,724 776,700" fill="white" opacity="0.9"/>
+
+    <!-- Node 4: Secondary output (smaller) -->
+    <circle cx="754" cy="360" r="44" fill="url(#node3)" opacity="0.5"/>
+    <circle cx="754" cy="360" r="16" fill="white" opacity="0.4"/>
+  </g>
+
+  <!-- Data flow dots (suggest movement) -->
+  <g fill="white" opacity="0.5">
+    <circle cx="350" cy="350" r="8"/>
+    <circle cx="420" cy="430" r="6"/>
+    <circle cx="590" cy="550" r="8"/>
+    <circle cx="670" cy="640" r="6"/>
+    <circle cx="600" cy="440" r="5" opacity="0.3"/>
+    <circle cx="680" cy="380" r="4" opacity="0.3"/>
+  </g>
+</svg>

@@ -18,5 +18,7 @@ export function initAutoUpdater(mainWindow: BrowserWindow) {
     }
   })
 
-  autoUpdater.checkForUpdatesAndNotify()
+  autoUpdater.checkForUpdatesAndNotify().catch(() => {
+    // Silently ignore update check failures (no network, no releases, etc.)
+  })
 }

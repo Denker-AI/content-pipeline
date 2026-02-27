@@ -57,7 +57,17 @@ export function App() {
     openProject
   } = useContent(activeContentDir)
 
-  const projectName = projectRoot ? (projectRoot.split('/').pop() ?? '') : ''
+  // Derive project name from the active item's content path (works across repos)
+  const projectName = (() => {
+    if (activeItem?.contentDir) {
+      const contentIdx = activeItem.contentDir.indexOf('/content/')
+      if (contentIdx >= 0) {
+        const repoPath = activeItem.contentDir.slice(0, contentIdx)
+        return repoPath.split('/').pop() ?? ''
+      }
+    }
+    return projectRoot ? (projectRoot.split('/').pop() ?? '') : ''
+  })()
 
   // Open a tab for a pipeline item (or focus if already open)
   const openTab = useCallback(
