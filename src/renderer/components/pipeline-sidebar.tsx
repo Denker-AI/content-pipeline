@@ -461,12 +461,11 @@ function RepoSection({
             {count}
           </span>
         </button>
-        {isMultiRepo && (
-          <button
-            onClick={e => {
-              e.stopPropagation()
-              onRemove()
-            }}
+        <button
+          onClick={e => {
+            e.stopPropagation()
+            onRemove()
+          }}
             className={`shrink-0 rounded px-1 py-0.5 text-xs transition-opacity ${
               confirmRemove
                 ? 'bg-red-500/20 text-red-400'
@@ -478,7 +477,6 @@ function RepoSection({
           >
             {confirmRemove ? 'Remove?' : <XIcon className="h-3 w-3" />}
           </button>
-        )}
       </div>
 
       {/* Content items */}
