@@ -317,6 +317,10 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     const settings = await loadUserSettings()
     const repos = (settings.repos ?? []).filter(r => r !== repoPath)
     await saveUserSettings({ ...settings, repos })
+
+    // Notify renderer so components list and pipeline refresh
+    safeSend('pipeline:contentChanged')
+    safeSend('content:projectChanged', projectRoot)
   })
 
   // Settings IPC handlers

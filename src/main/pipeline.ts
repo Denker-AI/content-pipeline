@@ -200,6 +200,25 @@ export async function listPipelineItems(
 
       if (hasMetadata) {
         const metadata = await readMetadata(metadataPath)
+        // Validate worktree path — clear stale references
+        if (metadata.worktreePath) {
+          try {
+            await fs.access(metadata.worktreePath)
+          } catch {
+            // Worktree no longer exists — strip from metadata file
+            delete metadata.worktreePath
+            delete metadata.worktreeBranch
+            try {
+              const raw = await fs.readFile(metadataPath, 'utf-8')
+              const json = JSON.parse(raw)
+              delete json.worktreePath
+              delete json.worktreeBranch
+              await fs.writeFile(metadataPath, JSON.stringify(json, null, 2), 'utf-8')
+            } catch {
+              // Best effort
+            }
+          }
+        }
         items.push(buildPipelineItem(contentDir, itemDir, metadata))
       } else {
         // Legacy content: create a PipelineItem with stage 'idea'

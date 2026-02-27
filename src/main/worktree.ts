@@ -1,4 +1,5 @@
 import { execFile } from 'child_process'
+import fs from 'fs/promises'
 import path from 'path'
 import { promisify } from 'util'
 
@@ -97,10 +98,18 @@ export async function createWorktree(
 
 /**
  * List all git worktrees in the repository.
+ * Automatically prunes stale (prunable) worktrees before returning.
  */
 export async function listWorktrees(
   projectRoot: string
 ): Promise<WorktreeInfo[]> {
+  // Auto-prune stale worktrees (directories deleted but git record remains)
+  try {
+    await execFileAsync('git', ['worktree', 'prune'], { cwd: projectRoot })
+  } catch {
+    // Prune is best-effort
+  }
+
   const { stdout } = await execFileAsync(
     'git',
     ['worktree', 'list', '--porcelain'],
@@ -110,14 +119,17 @@ export async function listWorktrees(
   const worktrees: WorktreeInfo[] = []
   let currentPath = ''
   let currentBranch = ''
+  let isPrunable = false
 
   for (const line of stdout.split('\n')) {
     if (line.startsWith('worktree ')) {
       currentPath = line.slice('worktree '.length)
     } else if (line.startsWith('branch ')) {
       currentBranch = line.slice('branch refs/heads/'.length)
+    } else if (line === 'prunable') {
+      isPrunable = true
     } else if (line === '') {
-      if (currentPath && currentBranch) {
+      if (currentPath && currentBranch && !isPrunable) {
         worktrees.push({
           branch: currentBranch,
           path: currentPath,
@@ -126,6 +138,7 @@ export async function listWorktrees(
       }
       currentPath = ''
       currentBranch = ''
+      isPrunable = false
     }
   }
 
@@ -153,6 +166,7 @@ async function getWorktreeBranch(
 
 /**
  * Remove a git worktree and optionally its local + remote branch.
+ * Also clears worktree references from the content metadata.
  */
 export async function removeWorktree(
   projectRoot: string,
@@ -164,6 +178,9 @@ export async function removeWorktree(
   await execFileAsync('git', ['worktree', 'remove', worktreePath, '--force'], {
     cwd: projectRoot
   })
+
+  // Clean up metadata that referenced this worktree
+  await clearWorktreeMetadata(projectRoot, worktreePath)
 
   // Delete the local branch after worktree is removed
   if (branch && branch !== 'main' && branch !== 'master') {
@@ -183,5 +200,41 @@ export async function removeWorktree(
         // Remote branch may not exist or no remote configured
       }
     }
+  }
+}
+
+/**
+ * Find and clear worktree references in metadata.json files
+ * that point to the given worktree path.
+ */
+async function clearWorktreeMetadata(
+  projectRoot: string,
+  worktreePath: string
+): Promise<void> {
+  const contentDir = path.join(projectRoot, 'content')
+  try {
+    const typeDirs = await fs.readdir(contentDir, { withFileTypes: true })
+    for (const typeDir of typeDirs) {
+      if (!typeDir.isDirectory() || typeDir.name.startsWith('.')) continue
+      const typePath = path.join(contentDir, typeDir.name)
+      const items = await fs.readdir(typePath, { withFileTypes: true })
+      for (const item of items) {
+        if (!item.isDirectory()) continue
+        const metaPath = path.join(typePath, item.name, 'metadata.json')
+        try {
+          const raw = await fs.readFile(metaPath, 'utf-8')
+          const meta = JSON.parse(raw)
+          if (meta.worktreePath === worktreePath) {
+            delete meta.worktreePath
+            delete meta.worktreeBranch
+            await fs.writeFile(metaPath, JSON.stringify(meta, null, 2), 'utf-8')
+          }
+        } catch {
+          // No metadata or parse error — skip
+        }
+      }
+    }
+  } catch {
+    // Content dir doesn't exist — skip
   }
 }

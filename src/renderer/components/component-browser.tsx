@@ -33,6 +33,14 @@ export function ComponentBrowser({ onPreview }: ComponentBrowserProps) {
     void scan()
   }, [scan])
 
+  // Re-scan when the project changes (repo added/removed/switched)
+  useEffect(() => {
+    const cleanup = window.electronAPI?.content.onProjectChanged(() => {
+      void scan()
+    })
+    return cleanup
+  }, [scan])
+
   // Also receive components Claude mentions in the terminal (merge, no duplicates)
   useEffect(() => {
     const api = window.electronAPI?.components
