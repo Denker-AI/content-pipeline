@@ -9,6 +9,8 @@ interface CaptureToolbarProps {
   htmlContent?: string
   contentDir?: string
   contentType?: ContentType
+  activeTabId?: string | null
+  componentName?: string
 }
 
 interface CaptureStatus {
@@ -26,7 +28,9 @@ export function CaptureToolbar({
   contentUrl,
   htmlContent,
   contentDir,
-  contentType
+  contentType,
+  activeTabId,
+  componentName
 }: CaptureToolbarProps) {
   const [selectedPreset, setSelectedPreset] = useState(0)
   const [customWidth, setCustomWidth] = useState(1080)
@@ -34,6 +38,7 @@ export function CaptureToolbar({
   const [videoDuration, setVideoDuration] = useState(5)
   const [showCustom, setShowCustom] = useState(false)
   const [status, setStatus] = useState<CaptureStatus | null>(null)
+  const [lastCapturePath, setLastCapturePath] = useState<string | null>(null)
 
   const getSize = useCallback(() => {
     if (showCustom) {
@@ -50,6 +55,7 @@ export function CaptureToolbar({
     const { width, height, name } = getSize()
 
     setStatus({ type: 'capturing', message: 'Capturing screenshot...' })
+    setLastCapturePath(null)
 
     try {
       const result = await window.electronAPI?.capture.screenshot({
@@ -63,6 +69,7 @@ export function CaptureToolbar({
       })
 
       if (result) {
+        setLastCapturePath(result.path)
         setStatus({
           type: 'success',
           message: `Saved: ${result.path} (${formatSize(result.size)})`
@@ -84,6 +91,7 @@ export function CaptureToolbar({
       type: 'capturing',
       message: `Recording ${videoDuration}s video...`
     })
+    setLastCapturePath(null)
 
     try {
       const result = await window.electronAPI?.capture.video({
@@ -96,6 +104,7 @@ export function CaptureToolbar({
       })
 
       if (result) {
+        setLastCapturePath(result.path)
         setStatus({
           type: 'success',
           message: `Saved: ${result.path} (${formatSize(result.size)})`
@@ -108,6 +117,15 @@ export function CaptureToolbar({
       })
     }
   }, [canCapture, getSize, videoDuration, contentUrl, htmlContent, contentDir])
+
+  const handleCreatePost = useCallback(() => {
+    if (!lastCapturePath || !activeTabId) return
+    const name = componentName || 'component'
+    const prompt = `I just captured a demo of the "${name}" component. The capture is saved at: ${lastCapturePath}\n\nCreate a LinkedIn post that showcases this component as a product demo. The post should highlight the key interaction shown in the demo, explain the value to developers/users, and include a call-to-action. Write it in a conversational, authentic tone.\n\nOutput the post text between these markers: ===POST_TEXT_START=== and ===POST_TEXT_END===`
+    window.electronAPI?.terminal.sendInput(activeTabId, prompt + '\n')
+  }, [lastCapturePath, activeTabId, componentName])
+
+  const showCreatePost = !!(lastCapturePath && activeTabId && componentName)
 
   return (
     <div className="flex flex-col gap-2 border-t border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 px-3 py-2">
@@ -190,18 +208,29 @@ export function CaptureToolbar({
         </button>
       </div>
 
-      {/* Status bar */}
+      {/* Status bar + Create Post */}
       {status && (
-        <div
-          className={`truncate text-xs ${
-            status.type === 'success'
-              ? 'text-green-400'
-              : status.type === 'error'
-                ? 'text-red-400'
-                : 'text-zinc-400'
-          }`}
-        >
-          {status.message}
+        <div className="flex items-center gap-2">
+          <div
+            className={`min-w-0 flex-1 truncate text-xs ${
+              status.type === 'success'
+                ? 'text-green-400'
+                : status.type === 'error'
+                  ? 'text-red-400'
+                  : 'text-zinc-400'
+            }`}
+          >
+            {status.message}
+          </div>
+          {showCreatePost && status.type === 'success' && (
+            <button
+              onClick={handleCreatePost}
+              className="shrink-0 rounded bg-purple-600 px-2 py-1 text-xs text-white hover:bg-purple-500"
+              title="Send a content-generation prompt to Claude using this capture"
+            >
+              Create Post from Demo
+            </button>
+          )}
         </div>
       )}
     </div>

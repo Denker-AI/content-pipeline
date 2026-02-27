@@ -12,6 +12,9 @@ interface ComponentPreviewProps {
   activeContentType?: ContentType
   activePostText?: string
   activeTabId?: string | null
+  demoMode?: boolean
+  onToggleDemoMode?: () => void
+  onRegenerateDemo?: () => void
 }
 
 export function ComponentPreview({
@@ -23,13 +26,20 @@ export function ComponentPreview({
   activeContentDir,
   activeContentType,
   activePostText,
-  activeTabId
+  activeTabId,
+  demoMode,
+  onToggleDemoMode,
+  onRegenerateDemo
 }: ComponentPreviewProps) {
   const [attachState, setAttachState] = useState<'idle' | 'attaching' | 'done'>(
     'idle'
   )
 
   const handleGenerateWithClaude = () => {
+    if (demoMode && onRegenerateDemo) {
+      onRegenerateDemo()
+      return
+    }
     const contextPrefix = activePostText
       ? `Context: This component will be used as a LinkedIn carousel visual for a post with this text:\n\n${activePostText}\n\n`
       : ''
@@ -97,6 +107,19 @@ export function ComponentPreview({
         <span className="text-xs font-medium text-zinc-900 dark:text-white">
           {componentName}
         </span>
+        {onToggleDemoMode && (
+          <button
+            onClick={onToggleDemoMode}
+            className={`rounded px-2 py-1 text-xs font-medium transition-colors ${
+              demoMode
+                ? 'bg-purple-500/20 text-purple-400 ring-1 ring-purple-500/40'
+                : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+            }`}
+            title={demoMode ? 'Switch to static preview' : 'Switch to animated demo'}
+          >
+            {demoMode ? 'Demo' : 'Static'}
+          </button>
+        )}
         <span className="flex-1" />
         {isGenerating && !htmlContent && (
           <span className="text-xs text-zinc-400 dark:text-zinc-500">
@@ -138,9 +161,13 @@ export function ComponentPreview({
             </p>
             <button
               onClick={handleGenerateWithClaude}
-              className="rounded bg-blue-600 px-3 py-1.5 text-xs text-white hover:bg-blue-500"
+              className={`rounded px-3 py-1.5 text-xs text-white ${
+                demoMode
+                  ? 'bg-purple-600 hover:bg-purple-500'
+                  : 'bg-blue-600 hover:bg-blue-500'
+              }`}
             >
-              Generate preview with Claude
+              {demoMode ? 'Generate demo with Claude' : 'Generate preview with Claude'}
             </button>
           </div>
         ) : !htmlContent ? (

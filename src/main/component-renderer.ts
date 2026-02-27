@@ -1,9 +1,9 @@
 import fs from 'fs/promises'
 import path from 'path'
 
-export type ComponentRenderResult =
-  | { ok: true; html: string }
-  | { ok: false; source: string; error: string }
+import type { ComponentRenderResult } from '@/shared/types'
+
+import { analyzeComponentSource } from './component-analyzer'
 
 export async function renderComponentToHtml(
   filePath: string,
@@ -15,12 +15,21 @@ export async function renderComponentToHtml(
 
   try {
     const source = await fs.readFile(absolutePath, 'utf-8')
-    // Return source so the renderer can send it to Claude for HTML generation
-    return { ok: false, source, error: 'source-only' }
+    const analysis = analyzeComponentSource(source)
+    // Return source + analysis so the renderer can build a smart prompt for Claude
+    return { ok: false, source, analysis, error: 'source-only' }
   } catch (err) {
     return {
       ok: false,
       source: '',
+      analysis: {
+        props: [],
+        interactions: [],
+        stateHooks: [],
+        asyncPatterns: [],
+        hasAnimations: false,
+        animationTypes: []
+      },
       error: `Could not read file: ${String(err)}`
     }
   }

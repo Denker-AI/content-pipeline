@@ -69,16 +69,43 @@ function HtmlPreview({
 
     // Auto-height: grow iframe to match its content so the parent can scroll
     if (!naturalHeight && !fill) {
+      const iframe = iframeRef.current
+
       const measure = () => {
-        const h =
-          iframeRef.current?.contentDocument?.documentElement?.scrollHeight
-        if (h && h > 0 && iframeRef.current) {
-          iframeRef.current.style.height = `${h}px`
+        const doc = iframe?.contentDocument
+        if (!doc || !iframe) return
+        const h = doc.documentElement.scrollHeight
+        if (h > 0) {
+          iframe.style.height = `${h}px`
         }
       }
+
+      // Measure at staggered intervals to catch late renders
       measure()
-      const t = setTimeout(measure, 300)
-      return () => clearTimeout(t)
+      const t1 = setTimeout(measure, 100)
+      const t2 = setTimeout(measure, 300)
+      const t3 = setTimeout(measure, 800)
+
+      // Watch for content size changes via ResizeObserver on iframe body
+      let obs: ResizeObserver | undefined
+      const setupObserver = () => {
+        const body = iframe?.contentDocument?.body
+        if (body) {
+          obs = new ResizeObserver(measure)
+          obs.observe(body)
+        }
+      }
+      setupObserver()
+      // Body might not be ready yet — retry shortly
+      const t4 = setTimeout(setupObserver, 50)
+
+      return () => {
+        clearTimeout(t1)
+        clearTimeout(t2)
+        clearTimeout(t3)
+        clearTimeout(t4)
+        obs?.disconnect()
+      }
     }
   }, [writeContent, refreshCount, naturalHeight, fill])
 
@@ -257,11 +284,20 @@ export function ContentRenderer({
   }
 
   if (renderMode === 'blog') {
-    return (
-      <div className="max-w-[720px] mx-auto prose dark:prose-invert">
-        <MarkdownPreview content={content} />
-      </div>
-    )
+    // HTML blog posts render in a full-height iframe
+    if (content.trimStart().startsWith('<')) {
+      return (
+        <HtmlPreview
+          content={content}
+          refreshCount={refreshCount}
+          fill
+          allowScripts
+        />
+      )
+    }
+    // Markdown blog posts render as prose — max-w-none inside MarkdownPreview
+    // ensures content fills the preview pane width
+    return <MarkdownPreview content={content} />
   }
 
   // Carousel slides: 1080×1350px scaled down to fit the preview pane width

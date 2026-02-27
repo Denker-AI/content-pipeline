@@ -96,7 +96,8 @@ export function detectRenderMode(relativePath: string): RenderMode {
   if (/preview\.html$/i.test(name)) return 'linkedin-preview'
   if (/post-text\.md$/i.test(name)) return 'linkedin-text'
   if (/slide-\d+\.html$/i.test(name)) return 'carousel-slide'
-  if (relativePath.startsWith('blog/') && name.endsWith('.md')) return 'blog'
+  if (relativePath.startsWith('blog/') && (name.endsWith('.md') || name.endsWith('.html')))
+    return 'blog'
   if (relativePath.startsWith('assets/') && name.endsWith('.html'))
     return 'asset'
   // Drafts in newsletters render as newsletter
@@ -142,9 +143,13 @@ export function useContent(activeContentDir?: string) {
     let cancelled = false
     api.listDir(activeContentDir).then(entries => {
       if (cancelled) return
-      const file = entries.find(
+      const files = entries.filter(
         e => !e.isDirectory && e.name !== 'metadata.json'
       )
+      // Prefer known primary content files over arbitrary alphabetical order
+      const preferred = ['post-text.md', 'post.md', 'email.html', 'browser.html']
+      const file =
+        files.find(e => preferred.includes(e.name)) || files[0]
       if (file) {
         selectFile(file.path, file.relativePath, file.contentType)
       } else {

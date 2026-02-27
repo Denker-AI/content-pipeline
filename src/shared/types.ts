@@ -169,10 +169,43 @@ export interface ContentAPI {
   removeRepo: (path: string) => Promise<void>
 }
 
+// Component analysis types (from regex-based TSX analyzer)
+export interface PropInfo {
+  name: string
+  type: string // e.g. 'string', 'boolean', '() => void'
+  isCallback: boolean // starts with on*
+}
+
+export interface InteractionInfo {
+  event: string // e.g. 'onClick', 'onSubmit', 'onChange'
+  label: string // nearby text/label if found
+}
+
+export interface StateHookInfo {
+  name: string // variable name, e.g. 'isOpen'
+  setter: string // setter name, e.g. 'setIsOpen'
+  initialValue: string // raw initial value string
+  purpose: 'loading-state' | 'toggle' | 'text-input' | 'selection' | 'counter' | 'generic'
+}
+
+export interface AsyncPatternInfo {
+  type: 'fetch' | 'setTimeout' | 'async-await' | 'promise'
+  context: string // nearby code context
+}
+
+export interface ComponentAnalysis {
+  props: PropInfo[]
+  interactions: InteractionInfo[]
+  stateHooks: StateHookInfo[]
+  asyncPatterns: AsyncPatternInfo[]
+  hasAnimations: boolean
+  animationTypes: string[] // e.g. ['transition', 'framer-motion', 'keyframes']
+}
+
 // Result from component render attempt
 export type ComponentRenderResult =
   | { ok: true; html: string }
-  | { ok: false; source: string; error: string }
+  | { ok: false; source: string; analysis: ComponentAnalysis; error: string }
 
 // Component API exposed via preload
 export interface ComponentAPI {

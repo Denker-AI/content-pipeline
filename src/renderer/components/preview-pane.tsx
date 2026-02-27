@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import type {
+  ComponentAnalysis,
   ComponentRenderResult,
   ContentType,
   ContentVersion,
@@ -84,6 +85,8 @@ export function PreviewPane({
   const [activePostText, setActivePostText] = useState('')
   const activePostTextRef = useRef('')
   const [fileSidebarOpen, setFileSidebarOpen] = useState(false)
+  const [demoMode, setDemoMode] = useState(false)
+  const componentAnalysisRef = useRef<ComponentAnalysis | null>(null)
 
   const {
     unstaged,
@@ -137,6 +140,139 @@ export function PreviewPane({
     })
   }, [])
 
+  // Build an enhanced demo prompt from component analysis
+  const buildDemoPrompt = useCallback(
+    (
+      name: string,
+      source: string,
+      analysis: ComponentAnalysis,
+      context: string
+    ): string => {
+      const parts: string[] = []
+
+      if (context) {
+        parts.push(
+          `Context: This component will be used as a LinkedIn carousel visual for a post with this text:\n\n${context}\n\n`
+        )
+      }
+
+      parts.push(
+        `Here is the source code for the ${name} component:\n\n\`\`\`tsx\n${source}\n\`\`\`\n`
+      )
+
+      parts.push(
+        'Create a self-contained HTML **animated product demo** that shows realistic user interactions. Use only vanilla HTML, CSS, and JS (no external dependencies).\n'
+      )
+
+      // Build animation sequence from analysis
+      const steps: string[] = []
+      let totalTime = 0
+
+      // Text inputs get simulated typing
+      const textInputs = analysis.stateHooks.filter(
+        h => h.purpose === 'text-input'
+      )
+      for (const input of textInputs) {
+        const label =
+          analysis.interactions.find(i => i.event === 'onChange')?.label ||
+          input.name
+        steps.push(
+          `${steps.length + 1}. Input field "${label}" appears → simulated typing animation (2s)`
+        )
+        totalTime += 2
+      }
+
+      // Click interactions with buttons
+      const clicks = analysis.interactions.filter(
+        i => i.event === 'onClick' && i.label
+      )
+      for (const click of clicks) {
+        const hasLoading = analysis.stateHooks.some(
+          h => h.purpose === 'loading-state'
+        )
+        if (hasLoading) {
+          steps.push(
+            `${steps.length + 1}. User clicks "${click.label}" → loading spinner (1.5s) → result appears`
+          )
+          totalTime += 2.5
+        } else {
+          steps.push(
+            `${steps.length + 1}. User clicks "${click.label}" → visual feedback and state change (1s)`
+          )
+          totalTime += 1
+        }
+      }
+
+      // Toggle states get animated
+      const toggles = analysis.stateHooks.filter(
+        h => h.purpose === 'toggle'
+      )
+      for (const toggle of toggles) {
+        steps.push(
+          `${steps.length + 1}. "${toggle.name}" toggles on → smooth transition (0.5s) → toggles off (0.5s)`
+        )
+        totalTime += 1
+      }
+
+      // Selection/step states animate through options
+      const selections = analysis.stateHooks.filter(
+        h => h.purpose === 'selection'
+      )
+      for (const sel of selections) {
+        steps.push(
+          `${steps.length + 1}. Step through "${sel.name}" options with highlight animation (2s)`
+        )
+        totalTime += 2
+      }
+
+      // Async patterns show loading → result
+      if (
+        analysis.asyncPatterns.length > 0 &&
+        !analysis.stateHooks.some(h => h.purpose === 'loading-state')
+      ) {
+        steps.push(
+          `${steps.length + 1}. Async operation: show loading indicator → data appears (2s)`
+        )
+        totalTime += 2
+      }
+
+      // If no specific steps detected, provide generic animation guidance
+      if (steps.length === 0) {
+        steps.push('1. Component fades in with staggered element animation (1s)')
+        steps.push(
+          '2. Interactive elements highlight sequentially to show affordances (2s)'
+        )
+        steps.push('3. Primary action triggers with visual feedback (1.5s)')
+        totalTime = 4.5
+      }
+
+      totalTime = Math.max(totalTime, 4)
+      const loopPause = 1
+
+      parts.push('\nAnimation sequence:')
+      for (const step of steps) {
+        parts.push(step)
+      }
+      parts.push(
+        `Total: ~${totalTime}s, loop continuously with ${loopPause}s pause between cycles.\n`
+      )
+
+      // Animation hints from detected patterns
+      if (analysis.hasAnimations) {
+        parts.push(
+          `The component uses: ${analysis.animationTypes.join(', ')}. Replicate these animation styles in the demo.\n`
+        )
+      }
+
+      parts.push(
+        'Output the complete HTML between these exact marker lines on their own lines: ===HTML_PREVIEW_START=== and ===HTML_PREVIEW_END==='
+      )
+
+      return parts.join('\n')
+    },
+    []
+  )
+
   // Tracks the component path we last sent to Claude — prevents stale results
   const activePathRef = useRef<string | null>(null)
   const promptTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -165,14 +301,31 @@ export function PreviewPane({
         if (result.ok) {
           setPreviewHtml(result.html)
         } else {
+          // Store analysis for later use by demo prompt regeneration
+          if (!result.ok) {
+            componentAnalysisRef.current = result.analysis
+          }
+
           setPreviewError('generating')
           // Debounce: only send to Claude if user stays on this component for 500ms
           promptTimerRef.current = setTimeout(() => {
             if (activePathRef.current !== thisPath) return
-            const contextPrefix = activePostTextRef.current
-              ? `Context: This component will be used as a LinkedIn carousel visual for a post with this text:\n\n${activePostTextRef.current}\n\n`
-              : ''
-            const prompt = `${contextPrefix}Here is the source code for the ${previewComponent.name} component:\n\n\`\`\`tsx\n${result.source}\n\`\`\`\n\nCreate a self-contained HTML preview with realistic mock data that accurately represents how this component looks and functions. Use only vanilla HTML, CSS, and JS (no external dependencies). Output the complete HTML between these exact marker lines on their own lines: ===HTML_PREVIEW_START=== and ===HTML_PREVIEW_END===`
+
+            let prompt: string
+            if (demoMode && !result.ok) {
+              prompt = buildDemoPrompt(
+                previewComponent.name,
+                result.source,
+                result.analysis,
+                activePostTextRef.current
+              )
+            } else {
+              const contextPrefix = activePostTextRef.current
+                ? `Context: This component will be used as a LinkedIn carousel visual for a post with this text:\n\n${activePostTextRef.current}\n\n`
+                : ''
+              prompt = `${contextPrefix}Here is the source code for the ${previewComponent.name} component:\n\n\`\`\`tsx\n${result.source}\n\`\`\`\n\nCreate a self-contained HTML preview with realistic mock data that accurately represents how this component looks and functions. Use only vanilla HTML, CSS, and JS (no external dependencies). Output the complete HTML between these exact marker lines on their own lines: ===HTML_PREVIEW_START=== and ===HTML_PREVIEW_END===`
+            }
+
             if (activeTabId) {
               window.electronAPI?.terminal.sendInput(activeTabId, prompt + '\n')
             }
@@ -183,7 +336,40 @@ export function PreviewPane({
         if (activePathRef.current !== thisPath) return
         setPreviewError('failed')
       })
-  }, [previewComponent, activeTabId])
+  }, [previewComponent, activeTabId, demoMode, buildDemoPrompt])
+
+  const handleToggleDemoMode = useCallback(() => {
+    setDemoMode(prev => !prev)
+  }, [])
+
+  const handleRegenerateDemo = useCallback(() => {
+    if (!previewComponent || !activeTabId) return
+    setPreviewHtml(null)
+    setPreviewError('generating')
+
+    window.electronAPI?.components
+      .render(previewComponent.path)
+      .then((result: ComponentRenderResult) => {
+        if (result.ok) return
+
+        let prompt: string
+        if (demoMode) {
+          prompt = buildDemoPrompt(
+            previewComponent.name,
+            result.source,
+            result.analysis,
+            activePostTextRef.current
+          )
+        } else {
+          const contextPrefix = activePostTextRef.current
+            ? `Context: This component will be used as a LinkedIn carousel visual for a post with this text:\n\n${activePostTextRef.current}\n\n`
+            : ''
+          prompt = `${contextPrefix}Create a self-contained HTML preview for ${previewComponent.name} at ${previewComponent.path} with realistic mock data. Use only vanilla HTML, CSS, and JS (no external dependencies). Output the complete HTML between these exact marker lines on their own lines: ===HTML_PREVIEW_START=== and ===HTML_PREVIEW_END===`
+        }
+
+        window.electronAPI?.terminal.sendInput(activeTabId, prompt + '\n')
+      })
+  }, [previewComponent, activeTabId, demoMode, buildDemoPrompt])
 
   const handlePreview = useCallback((component: DetectedComponent) => {
     setPreviewHtml(null)
@@ -420,11 +606,16 @@ export function PreviewPane({
                 activeContentType={activeContentType}
                 activePostText={activePostText}
                 activeTabId={activeTabId}
+                demoMode={demoMode}
+                onToggleDemoMode={handleToggleDemoMode}
+                onRegenerateDemo={handleRegenerateDemo}
               />
               {contentDir && (
                 <CaptureToolbar
                   htmlContent={previewHtml ?? undefined}
                   contentDir={contentDir}
+                  activeTabId={activeTabId}
+                  componentName={previewComponent.name}
                 />
               )}
             </div>
