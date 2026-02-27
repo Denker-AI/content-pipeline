@@ -13,25 +13,8 @@ export function useRepos() {
       const labels = settings?.repoLabels ?? {}
 
       if (repoPaths.length === 0) {
-        // Fall back to current project root
-        const root = await window.electronAPI?.content.getProjectRoot()
-        if (root) {
-          const [items, worktrees] = await Promise.all([
-            window.electronAPI?.pipeline.listPipelineItems() ??
-              Promise.resolve([]),
-            window.electronAPI?.git.listWorktrees() ?? Promise.resolve([])
-          ])
-          setRepos([
-            {
-              path: root,
-              name: labels[root] ?? root.split('/').pop() ?? root,
-              items: items ?? [],
-              worktrees: worktrees ?? []
-            }
-          ])
-        } else {
-          setRepos([])
-        }
+        // No repos configured — show empty state
+        setRepos([])
       } else {
         const results = await Promise.all(
           repoPaths.map(async repoPath => {
