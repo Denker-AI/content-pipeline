@@ -180,6 +180,27 @@ export function App() {
     [tabs]
   )
 
+  // Sidebar file tree click — activate parent item then select the file
+  const handleFileSelect = useCallback(
+    async (
+      item: PipelineItem,
+      path: string,
+      relativePath: string,
+      contentType: ContentType
+    ) => {
+      // Activate the parent content item first
+      setActiveItem(item)
+      await window.electronAPI?.pipeline.activateContent(item)
+      const existingTab = tabs.find(t => t.id === item.id)
+      if (existingTab) {
+        setActiveTabId(existingTab.id)
+      }
+      // Then select the specific file
+      selectFile(path, relativePath, contentType)
+    },
+    [tabs, selectFile]
+  )
+
   // Sidebar create ("+") — create content and open terminal tab
   const handleItemCreated = useCallback(
     (item: PipelineItem) => {
@@ -337,6 +358,7 @@ export function App() {
               onItemSelect={handleItemSelect}
               onItemCreated={handleItemCreated}
               onBranchSelect={handleBranchSelect}
+              onFileSelect={handleFileSelect}
               onOpenProject={openProject}
               onOpenSettings={openSettings}
               onOpenWizard={() => setShowWizard(true)}

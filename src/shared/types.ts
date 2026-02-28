@@ -162,6 +162,7 @@ export interface ContentAPI {
   listDir: (dirPath: string) => Promise<DirEntry[]>
   read: (filePath: string) => Promise<string>
   readAsDataUrl: (filePath: string) => Promise<string>
+  deleteFile: (filePath: string) => Promise<void>
   listVersions: (filePath: string) => Promise<ContentVersion[]>
   openProject: () => Promise<string | null>
   getProjectRoot: () => Promise<string>
@@ -206,7 +207,7 @@ export interface ComponentAnalysis {
 // Result from component render attempt
 export type ComponentRenderResult =
   | { ok: true; html: string }
-  | { ok: false; source: string; analysis: ComponentAnalysis; error: string }
+  | { ok: false; source: string; analysis: ComponentAnalysis; error: string; dependencies: Record<string, string>; iconNames: string[]; themeConfig: string }
 
 // Component API exposed via preload
 export interface ComponentAPI {
@@ -266,6 +267,13 @@ export interface SettingsAPI {
 }
 
 // Capture API types
+export interface CaptureClipRegion {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
 export interface CaptureScreenshotRequest {
   url?: string
   html?: string
@@ -274,6 +282,7 @@ export interface CaptureScreenshotRequest {
   presetName: string
   contentDir: string
   contentType?: ContentType
+  clip?: CaptureClipRegion
 }
 
 export interface CaptureVideoRequest {
@@ -281,8 +290,11 @@ export interface CaptureVideoRequest {
   html?: string
   width: number
   height: number
-  duration: number
+  duration?: number // if omitted, auto-detect from CSS animations
+  maxDuration?: number // hard cap in seconds (default: 30)
   contentDir: string
+  componentName?: string
+  clip?: CaptureClipRegion
 }
 
 export interface CaptureResult {

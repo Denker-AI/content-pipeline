@@ -93,7 +93,9 @@ export function detectRenderMode(relativePath: string): RenderMode {
 
   if (/email\.html$/i.test(name) || /browser\.html$/i.test(name))
     return 'newsletter'
-  if (/preview\.html$/i.test(name)) return 'linkedin-preview'
+  // Component-generated previews/demos (including versioned: -demo-2.html)
+  if (/-(?:demo|preview)(?:-\d+)?\.html$/i.test(name)) return 'asset'
+  if (name === 'preview.html') return 'linkedin-preview'
   if (/post-text\.md$/i.test(name)) return 'linkedin-text'
   if (/slide-\d+\.html$/i.test(name)) return 'carousel-slide'
   if (relativePath.startsWith('blog/') && (name.endsWith('.md') || name.endsWith('.html')))

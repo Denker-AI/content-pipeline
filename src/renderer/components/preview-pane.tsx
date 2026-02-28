@@ -24,6 +24,8 @@ import { CodeIcon, FileIcon, FolderOpenIcon } from './icons'
 import { LinkedInPublisher } from './linkedin-publisher'
 import { ResendSender } from './resend-sender'
 import { SeoPanel } from './seo-panel'
+import type { FramePreset } from './size-presets'
+import { FRAME_PRESETS } from './size-presets'
 import { VersionSelector } from './version-selector'
 
 type Tab = 'Content' | 'Components' | 'SEO'
@@ -86,7 +88,10 @@ export function PreviewPane({
   const activePostTextRef = useRef('')
   const [fileSidebarOpen, setFileSidebarOpen] = useState(false)
   const [demoMode, setDemoMode] = useState(false)
+  const [framePresetIdx, setFramePresetIdx] = useState(1) // default: LinkedIn 4:5
   const componentAnalysisRef = useRef<ComponentAnalysis | null>(null)
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const genCountRef = useRef(0)
 
   const {
     unstaged,
@@ -140,22 +145,22 @@ export function PreviewPane({
     })
   }, [])
 
-  // Watch for component preview files written by Claude
+  // Watch for component preview files written by Claude (prefix match for versioned names)
   useEffect(() => {
     if (!previewComponent) return
     const api = window.electronAPI?.files
     if (!api) return
 
-    const previewSuffix = '-preview.html'
-    const demoSuffix = '-demo.html'
     const name = previewComponent.name
+    const previewPrefix = `${name}-preview`
+    const demoPrefix = `${name}-demo`
 
     return api.onFileChange(event => {
       if (event.type === 'deleted') return
       const fileName = event.path.split('/').pop() || ''
       if (
-        fileName === `${name}${previewSuffix}` ||
-        fileName === `${name}${demoSuffix}`
+        (fileName.startsWith(previewPrefix) || fileName.startsWith(demoPrefix)) &&
+        fileName.endsWith('.html')
       ) {
         // Determine the full path from activeContentDir
         const dir = activeContentDir || ''
@@ -175,15 +180,52 @@ export function PreviewPane({
     })
   }, [previewComponent, activeContentDir])
 
-  // Build an enhanced demo prompt from component analysis
-  const buildDemoPrompt = useCallback(
+  // Format dependency sources into prompt sections
+  const formatDependencies = useCallback(
+    (dependencies: Record<string, string>): string => {
+      const entries = Object.entries(dependencies)
+      if (entries.length === 0) return ''
+      const parts: string[] = ['\n## Dependencies\n']
+      for (const [relPath, source] of entries) {
+        const fileName = relPath.split('/').pop() || relPath
+        parts.push(`### ${fileName}\n\`\`\`tsx\n${source}\n\`\`\`\n`)
+      }
+      return parts.join('\n')
+    },
+    []
+  )
+
+  // Tailwind color reference for visual fidelity
+  const TAILWIND_COLORS = [
+    'zinc-50:#fafafa zinc-100:#f4f4f5 zinc-200:#e4e4e7 zinc-300:#d4d4d8',
+    'zinc-400:#a1a1aa zinc-500:#71717a zinc-600:#52525b zinc-700:#3f3f46',
+    'zinc-800:#27272a zinc-900:#18181b zinc-950:#09090b',
+    'blue-500:#3b82f6 blue-600:#2563eb red-500:#ef4444 green-500:#22c55e',
+  ].join(' ')
+
+  // Build prompt with dependency sources and better instructions
+  const buildPrompt = useCallback(
     (
       name: string,
       source: string,
       analysis: ComponentAnalysis,
-      context: string
+      dependencies: Record<string, string>,
+      iconNames: string[],
+      themeConfig: string,
+      context: string,
+      isDemo: boolean,
+      frame?: FramePreset
     ): string => {
       const parts: string[] = []
+
+      if (frame) {
+        parts.push(
+          `**Output dimensions: ${frame.width}x${frame.height} (${frame.label})**\n` +
+          `Design the HTML to fill exactly ${frame.width}x${frame.height}px. Set the outermost wrapper to ` +
+          `\`width: ${frame.width}px; height: ${frame.height}px; overflow: hidden;\`. Content must fill the ` +
+          'frame completely — no empty space, no scrolling.\n'
+        )
+      }
 
       if (context) {
         parts.push(
@@ -191,118 +233,81 @@ export function PreviewPane({
         )
       }
 
-      parts.push(
-        `Here is the source code for the ${name} component:\n\n\`\`\`tsx\n${source}\n\`\`\`\n`
-      )
+      // Main component source
+      parts.push(`## ${name}.tsx (main component)\n\`\`\`tsx\n${source}\n\`\`\`\n`)
 
-      parts.push(
-        'Create a self-contained HTML **animated product demo** that shows realistic user interactions. Use only vanilla HTML, CSS, and JS (no external dependencies).\n'
-      )
+      // Dependency sources
+      const depSection = formatDependencies(dependencies)
+      if (depSection) parts.push(depSection)
 
-      // Build animation sequence from analysis
-      const steps: string[] = []
-      let totalTime = 0
-
-      // Text inputs get simulated typing
-      const textInputs = analysis.stateHooks.filter(
-        h => h.purpose === 'text-input'
-      )
-      for (const input of textInputs) {
-        const label =
-          analysis.interactions.find(i => i.event === 'onChange')?.label ||
-          input.name
-        steps.push(
-          `${steps.length + 1}. Input field "${label}" appears → simulated typing animation (2s)`
-        )
-        totalTime += 2
+      // Theme config (CSS variables + Tailwind config)
+      if (themeConfig) {
+        parts.push(`\n## Theme & Design Tokens\nThese are the project's actual CSS variable definitions and Tailwind config. Use these exact values — do NOT guess.\n\n${themeConfig}`)
       }
 
-      // Click interactions with buttons
-      const clicks = analysis.interactions.filter(
-        i => i.event === 'onClick' && i.label
-      )
-      for (const click of clicks) {
-        const hasLoading = analysis.stateHooks.some(
-          h => h.purpose === 'loading-state'
-        )
-        if (hasLoading) {
-          steps.push(
-            `${steps.length + 1}. User clicks "${click.label}" → loading spinner (1.5s) → result appears`
-          )
-          totalTime += 2.5
-        } else {
-          steps.push(
-            `${steps.length + 1}. User clicks "${click.label}" → visual feedback and state change (1s)`
-          )
-          totalTime += 1
-        }
-      }
-
-      // Toggle states get animated
-      const toggles = analysis.stateHooks.filter(
-        h => h.purpose === 'toggle'
-      )
-      for (const toggle of toggles) {
-        steps.push(
-          `${steps.length + 1}. "${toggle.name}" toggles on → smooth transition (0.5s) → toggles off (0.5s)`
-        )
-        totalTime += 1
-      }
-
-      // Selection/step states animate through options
-      const selections = analysis.stateHooks.filter(
-        h => h.purpose === 'selection'
-      )
-      for (const sel of selections) {
-        steps.push(
-          `${steps.length + 1}. Step through "${sel.name}" options with highlight animation (2s)`
-        )
-        totalTime += 2
-      }
-
-      // Async patterns show loading → result
-      if (
-        analysis.asyncPatterns.length > 0 &&
-        !analysis.stateHooks.some(h => h.purpose === 'loading-state')
-      ) {
-        steps.push(
-          `${steps.length + 1}. Async operation: show loading indicator → data appears (2s)`
-        )
-        totalTime += 2
-      }
-
-      // If no specific steps detected, provide generic animation guidance
-      if (steps.length === 0) {
-        steps.push('1. Component fades in with staggered element animation (1s)')
-        steps.push(
-          '2. Interactive elements highlight sequentially to show affordances (2s)'
-        )
-        steps.push('3. Primary action triggers with visual feedback (1.5s)')
-        totalTime = 4.5
-      }
-
-      totalTime = Math.max(totalTime, 4)
-      const loopPause = 1
-
-      parts.push('\nAnimation sequence:')
-      for (const step of steps) {
-        parts.push(step)
-      }
-      parts.push(
-        `Total: ~${totalTime}s, loop continuously with ${loopPause}s pause between cycles.\n`
-      )
-
-      // Animation hints from detected patterns
-      if (analysis.hasAnimations) {
+      // Icon hints
+      if (iconNames.length > 0) {
         parts.push(
-          `The component uses: ${analysis.animationTypes.join(', ')}. Replicate these animation styles in the demo.\n`
+          `## Icons used\nThe component imports these icons from lucide-react: ${iconNames.join(', ')}.\n` +
+          'For each icon, draw an accurate inline SVG that matches the real Lucide icon. ' +
+          'Lucide icons are 24x24 viewBox, stroke-based (stroke="currentColor", strokeWidth=2, strokeLinecap="round", strokeLinejoin="round", fill="none"). ' +
+          'Use the REAL SVG paths — do NOT use placeholder circles or generic shapes.\n'
         )
+      }
+
+      // Core instructions
+      parts.push(
+        'Create a self-contained HTML file using only vanilla HTML, CSS, and JS (no external dependencies).\n'
+      )
+      parts.push(
+        'The components use Tailwind CSS. Here are the standard Tailwind color values:'
+      )
+      parts.push(`${TAILWIND_COLORS}\n`)
+      parts.push(
+        'When the source uses CSS variables like `hsl(var(--muted))`, resolve them using the CSS Variables section above. ' +
+        'Replicate the exact visual appearance — colors, typography, spacing, borders, shadows, border-radius, and layout. ' +
+        'Use the dependency source code above to understand how sub-components (buttons, badges, cards, icons) actually look. ' +
+        'Do NOT invent generic replacements — match the real styles.\n'
+      )
+
+      if (isDemo) {
+        parts.push(
+          '**Mode: Animated Demo** — Create a looping animated product demo that shows realistic user interactions.\n'
+        )
+        parts.push('Guidelines:')
+        parts.push('1. Visual fidelity first — the component must look identical to the real one')
+        parts.push('2. Then add smooth animations: typing in inputs, clicking buttons, toggling states')
+        parts.push('3. Use realistic mock data that makes the demo compelling')
+        parts.push('4. Loop continuously with a 1s pause between cycles')
+        parts.push('5. Total animation: 4-8 seconds per cycle\n')
+
+        if (analysis.hasAnimations) {
+          parts.push(
+            `The component uses: ${analysis.animationTypes.join(', ')}. Replicate these animation styles.\n`
+          )
+        }
+      } else {
+        parts.push(
+          '**Mode: Static Preview** — Create a pixel-perfect static preview with realistic mock data.\n'
+        )
+        parts.push('Guidelines:')
+        parts.push('1. Match the exact layout, colors, and typography from the source')
+        parts.push('2. Fill in realistic, compelling mock data (not "Lorem ipsum")')
+        parts.push('3. Show the component in its most representative state')
+        parts.push('4. Include hover states via CSS where the component has them\n')
       }
 
       return parts.join('\n')
     },
-    []
+    [formatDependencies, TAILWIND_COLORS]
   )
+
+  // Clear poll on unmount
+  useEffect(() => {
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current)
+    }
+  }, [])
 
   // Tracks the component path we last sent to Claude — prevents stale results
   const activePathRef = useRef<string | null>(null)
@@ -310,13 +315,21 @@ export function PreviewPane({
 
   // When a component is selected, fetch its source + analysis but do NOT auto-send to Claude.
   // The user must explicitly click "Generate" to send a prompt.
+  // Skip when path is empty — that means we're viewing existing HTML via handleViewExisting.
   useEffect(() => {
-    if (!previewComponent) return
+    if (!previewComponent || !previewComponent.path) return
 
     const thisPath = previewComponent.path
     activePathRef.current = thisPath
     setPreviewHtml(null)
     setPreviewError(null)
+    genCountRef.current = 0
+
+    // Cancel any pending poll from a previous selection
+    if (pollRef.current) {
+      clearInterval(pollRef.current)
+      pollRef.current = null
+    }
 
     // Cancel any pending prompt from a previous selection
     if (promptTimerRef.current) {
@@ -348,50 +361,105 @@ export function PreviewPane({
   }, [])
 
   // Send generate prompt to Claude — only called by explicit user action.
-  // Claude writes the HTML to a file; the file watcher picks it up.
-  const handleGenerate = useCallback(() => {
-    if (!previewComponent || !activeTabId) return
+  // Claude writes the HTML to a file; we poll for the file to appear.
+  const handleGenerate = useCallback(async () => {
+    if (!previewComponent || !activeTabId || !activeContentDir) return
+
+    // If viewing an existing preview (path is empty), resolve the real component path first
+    let componentPath = previewComponent.path
+    if (!componentPath) {
+      const allComponents = await window.electronAPI?.components.scan()
+      const match = allComponents?.find(
+        c => c.name === previewComponent.name
+      )
+      if (!match) {
+        setPreviewError('failed')
+        return
+      }
+      componentPath = match.path
+      // Update previewComponent so future regenerates don't need to scan again
+      setPreviewComponent({ ...previewComponent, path: match.path })
+    }
+
     setPreviewHtml(null)
     setPreviewError('generating')
 
-    // Determine output path: inside active content dir, or fallback to project root
-    const outputDir = activeContentDir || 'content'
+    // Clear any existing poll
+    if (pollRef.current) {
+      clearInterval(pollRef.current)
+      pollRef.current = null
+    }
+
+    const outputDir = activeContentDir
+    genCountRef.current += 1
+    const suffix = genCountRef.current > 1 ? `-${genCountRef.current}` : ''
     const filename = demoMode
-      ? `${previewComponent.name}-demo.html`
-      : `${previewComponent.name}-preview.html`
+      ? `${previewComponent.name}-demo${suffix}.html`
+      : `${previewComponent.name}-preview${suffix}.html`
     const outputPath = `${outputDir}/${filename}`
 
     window.electronAPI?.components
-      .render(previewComponent.path)
+      .render(componentPath)
       .then((result: ComponentRenderResult) => {
         if (result.ok) return
 
-        let prompt: string
-        if (demoMode) {
-          prompt = buildDemoPrompt(
-            previewComponent.name,
-            result.source,
-            result.analysis,
-            activePostTextRef.current
-          )
-        } else {
-          const contextPrefix = activePostTextRef.current
-            ? `Context: This component will be used as a LinkedIn carousel visual for a post with this text:\n\n${activePostTextRef.current}\n\n`
-            : ''
-          prompt = `${contextPrefix}Here is the source code for the ${previewComponent.name} component:\n\n\`\`\`tsx\n${result.source}\n\`\`\`\n\nCreate a self-contained HTML preview with realistic mock data that accurately represents how this component looks and functions. Use only vanilla HTML, CSS, and JS (no external dependencies).`
-        }
-
-        prompt += `\n\nWrite the complete HTML to the file: ${outputPath}`
+        const prompt = buildPrompt(
+          previewComponent.name,
+          result.source,
+          result.analysis,
+          result.dependencies,
+          result.iconNames,
+          result.themeConfig,
+          activePostTextRef.current,
+          demoMode,
+          FRAME_PRESETS[framePresetIdx]
+        ) + `\n\nWrite the complete HTML to the file: ${outputPath}`
 
         window.electronAPI?.terminal.sendInput(activeTabId, prompt + '\n')
+
+        // Start polling for the output file
+        const startTime = Date.now()
+        pollRef.current = setInterval(async () => {
+          // Timeout after 90s
+          if (Date.now() - startTime > 90_000) {
+            if (pollRef.current) clearInterval(pollRef.current)
+            pollRef.current = null
+            return
+          }
+          try {
+            const html = await window.electronAPI?.content.read(outputPath)
+            if (html && html.trim().length > 50) {
+              setPreviewHtml(html)
+              setPreviewError(null)
+              if (pollRef.current) clearInterval(pollRef.current)
+              pollRef.current = null
+            }
+          } catch {
+            // file not yet created — keep polling
+          }
+        }, 3000)
       })
-  }, [previewComponent, activeTabId, demoMode, buildDemoPrompt, activeContentDir])
+  }, [previewComponent, activeTabId, demoMode, buildPrompt, activeContentDir, framePresetIdx])
 
   const handlePreview = useCallback((component: DetectedComponent) => {
     setPreviewHtml(null)
     setPreviewError(null)
     setPreviewComponent(component)
   }, [])
+
+  // View an existing demo/preview HTML file directly (from Recent Previews)
+  const handleViewExisting = useCallback(
+    (componentName: string, html: string) => {
+      setPreviewComponent({
+        name: componentName,
+        path: '',
+        description: ''
+      })
+      setPreviewHtml(html)
+      setPreviewError(null)
+    },
+    []
+  )
 
   const handleBackFromPreview = useCallback(() => {
     setPreviewComponent(null)
@@ -607,7 +675,11 @@ export function PreviewPane({
               previewComponent ? 'hidden' : 'flex min-h-0 flex-1 flex-col'
             }
           >
-            <ComponentBrowser onPreview={handlePreview} />
+            <ComponentBrowser
+              onPreview={handlePreview}
+              onViewExisting={handleViewExisting}
+              activeContentDir={activeContentDir}
+            />
           </div>
 
           {previewComponent && (
@@ -624,6 +696,9 @@ export function PreviewPane({
                 demoMode={demoMode}
                 onToggleDemoMode={handleToggleDemoMode}
                 onRegenerateDemo={handleGenerate}
+                onVersionSelect={setPreviewHtml}
+                framePresetIdx={framePresetIdx}
+                onFramePresetChange={setFramePresetIdx}
               />
               {contentDir && (
                 <CaptureToolbar

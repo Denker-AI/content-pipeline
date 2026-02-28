@@ -25,3 +25,17 @@ export const SIZE_PRESETS: SizePreset[] = [
     description: 'Email header image'
   }
 ]
+
+export interface FramePreset {
+  name: string
+  width: number
+  height: number
+  label: string
+}
+
+export const FRAME_PRESETS: FramePreset[] = [
+  { name: 'Square', width: 1080, height: 1080, label: '1:1' },
+  { name: 'LinkedIn', width: 1080, height: 1350, label: '4:5' },
+  { name: 'TikTok / Reels', width: 1080, height: 1920, label: '9:16' },
+  { name: 'Landscape', width: 1920, height: 1080, label: '16:9' }
+]

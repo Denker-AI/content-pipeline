@@ -62,6 +62,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     listDir: (dirPath) => ipcRenderer.invoke('content:listDir', dirPath),
     read: (filePath) => ipcRenderer.invoke('content:read', filePath),
     readAsDataUrl: (filePath) => ipcRenderer.invoke('content:readAsDataUrl', filePath),
+    deleteFile: (filePath) => ipcRenderer.invoke('content:deleteFile', filePath),
     listVersions: (filePath) =>
       ipcRenderer.invoke('content:listVersions', filePath),
     openProject: () => ipcRenderer.invoke('content:openProject'),

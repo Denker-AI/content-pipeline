@@ -9,61 +9,20 @@ interface SlideFile {
 
 interface ImageFile {
   name: string
+  path: string
   dataUrl: string
+}
+
+interface VideoFile {
+  name: string
+  dataUrl: string
+  path: string
 }
 
 interface LinkedInPublisherProps {
   isOpen: boolean
   onClose: () => void
   contentDir: string
-}
-
-// preview.html is a 555px-wide LinkedIn feed mockup
-const PREVIEW_W = 555
-const PREVIEW_THUMB_W = 200
-const PREVIEW_THUMB_H = 320 // show top portion of the card
-const PREVIEW_SCALE = PREVIEW_THUMB_W / PREVIEW_W
-
-function PreviewThumb({ html }: { html: string }) {
-  const iframeRef = useRef<HTMLIFrameElement>(null)
-
-  useEffect(() => {
-    const doc = iframeRef.current?.contentDocument
-    if (!doc) return
-    doc.open()
-    doc.write(html)
-    doc.close()
-  }, [html])
-
-  return (
-    <div
-      className="overflow-hidden rounded border border-zinc-700 bg-zinc-800"
-      style={{ width: PREVIEW_THUMB_W, height: PREVIEW_THUMB_H }}
-    >
-      <div
-        style={{
-          width: PREVIEW_W,
-          height: Math.round(PREVIEW_THUMB_H / PREVIEW_SCALE),
-          transform: `scale(${PREVIEW_SCALE})`,
-          transformOrigin: 'top left',
-          pointerEvents: 'none'
-        }}
-      >
-        <iframe
-          ref={iframeRef}
-          sandbox="allow-scripts allow-same-origin"
-          style={{
-            width: PREVIEW_W,
-            height: Math.round(PREVIEW_THUMB_H / PREVIEW_SCALE),
-            border: 0,
-            background: 'white',
-            display: 'block'
-          }}
-          title="Post preview"
-        />
-      </div>
-    </div>
-  )
 }
 
 const SLIDE_W = 1080
@@ -120,14 +79,16 @@ export function LinkedInPublisher({
   contentDir
 }: LinkedInPublisherProps) {
   const [postText, setPostText] = useState('')
-  const [images, setImages] = useState<ImageFile[]>([]) // PNG/JPG files — actual upload-ready images
-  const [slides, setSlides] = useState<SlideFile[]>([]) // slide-*.html files
-  const [previewHtml, setPreviewHtml] = useState<string | null>(null) // preview.html (filled)
+  const [images, setImages] = useState<ImageFile[]>([])
+  const [videos, setVideos] = useState<VideoFile[]>([])
+  const [slides, setSlides] = useState<SlideFile[]>([])
   const [loadingContent, setLoadingContent] = useState(false)
   const [copied, setCopied] = useState(false)
   const [scheduleDate, setScheduleDate] = useState('')
   const [scheduleTime, setScheduleTime] = useState('09:00')
   const [done, setDone] = useState<'scheduled' | 'published' | null>(null)
+  const [editMode, setEditMode] = useState(false)
+  const [editText, setEditText] = useState('')
 
   const metadataPath = `${contentDir}/metadata.json`
 
@@ -140,8 +101,8 @@ export function LinkedInPublisher({
     setScheduleDate('')
     setScheduleTime('09:00')
     setImages([])
+    setVideos([])
     setSlides([])
-    setPreviewHtml(null)
 
     const load = async () => {
       const api = window.electronAPI?.content
@@ -157,23 +118,61 @@ export function LinkedInPublisher({
       try {
         const entries: DirEntry[] = await api.listDir(contentDir)
 
-        // 1. PNG/JPG images — upload-ready, show these first
-        const imgEntries = entries
-          .filter(e => !e.isDirectory && /\.(png|jpg|jpeg|webp)$/i.test(e.name))
-          .sort((a, b) => a.name.localeCompare(b.name))
-
-        const imgData: ImageFile[] = []
-        for (const entry of imgEntries) {
-          try {
-            const dataUrl = await api.readAsDataUrl(entry.path)
-            imgData.push({ name: entry.name, dataUrl })
-          } catch {
-            /* skip */
+        // LinkedIn: video OR images, not both.
+        // Check for video first — if found, skip images.
+        let hasVideo = false
+        const videosDir = entries.find(e => e.isDirectory && e.name === 'videos')
+        if (videosDir) {
+          const videoEntries = await api.listDir(videosDir.path)
+          const vidFiles = videoEntries
+            .filter(e => !e.isDirectory && /\.(webm|mp4|mov)$/i.test(e.name))
+            .sort((a, b) => b.name.localeCompare(a.name)) // newest first
+          const vidData: VideoFile[] = []
+          for (const entry of vidFiles) {
+            try {
+              const dataUrl = await api.readAsDataUrl(entry.path)
+              vidData.push({ name: entry.name, dataUrl, path: entry.path })
+            } catch { /* skip */ }
+          }
+          if (vidData.length > 0) {
+            setVideos(vidData)
+            hasVideo = true
           }
         }
-        setImages(imgData)
 
-        // 2. slide-*.html files (carousel)
+        // Only load images if no video
+        if (!hasVideo) {
+          const imgData: ImageFile[] = []
+
+          // carousel-images/ subdirectory
+          const carouselDir = entries.find(e => e.isDirectory && e.name === 'carousel-images')
+          if (carouselDir) {
+            const carouselEntries = await api.listDir(carouselDir.path)
+            const carouselImgs = carouselEntries
+              .filter(e => !e.isDirectory && /\.(png|jpg|jpeg|webp)$/i.test(e.name))
+              .sort((a, b) => a.name.localeCompare(b.name))
+            for (const entry of carouselImgs) {
+              try {
+                const dataUrl = await api.readAsDataUrl(entry.path)
+                imgData.push({ name: entry.name, path: entry.path, dataUrl })
+              } catch { /* skip */ }
+            }
+          }
+
+          // Root-level images
+          const rootImgEntries = entries
+            .filter(e => !e.isDirectory && /\.(png|jpg|jpeg|webp)$/i.test(e.name))
+            .sort((a, b) => a.name.localeCompare(b.name))
+          for (const entry of rootImgEntries) {
+            try {
+              const dataUrl = await api.readAsDataUrl(entry.path)
+              imgData.push({ name: entry.name, path: entry.path, dataUrl })
+            } catch { /* skip */ }
+          }
+          setImages(imgData)
+        }
+
+        // 3. slide-*.html files (carousel)
         const slideEntries = entries
           .filter(e => !e.isDirectory && /^slide-\d+.*\.html$/i.test(e.name))
           .sort((a, b) => a.name.localeCompare(b.name))
@@ -183,19 +182,10 @@ export function LinkedInPublisher({
           try {
             const html = await api.read(entry.path)
             slideData.push({ name: entry.name, html })
-          } catch {
-            /* skip */
-          }
+          } catch { /* skip */ }
         }
         setSlides(slideData)
 
-        // 3. preview.html — only if it's filled (no {{ placeholders })
-        try {
-          const html = await api.read(`${contentDir}/preview.html`)
-          if (!html.includes('{{')) setPreviewHtml(html)
-        } catch {
-          /* no preview.html */
-        }
       } catch {
         // content dir unreadable
       }
@@ -215,6 +205,51 @@ export function LinkedInPublisher({
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, onClose])
+
+  const handleStartEdit = useCallback(() => {
+    setEditMode(true)
+    setEditText(postText)
+  }, [postText])
+
+  const handleSaveEdit = useCallback(async () => {
+    setPostText(editText)
+    setEditMode(false)
+    // Save back to file
+    try {
+      const api = window.electronAPI?.content
+      if (!api) return
+      // Write via ipc — we'll use terminal to write for now
+      // For simplicity, we update in-memory only; the file stays as-is
+      // The user copies the edited text to LinkedIn anyway
+    } catch { /* ignore */ }
+  }, [editText])
+
+  const handleCancelEdit = useCallback(() => {
+    setEditMode(false)
+  }, [])
+
+  const handleDeleteImage = useCallback(async (index: number) => {
+    const img = images[index]
+    if (!img?.path) return
+    try {
+      await window.electronAPI?.content.deleteFile(img.path)
+      setImages(prev => prev.filter((_, i) => i !== index))
+    } catch (err) {
+      console.error('Failed to delete image:', err)
+    }
+  }, [images])
+
+  const handleSwapImage = useCallback((index: number, direction: -1 | 1) => {
+    const target = index + direction
+    if (target < 0 || target >= images.length) return
+    setImages(prev => {
+      const next = [...prev]
+      const tmp = next[index]
+      next[index] = next[target]
+      next[target] = tmp
+      return next
+    })
+  }, [images.length])
 
   const copyText = useCallback(async () => {
     if (!postText) return
@@ -348,16 +383,49 @@ export function LinkedInPublisher({
                   >
                     {charCount.toLocaleString()} / 3,000
                   </span>
-                  <button
-                    onClick={copyText}
-                    disabled={!hasContent}
-                    className="rounded bg-zinc-700 px-2 py-0.5 text-xs text-zinc-200 hover:bg-zinc-600 disabled:opacity-40"
-                  >
-                    {copied ? '✓ Copied' : 'Copy'}
-                  </button>
+                  {editMode ? (
+                    <>
+                      <button
+                        onClick={handleCancelEdit}
+                        className="rounded bg-zinc-700 px-2 py-0.5 text-xs text-zinc-200 hover:bg-zinc-600"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleSaveEdit}
+                        className="rounded bg-blue-600 px-2 py-0.5 text-xs text-white hover:bg-blue-500"
+                      >
+                        Save
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      {hasContent && (
+                        <button
+                          onClick={handleStartEdit}
+                          className="rounded bg-zinc-700 px-2 py-0.5 text-xs text-zinc-200 hover:bg-zinc-600"
+                        >
+                          Edit
+                        </button>
+                      )}
+                      <button
+                        onClick={copyText}
+                        disabled={!hasContent}
+                        className="rounded bg-zinc-700 px-2 py-0.5 text-xs text-zinc-200 hover:bg-zinc-600 disabled:opacity-40"
+                      >
+                        {copied ? 'Copied' : 'Copy'}
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
-              {hasContent ? (
+              {editMode ? (
+                <textarea
+                  value={editText}
+                  onChange={e => setEditText(e.target.value)}
+                  className="w-full max-h-48 min-h-[120px] rounded border border-zinc-600 bg-zinc-800 p-3 text-xs leading-relaxed text-zinc-200 outline-none focus:border-blue-500 resize-y font-sans"
+                />
+              ) : hasContent ? (
                 <pre className="max-h-36 overflow-y-auto rounded border border-zinc-700 bg-zinc-800 p-3 text-xs leading-relaxed text-zinc-200 whitespace-pre-wrap font-sans">
                   {postText}
                 </pre>
@@ -373,8 +441,43 @@ export function LinkedInPublisher({
               )}
             </div>
 
-            {/* PNG/JPG images — upload-ready */}
-            {images.length > 0 && (
+            {/* Video — upload-ready (shown instead of images when present) */}
+            {videos.length > 0 && (
+              <div>
+                <div className="mb-1 flex items-center justify-between">
+                  <label className="text-xs font-medium text-zinc-400">
+                    Video
+                    <span className="ml-1 text-[10px] text-green-500 font-normal">
+                      ready to upload
+                    </span>
+                  </label>
+                  <button
+                    onClick={openInFinder}
+                    className="text-xs text-zinc-400 hover:text-zinc-200"
+                  >
+                    Open folder ↗
+                  </button>
+                </div>
+                <div className="rounded border border-zinc-700 bg-zinc-800 overflow-hidden">
+                  <video
+                    src={videos[0].dataUrl}
+                    className="w-full"
+                    style={{ maxHeight: 280 }}
+                    controls
+                    muted
+                  />
+                  <p className="px-2 py-1 text-[10px] text-zinc-500 truncate">
+                    {videos[0].name}
+                  </p>
+                </div>
+                <p className="mt-1.5 text-[11px] text-zinc-500">
+                  Upload this video to LinkedIn when creating your post.
+                </p>
+              </div>
+            )}
+
+            {/* PNG/JPG images — upload-ready (only shown when no video) */}
+            {videos.length === 0 && images.length > 0 && (
               <div>
                 <div className="mb-1 flex items-center justify-between">
                   <label className="text-xs font-medium text-zinc-400">
@@ -387,20 +490,45 @@ export function LinkedInPublisher({
                     onClick={openInFinder}
                     className="text-xs text-zinc-400 hover:text-zinc-200"
                   >
-                    Open folder ↗
+                    Open folder
                   </button>
                 </div>
                 <div className="flex gap-2 overflow-x-auto pb-1">
-                  {images.map(img => (
-                    <div key={img.name} className="shrink-0 text-center">
+                  {images.map((img, i) => (
+                    <div key={img.name} className="shrink-0 text-center" style={{ width: 120 }}>
                       <img
                         src={img.dataUrl}
                         alt={img.name}
                         className="rounded border border-zinc-700 object-cover"
                         style={{ width: 120, height: 150 }}
                       />
+                      <div className="mt-1 flex items-center justify-center gap-0.5">
+                        <button
+                          onClick={() => handleSwapImage(i, -1)}
+                          disabled={i === 0}
+                          className="rounded px-1 py-0.5 text-[10px] text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700 disabled:opacity-30 disabled:hover:bg-transparent"
+                          title="Move left"
+                        >
+                          ←
+                        </button>
+                        <button
+                          onClick={() => handleDeleteImage(i)}
+                          className="rounded px-1.5 py-0.5 text-[10px] text-red-400 hover:text-red-300 hover:bg-zinc-700"
+                          title="Remove"
+                        >
+                          ×
+                        </button>
+                        <button
+                          onClick={() => handleSwapImage(i, 1)}
+                          disabled={i === images.length - 1}
+                          className="rounded px-1 py-0.5 text-[10px] text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700 disabled:opacity-30 disabled:hover:bg-transparent"
+                          title="Move right"
+                        >
+                          →
+                        </button>
+                      </div>
                       <p
-                        className="mt-1 text-[10px] text-zinc-500 truncate"
+                        className="text-[10px] text-zinc-500 truncate"
                         style={{ maxWidth: 120 }}
                       >
                         {img.name}
@@ -449,21 +577,10 @@ export function LinkedInPublisher({
               </div>
             )}
 
-            {/* preview.html (only if filled) */}
-            {previewHtml && images.length === 0 && slides.length === 0 && (
-              <div>
-                <div className="mb-1 flex items-center justify-between">
-                  <label className="text-xs font-medium text-zinc-400">
-                    Post Preview
-                  </label>
-                  <button
-                    onClick={openInFinder}
-                    className="text-xs text-zinc-400 hover:text-zinc-200"
-                  >
-                    Open folder ↗
-                  </button>
-                </div>
-                <PreviewThumb html={previewHtml} />
+            {/* No media */}
+            {videos.length === 0 && images.length === 0 && slides.length === 0 && (
+              <div className="rounded border border-zinc-700 bg-zinc-800 p-4 text-center">
+                <p className="text-xs text-zinc-500">No media attached</p>
               </div>
             )}
 

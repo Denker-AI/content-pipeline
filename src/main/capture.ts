@@ -1,6 +1,6 @@
 import path from 'path'
 
-import type { ContentType } from '@/shared/types'
+import type { CaptureClipRegion, ContentType } from '@/shared/types'
 
 import type { ScreenshotResult, VideoResult } from './screenshot'
 import { recordVideo, takeScreenshot } from './screenshot'
@@ -13,6 +13,7 @@ export interface CaptureScreenshotRequest {
   presetName: string
   contentDir: string
   contentType?: ContentType
+  clip?: CaptureClipRegion
 }
 
 export interface CaptureVideoRequest {
@@ -20,8 +21,11 @@ export interface CaptureVideoRequest {
   html?: string
   width: number
   height: number
-  duration: number
+  duration?: number
+  maxDuration?: number
   contentDir: string
+  componentName?: string
+  clip?: CaptureClipRegion
 }
 
 function generateFilename(prefix: string, ext: string): string {
@@ -61,7 +65,8 @@ export async function captureScreenshot(
     width: request.width,
     height: request.height,
     outputPath,
-    deviceScaleFactor: 2
+    deviceScaleFactor: 2,
+    clip: request.clip
   })
 }
 
@@ -69,13 +74,29 @@ export async function captureVideo(
   request: CaptureVideoRequest
 ): Promise<VideoResult> {
   const outputDir = path.join(request.contentDir, 'videos')
+  const prefix = request.componentName
+    ? request.componentName.replace(/[^a-zA-Z0-9-_]/g, '-').toLowerCase()
+    : 'video'
 
-  return recordVideo({
+  const result = await recordVideo({
     url: request.url,
     html: request.html,
     width: request.width,
     height: request.height,
     outputDir,
-    duration: request.duration
+    duration: request.duration,
+    maxDuration: request.maxDuration,
+    clip: request.clip
   })
+
+  // Rename Playwright's random UUID filename to component-name-based
+  const desiredName = generateFilename(prefix, path.extname(result.path).slice(1))
+  const desiredPath = path.join(outputDir, desiredName)
+  if (result.path !== desiredPath) {
+    const fsPromises = await import('fs/promises')
+    await fsPromises.rename(result.path, desiredPath)
+    result.path = desiredPath
+  }
+
+  return result
 }

@@ -242,11 +242,22 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
       jpg: 'image/jpeg',
       jpeg: 'image/jpeg',
       gif: 'image/gif',
-      webp: 'image/webp'
+      webp: 'image/webp',
+      webm: 'video/webm',
+      mp4: 'video/mp4',
+      mov: 'video/quicktime'
     }
     const mime = mimeMap[ext] ?? 'application/octet-stream'
     const buf = await fs.readFile(resolved)
     return `data:${mime};base64,${buf.toString('base64')}`
+  })
+
+  ipcMain.handle('content:deleteFile', async (_event, filePath: string) => {
+    const resolved = path.resolve(filePath)
+    if (!(await isAllowedContentPath(resolved))) {
+      throw new Error('Access denied: file outside content directory')
+    }
+    await fs.unlink(resolved)
   })
 
   ipcMain.handle('content:listVersions', async (_event, filePath: string) => {
@@ -552,15 +563,18 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         cwd
       })
       const lines = stdout.split('\n').filter((l: string) => l.trim())
-      return lines.map((line: string) => {
-        const xy = line.slice(0, 2)
-        const filePath = line.slice(3)
-        let status: 'new' | 'modified' | 'deleted' = 'modified'
-        if (xy.includes('?') || xy.includes('A')) status = 'new'
-        if (xy.includes('D')) status = 'deleted'
-        const staged = xy[0] !== ' ' && xy[0] !== '?'
-        return { path: filePath, status, staged }
-      })
+      return lines
+        .map((line: string) => {
+          const xy = line.slice(0, 2)
+          // Strip trailing slash (git shows directories as "dir/")
+          const filePath = line.slice(3).replace(/\/$/, '')
+          let status: 'new' | 'modified' | 'deleted' = 'modified'
+          if (xy.includes('?') || xy.includes('A')) status = 'new'
+          if (xy.includes('D')) status = 'deleted'
+          const staged = xy[0] !== ' ' && xy[0] !== '?'
+          return { path: filePath, status, staged }
+        })
+        .filter((f: { path: string }) => f.path.length > 0)
     } catch {
       return []
     }
@@ -680,6 +694,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     ipcMain.removeHandler('content:listDir')
     ipcMain.removeHandler('content:read')
     ipcMain.removeHandler('content:readAsDataUrl')
+    ipcMain.removeHandler('content:deleteFile')
     ipcMain.removeHandler('content:listVersions')
     ipcMain.removeHandler('content:getProjectRoot')
     ipcMain.removeHandler('content:openProject')

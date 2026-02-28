@@ -24,7 +24,8 @@ function HtmlPreview({
   naturalWidth,
   naturalHeight,
   fill,
-  allowScripts
+  allowScripts,
+  scaleToFit
 }: {
   content: string
   refreshCount: number
@@ -32,6 +33,7 @@ function HtmlPreview({
   naturalHeight?: number
   fill?: boolean
   allowScripts?: boolean
+  scaleToFit?: number // render iframe at this width and scale down to fit container
 }) {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const iframeRef = useRef<HTMLIFrameElement>(null)
@@ -110,14 +112,15 @@ function HtmlPreview({
   }, [writeContent, refreshCount, naturalHeight, fill])
 
   // Scale-to-fit: watch container width and compute scale factor
+  const targetWidth = naturalWidth || scaleToFit
   useEffect(() => {
-    if (!naturalWidth || !wrapperRef.current) return
+    if (!targetWidth || !wrapperRef.current) return
     const obs = new ResizeObserver(([entry]) => {
-      setScale(entry.contentRect.width / naturalWidth)
+      setScale(Math.min(1, entry.contentRect.width / targetWidth))
     })
     obs.observe(wrapperRef.current)
     return () => obs.disconnect()
-  }, [naturalWidth])
+  }, [targetWidth])
 
   const backButton = navigatedAway && (
     <button
@@ -178,10 +181,61 @@ function HtmlPreview({
     )
   }
 
-  // Fill preview (asset/unknown): iframe takes the full container height
+  // Fill preview (asset/unknown): iframe takes the full container height.
+  // Uses absolute positioning to bypass min-h-full parent that doesn't
+  // provide an explicit height for percentage-based children.
+  // When scripts are allowed (demos), use srcDoc for reliable script execution
+  // instead of doc.write() which can fail in sandboxed iframes.
   if (fill) {
+    // Scale-to-fit mode: render at scaleToFit width, scale down to container
+    if (scaleToFit && allowScripts) {
+      return (
+        <div ref={wrapperRef} className="absolute inset-0 overflow-auto">
+          {backButton}
+          <div
+            style={{
+              width: scaleToFit * scale,
+              height: `${100 / scale}%`,
+              overflow: 'hidden'
+            }}
+          >
+            <div
+              style={{
+                width: scaleToFit,
+                height: '100%',
+                transform: `scale(${scale})`,
+                transformOrigin: 'top left'
+              }}
+            >
+              <iframe
+                key={refreshCount}
+                srcDoc={content}
+                style={{ width: scaleToFit, height: '100%', border: 0, background: 'white' }}
+                sandbox={sandbox}
+                title="Content preview"
+              />
+            </div>
+          </div>
+        </div>
+      )
+    }
+    if (allowScripts) {
+      return (
+        <div className="absolute inset-0">
+          {backButton}
+          <iframe
+            key={refreshCount}
+            srcDoc={content}
+            className="h-full w-full border-0"
+            style={{ background: 'white' }}
+            sandbox={sandbox}
+            title="Content preview"
+          />
+        </div>
+      )
+    }
     return (
-      <div className="relative h-full w-full">
+      <div className="absolute inset-0">
         {backButton}
         <iframe
           ref={iframeRef}
@@ -336,12 +390,14 @@ export function ContentRenderer({
   }
 
   // Asset / unknown: fill the available preview area, allow scripts
+  // Scale to fit 1080px content width so wide demos aren't cropped
   return (
     <HtmlPreview
       content={content}
       refreshCount={refreshCount}
       fill
       allowScripts
+      scaleToFit={1080}
     />
   )
 }

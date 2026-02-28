@@ -31,6 +31,12 @@ interface PipelineSidebarProps {
   onItemSelect: (item: PipelineItem) => void
   onItemCreated: (item: PipelineItem) => void
   onBranchSelect: (worktree: WorktreeInfo) => void
+  onFileSelect?: (
+    item: PipelineItem,
+    path: string,
+    relativePath: string,
+    contentType: ContentType
+  ) => void
   onOpenProject: () => void
   onOpenSettings: () => void
   onOpenWizard: () => void
@@ -41,6 +47,7 @@ export function PipelineSidebar({
   onItemSelect,
   onItemCreated,
   onBranchSelect,
+  onFileSelect,
   onOpenProject,
   onOpenSettings,
   onOpenWizard,
@@ -296,6 +303,7 @@ export function PipelineSidebar({
                 onCreateNew={handleCreate}
                 onStageChange={updateStage}
                 onBranchSelect={handleBranchClick}
+                onFileSelect={onFileSelect}
                 onRename={name => renameRepo(repo.path, name)}
                 branchFilter={branchFilter}
                 isMultiRepo={isMultiRepo}
@@ -339,6 +347,12 @@ interface RepoSectionProps {
     stage: import('@/shared/types').ContentStage
   ) => void
   onBranchSelect: (worktree: WorktreeInfo) => void
+  onFileSelect?: (
+    item: PipelineItem,
+    path: string,
+    relativePath: string,
+    contentType: ContentType
+  ) => void
   onRename: (name: string) => void
   branchFilter: string
   isMultiRepo: boolean
@@ -359,6 +373,7 @@ function RepoSection({
   onCreateNew,
   onStageChange,
   onBranchSelect,
+  onFileSelect,
   onRename,
   branchFilter,
   isMultiRepo
@@ -493,6 +508,7 @@ function RepoSection({
               onCreateNew={onCreateNew}
               activeItemId={activeItemId}
               onStageChange={onStageChange}
+              onFileSelect={onFileSelect}
             />
           ))}
         </div>

@@ -7,9 +7,16 @@ interface LinkedInCompositePreviewProps {
   renderMode: RenderMode
   textContent?: string
   activeTabId?: string | null
+  editMode?: boolean
 }
 
 interface ImageSlide {
+  name: string
+  path: string
+  dataUrl: string
+}
+
+interface VideoSlide {
   name: string
   dataUrl: string
 }
@@ -18,9 +25,11 @@ export function LinkedInCompositePreview({
   contentDir,
   renderMode,
   textContent,
-  activeTabId
+  activeTabId,
+  editMode
 }: LinkedInCompositePreviewProps) {
   const [postText, setPostText] = useState('')
+  const [video, setVideo] = useState<VideoSlide | null>(null)
   const [images, setImages] = useState<ImageSlide[]>([])
   const [currentSlide, setCurrentSlide] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -39,55 +48,74 @@ export function LinkedInCompositePreview({
         const text = await api.read(`${contentDir}/post-text.md`)
         setPostText(text.trim())
       } catch {
-        // File doesn't exist yet — leave empty, placeholder will show
         setPostText('')
       }
     }
 
-    // Images: scan carousel-images/ and root-level images
+    // LinkedIn posts are either a video OR images, never both.
+    // If videos/ exists and has files, show the latest video.
+    // Otherwise show images from carousel-images/ and root.
+    let foundVideo: VideoSlide | null = null
     const loadedImages: ImageSlide[] = []
+
     try {
-      // Check carousel-images/ subdirectory
       const entries = await api.listDir(contentDir)
-      const carouselDir = entries.find(
-        e => e.isDirectory && e.name === 'carousel-images'
+
+      // Check for videos first
+      const videosDir = entries.find(
+        e => e.isDirectory && e.name === 'videos'
       )
-      if (carouselDir) {
-        const carouselEntries = await api.listDir(carouselDir.path)
-        const imgEntries = carouselEntries
-          .filter(e => !e.isDirectory && /\.(png|jpg|jpeg|webp)$/i.test(e.name))
-          .sort((a, b) => a.name.localeCompare(b.name))
-        for (const entry of imgEntries) {
+      if (videosDir) {
+        const videoEntries = await api.listDir(videosDir.path)
+        const latestVid = videoEntries
+          .filter(e => !e.isDirectory && /\.(webm|mp4|mov)$/i.test(e.name))
+          .sort((a, b) => b.name.localeCompare(a.name))[0] // newest
+        if (latestVid) {
           try {
-            const dataUrl = await api.readAsDataUrl(entry.path)
-            loadedImages.push({ name: entry.name, dataUrl })
-          } catch {
-            /* skip unreadable */
+            const dataUrl = await api.readAsDataUrl(latestVid.path)
+            foundVideo = { name: latestVid.name, dataUrl }
+          } catch { /* skip */ }
+        }
+      }
+
+      // Only load images if no video
+      if (!foundVideo) {
+        // carousel-images/
+        const carouselDir = entries.find(
+          e => e.isDirectory && e.name === 'carousel-images'
+        )
+        if (carouselDir) {
+          const carouselEntries = await api.listDir(carouselDir.path)
+          const imgEntries = carouselEntries
+            .filter(e => !e.isDirectory && /\.(png|jpg|jpeg|webp)$/i.test(e.name))
+            .sort((a, b) => a.name.localeCompare(b.name))
+          for (const entry of imgEntries) {
+            try {
+              const dataUrl = await api.readAsDataUrl(entry.path)
+              loadedImages.push({ name: entry.name, path: entry.path, dataUrl })
+            } catch { /* skip */ }
           }
         }
-      }
 
-      // Also check root-level images (not in subdirectories)
-      const rootImages = entries
-        .filter(
-          e =>
-            !e.isDirectory &&
-            /\.(png|jpg|jpeg|webp)$/i.test(e.name) &&
-            !e.name.startsWith('.')
-        )
-        .sort((a, b) => a.name.localeCompare(b.name))
-      for (const entry of rootImages) {
-        try {
-          const dataUrl = await api.readAsDataUrl(entry.path)
-          loadedImages.push({ name: entry.name, dataUrl })
-        } catch {
-          /* skip */
+        // Root-level images
+        const rootImages = entries
+          .filter(
+            e =>
+              !e.isDirectory &&
+              /\.(png|jpg|jpeg|webp)$/i.test(e.name) &&
+              !e.name.startsWith('.')
+          )
+          .sort((a, b) => a.name.localeCompare(b.name))
+        for (const entry of rootImages) {
+          try {
+            const dataUrl = await api.readAsDataUrl(entry.path)
+            loadedImages.push({ name: entry.name, path: entry.path, dataUrl })
+          } catch { /* skip */ }
         }
       }
-    } catch {
-      /* dir unreadable */
-    }
+    } catch { /* dir unreadable */ }
 
+    setVideo(foundVideo)
     setImages(loadedImages)
     setCurrentSlide(0)
     setLoading(false)
@@ -115,6 +143,34 @@ export function LinkedInCompositePreview({
     setCurrentSlide(s => Math.min(images.length - 1, s + 1))
   }, [images.length])
 
+  const handleDeleteImage = useCallback(async (index: number) => {
+    const img = images[index]
+    if (!img?.path) return
+    try {
+      await window.electronAPI?.content.deleteFile(img.path)
+      setImages(prev => {
+        const next = prev.filter((_, i) => i !== index)
+        if (currentSlide >= next.length) setCurrentSlide(Math.max(0, next.length - 1))
+        return next
+      })
+    } catch (err) {
+      console.error('Failed to delete image:', err)
+    }
+  }, [images, currentSlide])
+
+  const handleSwapImage = useCallback((index: number, direction: -1 | 1) => {
+    const target = index + direction
+    if (target < 0 || target >= images.length) return
+    setImages(prev => {
+      const next = [...prev]
+      const tmp = next[index]
+      next[index] = next[target]
+      next[target] = tmp
+      return next
+    })
+    setCurrentSlide(target)
+  }, [images.length])
+
   const handleGenerateVisual = useCallback(() => {
     if (!activeTabId) return
     const prompt = `I have a LinkedIn post with this text:\n\n${postText}\n\nDesign a visually compelling 1080x1350 carousel slide (HTML/CSS) that complements this post. Use only vanilla HTML, CSS, and JS. Output the complete HTML between ===HTML_PREVIEW_START=== and ===HTML_PREVIEW_END===\n`
@@ -123,10 +179,11 @@ export function LinkedInCompositePreview({
 
   const handleGenerateText = useCallback(() => {
     if (!activeTabId) return
-    const imageCount = images.length
-    const prompt = `I have a LinkedIn carousel with ${imageCount} slide(s).\n\nWrite a compelling LinkedIn post (post-text.md) in founder voice, no emojis, max 3000 chars. Save it to ${contentDir}/post-text.md\n`
+    const mediaCount = video ? 1 : images.length
+    const mediaType = video ? 'video' : `${mediaCount} image slide(s)`
+    const prompt = `I have a LinkedIn post with ${mediaType}.\n\nWrite a compelling LinkedIn post (post-text.md) in founder voice, no emojis, max 3000 chars. Save it to ${contentDir}/post-text.md\n`
     window.electronAPI?.terminal.sendInput(activeTabId, prompt)
-  }, [images.length, contentDir, activeTabId])
+  }, [video, images.length, contentDir, activeTabId])
 
   if (loading) {
     return (
@@ -139,7 +196,7 @@ export function LinkedInCompositePreview({
   const charCount = postText.length
   const charLimit = 3000
   const hasText = postText.length > 0
-  const hasImages = images.length > 0
+  const hasMedia = !!video || images.length > 0
   const truncateAt = 280
   const shouldTruncate = postText.length > truncateAt && !expanded
 
@@ -184,7 +241,7 @@ export function LinkedInCompositePreview({
             <p className="text-sm text-zinc-400 dark:text-zinc-500">
               No post text yet
             </p>
-            {hasImages && (
+            {hasMedia && (
               <button
                 onClick={handleGenerateText}
                 className="mt-2 rounded bg-blue-600 px-3 py-1.5 text-xs text-white hover:bg-blue-500"
@@ -195,36 +252,67 @@ export function LinkedInCompositePreview({
           </div>
         )}
 
-        {/* Image area */}
-        {hasImages ? (
-          <div className="relative">
+        {/* Media area: video OR images (LinkedIn supports one or the other) */}
+        {video ? (
+          <div className="relative bg-black">
+            <video
+              key={video.dataUrl}
+              src={video.dataUrl}
+              className="w-full"
+              style={{ maxHeight: 555 }}
+              controls
+              autoPlay
+              loop
+              muted
+            />
+          </div>
+        ) : images.length > 0 ? (
+          <div className="relative bg-black">
             <img
               src={images[currentSlide]?.dataUrl}
               alt={images[currentSlide]?.name ?? 'Carousel slide'}
-              className="w-full object-contain"
+              className="w-full"
+              style={{ maxHeight: 555 }}
             />
+            {/* Edit controls overlay */}
+            {editMode && (
+              <div className="absolute top-2 left-2 flex gap-1">
+                <button
+                  onClick={() => handleSwapImage(currentSlide, -1)}
+                  disabled={currentSlide === 0}
+                  className="rounded bg-black/70 px-2 py-1 text-[10px] text-white hover:bg-black/90 disabled:opacity-30"
+                  title="Move left"
+                >
+                  Move Left
+                </button>
+                <button
+                  onClick={() => handleSwapImage(currentSlide, 1)}
+                  disabled={currentSlide === images.length - 1}
+                  className="rounded bg-black/70 px-2 py-1 text-[10px] text-white hover:bg-black/90 disabled:opacity-30"
+                  title="Move right"
+                >
+                  Move Right
+                </button>
+                <button
+                  onClick={() => handleDeleteImage(currentSlide)}
+                  className="rounded bg-red-600/80 px-2 py-1 text-[10px] text-white hover:bg-red-600"
+                  title="Remove image"
+                >
+                  Remove
+                </button>
+              </div>
+            )}
             {/* Carousel navigation */}
             {images.length > 1 && (
               <>
-                {/* Prev/Next buttons */}
                 {currentSlide > 0 && (
                   <button
                     onClick={handlePrev}
                     className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-1.5 text-white hover:bg-black/70"
                     aria-label="Previous slide"
                   >
-                    <svg
-                      className="h-4 w-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 19l-7-7 7-7"
-                      />
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                     </svg>
                   </button>
                 )}
@@ -234,35 +322,21 @@ export function LinkedInCompositePreview({
                     className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-1.5 text-white hover:bg-black/70"
                     aria-label="Next slide"
                   >
-                    <svg
-                      className="h-4 w-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </button>
                 )}
-                {/* Slide counter */}
                 <div className="absolute right-3 top-3 rounded-full bg-black/60 px-2 py-0.5 text-xs text-white">
                   {currentSlide + 1} / {images.length}
                 </div>
-                {/* Dot indicators */}
                 <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5">
                   {images.map((_, i) => (
                     <button
                       key={i}
                       onClick={() => setCurrentSlide(i)}
                       className={`h-2 w-2 rounded-full transition-colors ${
-                        i === currentSlide
-                          ? 'bg-white'
-                          : 'bg-white/50 hover:bg-white/75'
+                        i === currentSlide ? 'bg-white' : 'bg-white/50 hover:bg-white/75'
                       }`}
                       aria-label={`Go to slide ${i + 1}`}
                     />
@@ -274,7 +348,7 @@ export function LinkedInCompositePreview({
         ) : (
           <div className="mx-4 mb-2 rounded-md border border-dashed border-zinc-300 bg-zinc-50 px-4 py-6 text-center dark:border-zinc-600 dark:bg-zinc-700/50">
             <p className="text-sm text-zinc-400 dark:text-zinc-500">
-              No images attached yet
+              No media attached yet
             </p>
             <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
               Browse Components tab to create visuals
@@ -291,7 +365,7 @@ export function LinkedInCompositePreview({
         )}
 
         {/* Engagement mockup */}
-        {hasText && hasImages && (
+        {hasText && hasMedia && (
           <div className="border-t border-zinc-200 px-4 py-1.5 dark:border-zinc-700">
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
               42 reactions &middot; 3 comments
